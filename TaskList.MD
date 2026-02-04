@@ -1,6 +1,6 @@
-#DONE
+DONE
 Front end login, register, homepage
-##IN PROGRESS
+IN PROGRESS
 Springboot, readME
-###
+TO DO
 Backend MySQL
