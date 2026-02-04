@@ -1,1 +1,60 @@
+.hero {
+  padding: 6rem 2rem 4rem;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+  animation: fadeUp 480ms ease both;
+}
 
+.hero-buttons a {
+  margin: 0 10px;
+}
+
+.hero h1 { color: var(--text); font-weight: 700; letter-spacing: -0.02em; }
+.hero p { color: var(--muted); max-width: 700px; margin: 1rem auto 1.5rem; }
+
+.hero .primary-btn { background: linear-gradient(90deg,var(--primary),var(--primary-600)); box-shadow: 0 10px 30px rgba(92,58,238,0.12);} 
+.hero .secondary-btn { color: var(--primary); background: transparent; padding: 0.5rem 0.75rem; }
+
+
+.features {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.feature-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 250px;
+  text-align: center;
+}
+
+.feature-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.03);
+  transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms;
+}
+.feature-card:hover { transform: translateY(-8px); box-shadow: 0 18px 40px rgba(2,8,23,0.5); }
+.feature-card h3 { margin-top: 0.6rem; color: var(--text); }
+.feature-card p { color: var(--muted); margin-top: 0.6rem; }
+
+@media (max-width: 800px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  .features {
+    gap: 1rem;
+    padding: 2rem 1rem;
+  }
+  .feature-card {
+    width: 100%;
+    max-width: 320px;
+  }
+}
