@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useContext, useState } from "react";
 import AuthContext from "../context/AuthContext";
 import "../styles/auth.css";
@@ -6,6 +6,8 @@ import "../styles/auth.css";
 export default function Register() {
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,10 +26,14 @@ export default function Register() {
       setError(res.message);
       return;
     }
-    // redirect based on role
-    if (role === "EMPLOYER") navigate("/dashboard/employer");
-    else if (role === "ADMIN") navigate("/dashboard/admin");
-    else navigate("/dashboard/student");
+    // redirect to originally requested page if present, otherwise role-dashboard
+    if (from) {
+      navigate(from, { replace: true });
+      return;
+    }
+    if (role === "EMPLOYER") navigate("/dashboard/employer", { replace: true });
+    else if (role === "ADMIN") navigate("/dashboard/admin", { replace: true });
+    else navigate("/dashboard/student", { replace: true });
   };
 
   return (
