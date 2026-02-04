@@ -1,1 +1,61 @@
+.auth-container {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at 10% 20%, rgba(124,92,255,0.06), transparent 6%), linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+  padding: 2rem 1rem;
+}
 
+.auth-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding: 2.25rem;
+  border-radius: var(--radius);
+  width: 420px;
+  max-width: 100%;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(2,8,23,0.5);
+  border: 1px solid rgba(255,255,255,0.03);
+  animation: fadeUp 420ms ease both;
+}
+
+.auth-card h2 { margin: 0 0 6px; color: var(--text); }
+.auth-card p { margin: 0 0 12px; color: var(--muted); }
+
+.auth-card input,
+.auth-card select {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 10px 0;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  color: var(--text);
+  border-radius: 8px;
+  transition: box-shadow 160ms, transform 160ms, border-color 160ms;
+}
+.auth-card input:focus,
+.auth-card select:focus { outline: none; border-color: rgba(124,92,255,0.9); box-shadow: 0 8px 24px rgba(92,58,238,0.12); transform: translateY(-2px);} 
+
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg,var(--primary),var(--primary-600));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 180ms, box-shadow 180ms;
+}
+.primary-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(92,58,238,0.18); }
+
+.auth-footer {
+  margin-top: 14px;
+  display: block;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .auth-card { padding: 1.5rem; }
+}
