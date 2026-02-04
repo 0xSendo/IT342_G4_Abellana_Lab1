@@ -1,11 +1,26 @@
-import { Link, useNavigate } from "react-router-dom";
-import React, { useContext, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/AuthContext";
 import "../styles/auth.css";
 
 export default function Login() {
-  const { login, isAuthenticated } = useContext(AuthContext);
+  const { login, isAuthenticated, currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname;
+  
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    // if already authenticated, send to originally requested page or dashboard
+    if (from) {
+      navigate(from, { replace: true });
+      return;
+    }
+    const role = currentUser?.role || "STUDENT";
+    if (role === "EMPLOYER") navigate("/dashboard/employer", { replace: true });
+    else if (role === "ADMIN") navigate("/dashboard/admin", { replace: true });
+    else navigate("/dashboard/student", { replace: true });
+  }, [isAuthenticated, from, currentUser, navigate]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,11 +37,15 @@ export default function Login() {
       setError(res.message);
       return;
     }
-    // redirect based on role
+    // redirect based on originally requested route or role-based dashboard
+    if (from) {
+      navigate(from, { replace: true });
+      return;
+    }
     const role = res.user.role || "STUDENT";
-    if (role === "EMPLOYER") navigate("/dashboard/employer");
-    else if (role === "ADMIN") navigate("/dashboard/admin");
-    else navigate("/dashboard/student");
+    if (role === "EMPLOYER") navigate("/dashboard/employer", { replace: true });
+    else if (role === "ADMIN") navigate("/dashboard/admin", { replace: true });
+    else navigate("/dashboard/student", { replace: true });
   };
 
   return (
