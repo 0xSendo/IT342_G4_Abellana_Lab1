@@ -71,6 +71,27 @@ body {
 /* small fade/slide up animation */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
 
+/* Toast styles */
+.toast-viewport {
+  position: fixed;
+  right: 16px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2000;
+}
+.toast {
+  background: linear-gradient(90deg, var(--primary), var(--primary-600));
+  color: white;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(2,6,23,0.4);
+  font-weight: 600;
+  transform-origin: right bottom;
+  animation: fadeUp 240ms ease both;
+}
+
 
 h1 {
   font-size: 3.2em;
