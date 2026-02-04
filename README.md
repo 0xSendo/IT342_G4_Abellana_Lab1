@@ -1,96 +1,69 @@
-📘 InternMatch
+# 🎓 InternMatch
 
-InternMatch is a web-based internship matching platform designed to connect students with organizations offering internship opportunities.
+**InternMatch** is a web-based internship matching platform designed to connect students with organizations offering internship opportunities.  
 It provides a centralized system for managing internship postings, applications, and user roles within a university or academic context.
 
+---
 
-🎯 Project Objectives
+## 🎯 Project Objectives
 
-Provide students with an easy way to discover and apply for internship opportunities
+- Provide students with an easy way to discover and apply for internship opportunities
+- Help organizations manage internship postings and track applicants
+- Centralize internship-related processes for academic institutions
+- Replace manual internship coordination (email, social media, spreadsheets)
 
-Help organizations manage internship postings and track applicants
+---
 
-Centralize internship-related processes for academic institutions
+## 👥 User Roles
 
-Replace manual internship coordination (email, social media, spreadsheets)
+### 👨‍🎓 Students
+- Create and manage profiles
+- Browse and apply for internships
+- Track application status
 
-👥 User Roles
+### 🏢 Employer Representatives
+- Post and manage internship opportunities
+- Review student applications
 
-Students
+### 🛡️ Administrators
+- Manage users and internship postings
+- Monitor system activity
 
-Create and manage profiles
+---
 
-Browse and apply for internships
+## ⚙️ System Features
 
-Track application status
+- Role-based user authentication (JWT)
+- Student profile management
+- Internship posting and application system
+- Application tracking with status updates
+- Admin management panel
+- Secure relational database storage
 
-Employer Representatives
+---
 
-Post and manage internship opportunities
+## 🧱 Technology Stack
 
-Review student applications
+### Frontend
+- React.js (Vite)
+- JavaScript
+- React Router
+- CSS (Responsive Design)
 
-Update application statuses
+### Backend
+- Spring Boot
+- Spring Security
+- JWT Authentication
+- Spring Data JPA
 
-Administrators
+### Database
+- MySQL / PostgreSQL
 
-Manage users and internship postings
+---
 
-Monitor system activity
+## 🚀 Getting Started
 
-Guest Users
-
-View public internship listings (read-only)
-
-⚙️ System Features
-
-User authentication with role-based access control (RBAC)
-
-Student profile management (academic background, skills, interests)
-
-Internship posting and management
-
-Internship search, filtering, and application
-
-Application tracking with status updates (Pending, Accepted, Rejected)
-
-In-app notifications for application status changes
-
-Admin panel for user and content management
-
-Secure data storage using a relational database
-
-🧱 Technology Stack
-Frontend
-
-React.js (Vite)
-
-JavaScript
-
-React Router
-
-Axios
-
-CSS (Responsive Design)
-
-Backend
-
-Spring Boot (Java 17+)
-
-Spring Security
-
-JWT (JSON Web Token)
-
-Spring Data JPA
-
-Database
-
-MySQL or PostgreSQL
-
-Tools & Platforms
-
-Git & GitHub
-
-VS Code / IntelliJ IDEA
-
-Postman (API testing)
+### Frontend Setup
+```bash
+npm install
+npm run dev
