@@ -1,1 +1,29 @@
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
 
+.dashboard-main {
+  flex: 1;
+  padding: 2rem;
+  background: #f9fafb;
+}
+
+.card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.status.pending {
+  color: orange;
+}
+
+.status.accepted {
+  color: green;
+}
+
+.status.rejected {
+  color: red;
+}
