@@ -1,1 +1,17 @@
+.sidebar {
+  width: 220px;
+  background: #4f46e5;
+  color: white;
+  padding: 2rem 1rem;
+}
 
+.sidebar h2 {
+  margin-bottom: 2rem;
+}
+
+.sidebar a {
+  display: block;
+  color: white;
+  margin: 1rem 0;
+  text-decoration: none;
+}
