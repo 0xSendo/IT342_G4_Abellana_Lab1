@@ -1,0 +1,7 @@
+com\internmatch\internmatch\entity\User.class
+com\internmatch\internmatch\entity\User$UserBuilder.class
+com\internmatch\internmatch\controller\AuthController$RegisterRequest.class
+com\internmatch\internmatch\entity\Role.class
+com\internmatch\internmatch\InternmatchApplication.class
+com\internmatch\internmatch\controller\AuthController.class
+com\internmatch\internmatch\repository\UserRepository.class
