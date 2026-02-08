@@ -1,0 +1,30 @@
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration  # temporary - remove after fix
+
+  application:
+    name: internmatch
+
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/internmatch?useSSL=false&serverTimezone=Asia/Manila&allowPublicKeyRetrieval=true
+    username: root
+    password: internmatch
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+server:
+  port: 8081
+
+logging:
+  level:
+    root: DEBUG  # temporary - shows more details
+    org.springframework: DEBUG
+    org.hibernate: DEBUG
