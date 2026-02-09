@@ -1,7 +1,4 @@
 spring:
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration  # temporary - remove after fix
-
   application:
     name: internmatch
 
@@ -25,6 +22,6 @@ server:
 
 logging:
   level:
-    root: DEBUG  # temporary - shows more details
+    root: DEBUG
     org.springframework: DEBUG
     org.hibernate: DEBUG
