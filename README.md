@@ -58,7 +58,7 @@ It provides a centralized system for managing internship postings, applications,
 
 ### Step 1: Frontend Setup
 
-1. **Create Google Cloud Project**:
+1. **Install React**:
    ```bash
 npm install
 npm run dev
