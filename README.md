@@ -86,3 +86,9 @@ spring.datasource.password=your_db_password
 jwt.secret=your_jwt_secret_key
 jwt.expiration=86400000  # in milliseconds (e.g., 1 day)
 
+---
+
+Database Setup
+
+-Create a relational database (MySQL/PostgreSQL) named internmatch
+-The backend will auto-create tables via JPA/Hibernate
