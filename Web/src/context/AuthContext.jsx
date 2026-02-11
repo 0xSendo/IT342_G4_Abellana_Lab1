@@ -59,7 +59,20 @@ export function AuthProvider({ children }) {
   const updateProfile = (updates) => {
     if (!currentUser) return { ok: false, message: "No active user." };
     const users = getUsers();
-    const nextUser = { ...currentUser, ...updates };
+    const nextEmail = updates.email?.toLowerCase?.() ?? currentUser.email;
+    const emailTaken = users.some(
+      (u) => u.id !== currentUser.id && u.email === nextEmail
+    );
+    if (emailTaken) {
+      return { ok: false, message: "Email is already used by another account." };
+    }
+
+    const nextUser = {
+      ...currentUser,
+      ...updates,
+      email: nextEmail,
+      role: currentUser.role,
+    };
     const index = users.findIndex((u) => u.id === currentUser.id);
     if (index >= 0) {
       users[index] = nextUser;
