@@ -1,18 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap");
+
 :root {
-  --font-sans: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-sans: "Sora", "Segoe UI", Helvetica, Arial, sans-serif;
   --radius: 12px;
   --container-width: 1100px;
 
   /* Color palette */
-  --bg:  #0f1724; /* dark */
-  --surface: #0b1220;
-  --muted: #9aa4b2;
-  --text: #e6eef8;
-  --card-bg: #0e1a2b;
-  --primary: #7c5cff; /* violet */
-  --primary-600: #5b3af0;
-  --accent: linear-gradient(90deg,#7c5cff 0%, #6bd3ff 100%);
-  --glass: rgba(255,255,255,0.04);
+  --bg:  #0b1220;
+  --surface: #101a2b;
+  --muted: #96a3b5;
+  --text: #eef3fb;
+  --card-bg: #101a2b;
+  --primary: #ff6b4a;
+  --primary-600: #f0552f;
+  --accent: linear-gradient(100deg, #ff6b4a 0%, #39c6b8 100%);
+  --glass: rgba(255,255,255,0.06);
 
   color-scheme: light dark;
   color: var(--text);
@@ -44,7 +46,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   padding-top: 64px;
-  background-image: radial-gradient( circle at 10% 10%, rgba(123,96,255,0.05), transparent 6%, transparent ), radial-gradient( circle at 90% 80%, rgba(107,211,255,0.03), transparent 8%, transparent );
+  background-image:
+    radial-gradient( circle at 12% 8%, rgba(255,107,74,0.12), transparent 18% ),
+    radial-gradient( circle at 88% 18%, rgba(57,198,184,0.12), transparent 22% ),
+    radial-gradient( circle at 18% 88%, rgba(255,214,102,0.12), transparent 20% );
 }
 
 /* Utility */
@@ -125,8 +130,8 @@ button:focus-visible {
     --muted: #6b7280;
     --text: #0f1724;
     --card-bg: #ffffff;
-    --primary: #6d28d9; /* vibrant purple */
-    --primary-600: #5b21b6;
+    --primary: #ff6b4a;
+    --primary-600: #f0552f;
     --glass: rgba(2,6,23,0.03);
   }
   a:hover { color: var(--primary-600); }
