@@ -42,6 +42,8 @@ export default function Register() {
         <h2>Create Account 🚀</h2>
         <p>Join InternMatch today</p>
 
+        <Link className="auth-back" to="/">← Back to home</Link>
+
         <form onSubmit={onSubmit}>
           <input
             type="text"
