@@ -68,9 +68,7 @@ It provides a centralized system for managing internship postings, applications,
 npm install
 npm run dev
 
----
-
-### Backend Setup
+## Backend Setup
 ```bash
 cd backend
 mvn clean install
@@ -78,4 +76,3 @@ mvn spring-boot:run
 
 ### Environment Variables
 
-npm run dev
