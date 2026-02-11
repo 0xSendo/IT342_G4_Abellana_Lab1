@@ -56,12 +56,27 @@ export function AuthProvider({ children }) {
     setCurrentUser(null);
   };
 
+  const updateProfile = (updates) => {
+    if (!currentUser) return { ok: false, message: "No active user." };
+    const users = getUsers();
+    const nextUser = { ...currentUser, ...updates };
+    const index = users.findIndex((u) => u.id === currentUser.id);
+    if (index >= 0) {
+      users[index] = nextUser;
+      saveUsers(users);
+    }
+    localStorage.setItem("internmatch_currentUser", JSON.stringify(nextUser));
+    setCurrentUser(nextUser);
+    return { ok: true, user: nextUser };
+  };
+
   const value = {
     currentUser,
     isAuthenticated: !!currentUser,
     register,
     login,
     logout,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
