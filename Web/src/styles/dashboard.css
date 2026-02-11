@@ -36,6 +36,48 @@
   font-size: 1.1rem;
 }
 
+.profile-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.profile-form input {
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  transition: border-color 160ms, transform 160ms, box-shadow 160ms;
+}
+
+.profile-form input:focus {
+  outline: none;
+  border-color: rgba(255,107,74,0.8);
+  box-shadow: 0 10px 24px rgba(255,107,74,0.16);
+  transform: translateY(-1px);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem 1.2rem;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+
+.profile-status {
+  color: var(--muted);
+  font-weight: 600;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
