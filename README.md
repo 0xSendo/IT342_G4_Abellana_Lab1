@@ -67,3 +67,13 @@ It provides a centralized system for managing internship postings, applications,
 ```bash
 npm install
 npm run dev
+
+### Backend Setup
+```bash
+cd backend
+mvn clean install
+mvn spring-boot:run
+
+### Environment Variables
+
+npm run dev
