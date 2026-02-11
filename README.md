@@ -67,3 +67,7 @@ It provides a centralized system for managing internship postings, applications,
 ```bash
 npm install
 npm run dev
+
+---
+
+### Backend Setup
