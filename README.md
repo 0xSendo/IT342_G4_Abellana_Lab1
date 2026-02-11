@@ -68,11 +68,20 @@ It provides a centralized system for managing internship postings, applications,
 npm install
 npm run dev
 
-## Backend Setup
+### Backend Setup
 ```bash
 cd backend
 mvn clean install
 mvn spring-boot:run
 
 ### Environment Variables
+ -Create a .env or application.properties file in the backend project and configure the following:
+ # Database configuration
+spring.datasource.url=jdbc:mysql://localhost:3306/internmatch
+spring.datasource.username=your_db_username
+spring.datasource.password=your_db_password
+
+# JWT configuration
+jwt.secret=your_jwt_secret_key
+jwt.expiration=86400000  # in milliseconds (e.g., 1 day)
 
