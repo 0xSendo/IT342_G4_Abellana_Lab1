@@ -11,25 +11,26 @@ export default function Login() {
   
   useEffect(() => {
     if (!isAuthenticated) return;
-    // if already authenticated, send to originally requested page or dashboard
-    if (from) {
+
+    const role = currentUser?.role || "STUDENT";
+    const roleDashboard =
+      role === "EMPLOYER"
+        ? "/dashboard/employer"
+        : role === "ADMIN"
+          ? "/dashboard/admin"
+          : "/dashboard/student";
+
+    // only honor the requested route if it matches the user's role dashboard
+    if (from && from.startsWith(roleDashboard)) {
       navigate(from, { replace: true });
       return;
     }
-    const role = currentUser?.role || "STUDENT";
-    if (role === "EMPLOYER") navigate("/dashboard/employer", { replace: true });
-    else if (role === "ADMIN") navigate("/dashboard/admin", { replace: true });
-    else navigate("/dashboard/student", { replace: true });
+
+    navigate(roleDashboard, { replace: true });
   }, [isAuthenticated, from, currentUser, navigate]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -39,15 +40,20 @@ export default function Login() {
       setError(res.message);
       return;
     }
-    // redirect based on originally requested route or role-based dashboard
-    if (from) {
+    const role = res.user.role || "STUDENT";
+    const roleDashboard =
+      role === "EMPLOYER"
+        ? "/dashboard/employer"
+        : role === "ADMIN"
+          ? "/dashboard/admin"
+          : "/dashboard/student";
+
+    if (from && from.startsWith(roleDashboard)) {
       navigate(from, { replace: true });
       return;
     }
-    const role = res.user.role || "STUDENT";
-    if (role === "EMPLOYER") navigate("/dashboard/employer", { replace: true });
-    else if (role === "ADMIN") navigate("/dashboard/admin", { replace: true });
-    else navigate("/dashboard/student", { replace: true });
+
+    navigate(roleDashboard, { replace: true });
   };
 
   return (
