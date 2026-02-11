@@ -56,6 +56,10 @@ It provides a centralized system for managing internship postings, applications,
 ### Database
 - MySQL / PostgreSQL
 
+### Mobile
+- Kotlin (Android native app development)
+
+
 ### Step 1: Frontend Setup
 
 1. **Install React**:
