@@ -6,6 +6,12 @@ import "../styles/navbar.css";
 export default function Navbar() {
 	const { isAuthenticated, currentUser, logout } = useContext(AuthContext);
 
+	const onLogout = () => {
+		const confirmed = window.confirm("Are you sure you want to log out?");
+		if (!confirmed) return;
+		logout();
+	};
+
 	return (
 		<nav className="navbar">
 			<h2>InternMatch</h2>
@@ -16,7 +22,7 @@ export default function Navbar() {
 				{isAuthenticated && (
 					<div className="nav-user">
 						<span className="nav-user-name">{currentUser?.name || "User"}</span>
-						<button className="nav-logout" type="button" onClick={logout}>
+						<button className="nav-logout" type="button" onClick={onLogout}>
 							Logout
 						</button>
 					</div>
