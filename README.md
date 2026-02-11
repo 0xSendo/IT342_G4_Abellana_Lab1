@@ -65,10 +65,11 @@ It provides a centralized system for managing internship postings, applications,
 
 ### Frontend & Backend Setup
 ```bash
+## Frontend
 npm install
 npm run dev
 
-### Backend Setup
+## Backend Setup
 ```bash
 cd backend
 mvn clean install
