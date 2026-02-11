@@ -60,8 +60,8 @@ It provides a centralized system for managing internship postings, applications,
 
 1. **Install React**:
    ```bash
-npm install
-npm run dev
+   npm install
+   npm run dev
 
 ---
 
