@@ -22,6 +22,25 @@
 .auth-card h2 { margin: 0 0 6px; color: var(--text); }
 .auth-card p { margin: 0 0 12px; color: var(--muted); }
 
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0 1rem;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  transition: transform 160ms, background 160ms;
+}
+
+.auth-back:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateX(-2px);
+}
+
 .auth-card input,
 .auth-card select {
   width: 100%;
