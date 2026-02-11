@@ -56,6 +56,8 @@ export default function Login() {
         <h2>Welcome Back 👋</h2>
         <p>Login to your InternMatch account</p>
 
+        <Link className="auth-back" to="/">← Back to home</Link>
+
         <form onSubmit={onSubmit}>
           <input
             type="email"
