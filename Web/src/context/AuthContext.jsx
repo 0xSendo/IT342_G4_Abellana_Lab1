@@ -37,8 +37,6 @@ export function AuthProvider({ children }) {
     const user = { id: Date.now(), name, email: email.toLowerCase(), password, role };
     users.push(user);
     saveUsers(users);
-    localStorage.setItem("internmatch_currentUser", JSON.stringify(user));
-    setCurrentUser(user);
     return { ok: true, user };
   };
 
