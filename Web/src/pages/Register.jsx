@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useContext, useState } from "react";
 import AuthContext from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import "../styles/auth.css";
 
 export default function Register() {
@@ -8,6 +9,7 @@ export default function Register() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname;
+  const toast = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,14 +28,9 @@ export default function Register() {
       setError(res.message);
       return;
     }
-    // redirect to originally requested page if present, otherwise role-dashboard
-    if (from) {
-      navigate(from, { replace: true });
-      return;
-    }
-    if (role === "EMPLOYER") navigate("/dashboard/employer", { replace: true });
-    else if (role === "ADMIN") navigate("/dashboard/admin", { replace: true });
-    else navigate("/dashboard/student", { replace: true });
+    toast.show("Registration successful. Please log in.");
+    // Always return to login after registration
+    navigate("/login", { replace: true, state: { from } });
   };
 
   return (
