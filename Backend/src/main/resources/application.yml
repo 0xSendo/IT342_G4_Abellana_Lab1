@@ -17,8 +17,19 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: " "
+            client-secret: " "
+            scope:
+              - profile
+              - email
+
 server:
-  port: 8081
+  port: 8080
 
 logging:
   level:
@@ -26,6 +37,5 @@ logging:
     org.springframework: DEBUG
     org.hibernate: DEBUG
 
-spring.security.oauth2.client.registration.google.client-id=
-spring.security.oauth2.client.registration.google.client-secret=
-spring.security.oauth2.client.registration.google.scope= profile,email=
+app:
+  frontend-url: http://localhost:5173
