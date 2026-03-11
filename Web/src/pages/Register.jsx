@@ -42,6 +42,16 @@ export default function Register() {
   const handleGoogleLogin = () => {
     const base = apiBaseUrl.replace(/\/$/, "");
     window.location.href = `${base}${googleOauth2Url}`;
+    // TODO: Uncomment when backend is running (requires JDK 17+)
+    // const base = apiBaseUrl.replace(/\/$/, "");
+    // window.location.href = `${base}${googleOauth2Url}`;
+
+    // Hardcoded direct Google OAuth URL (temporary - bypasses backend)
+    const clientId = "575888947733-vg689sh7vpvosr9uaquv9osrgibc3ost.apps.googleusercontent.com";
+    const redirectUri = encodeURIComponent(`${window.location.origin}/`);
+    const scope = encodeURIComponent("openid email profile");
+    window.location.href =
+      `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=select_account`;
   };
 
   return (
