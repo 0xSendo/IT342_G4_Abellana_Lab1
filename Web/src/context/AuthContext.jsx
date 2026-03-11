@@ -27,6 +27,45 @@ export function AuthProvider({ children }) {
     localStorage.setItem("internmatch_users", JSON.stringify(users));
   }
 
+  const loginWithOAuth = ({ token, email, name, role }) => {
+    const normalizedEmail = email?.toLowerCase?.();
+    const normalizedRole = role || "STUDENT";
+
+    if (!token || !normalizedEmail) {
+      return { ok: false, message: "Missing OAuth login details." };
+    }
+
+    const users = getUsers();
+    const existingUser = users.find((u) => u.email === normalizedEmail);
+    const user = existingUser || {
+      id: Date.now(),
+      name: name || normalizedEmail,
+      email: normalizedEmail,
+      password: "",
+      role: normalizedRole,
+    };
+
+    const nextUser = {
+      ...user,
+      name: name || user.name,
+      role: normalizedRole,
+    };
+
+    if (existingUser) {
+      const index = users.findIndex((u) => u.email === normalizedEmail);
+      users[index] = nextUser;
+    } else {
+      users.push(nextUser);
+    }
+
+    saveUsers(users);
+    localStorage.setItem("internmatch_token", token);
+    localStorage.setItem("internmatch_currentUser", JSON.stringify(nextUser));
+    setCurrentUser(nextUser);
+
+    return { ok: true, user: nextUser };
+  };
+
   const register = ({ name, email, password, role }) => {
     const users = getUsers();
     const exists = users.find((u) => u.email === email.toLowerCase());
@@ -51,6 +90,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem("internmatch_currentUser");
+    localStorage.removeItem("internmatch_token");
     setCurrentUser(null);
   };
 
@@ -86,6 +126,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!currentUser,
     register,
     login,
+    loginWithOAuth,
     logout,
     updateProfile,
   };
