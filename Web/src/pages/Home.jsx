@@ -4,6 +4,23 @@ import AuthContext from "../context/AuthContext";
 import "../styles/home.css";
 import Navbar from "../components/Navbar";
 
+function parseHashParams(hash) {
+  if (!hash || !hash.startsWith("#")) return new URLSearchParams();
+  return new URLSearchParams(hash.substring(1));
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const base64 = token.split(".")[1];
+    if (!base64) return null;
+    const normalized = base64.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return JSON.parse(window.atob(padded));
+  } catch {
+    return null;
+  }
+}
+
 function getRoleDashboard(role) {
   if (role === "EMPLOYER") return "/dashboard/employer";
   if (role === "ADMIN") return "/dashboard/admin";
@@ -16,10 +33,15 @@ export default function Home() {
   const navigate = useNavigate();
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const hashParams = useMemo(() => parseHashParams(location.hash), [location.hash]);
+
   const oauthToken = searchParams.get("token");
   const oauthEmail = searchParams.get("email");
   const oauthName = searchParams.get("name");
   const oauthRole = searchParams.get("role");
+
+  const implicitAccessToken = hashParams.get("access_token");
+  const implicitIdToken = hashParams.get("id_token");
 
   useEffect(() => {
     if (!oauthToken || !oauthEmail) return;
@@ -35,6 +57,27 @@ export default function Home() {
       navigate(getRoleDashboard(result.user.role), { replace: true });
     }
   }, [oauthToken, oauthEmail, oauthName, oauthRole, loginWithOAuth, navigate]);
+
+  useEffect(() => {
+    if (!implicitAccessToken && !implicitIdToken) return;
+
+    const idTokenPayload = implicitIdToken ? decodeJwtPayload(implicitIdToken) : null;
+    const email = idTokenPayload?.email;
+    const name = idTokenPayload?.name || email;
+
+    if (!email) return;
+
+    const result = loginWithOAuth({
+      token: implicitAccessToken || implicitIdToken,
+      email,
+      name,
+      role: "STUDENT",
+    });
+
+    if (result.ok) {
+      navigate(getRoleDashboard(result.user.role), { replace: true });
+    }
+  }, [implicitAccessToken, implicitIdToken, loginWithOAuth, navigate]);
 
   return (
     <>
