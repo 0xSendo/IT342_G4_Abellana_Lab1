@@ -25,3 +25,7 @@ logging:
     root: DEBUG
     org.springframework: DEBUG
     org.hibernate: DEBUG
+
+spring.security.oauth2.client.registration.google.client-id=
+spring.security.oauth2.client.registration.google.client-secret=
+spring.security.oauth2.client.registration.google.scope= profile,email=
