@@ -34,22 +34,26 @@ export default function Login() {
     navigate(roleDashboard, { replace: true });
   }, [isAuthenticated, from, currentUser, navigate]);
 
-  const onSubmit = (e) => {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    const res = login({ email, password });
     const res = await login({ email, password });
     if (!res.ok) {
       setError(res.message);
       return;
-@@ -54,56 +54,64 @@
+    }
+    setSuccess("Login successful! Redirecting...");
+    const role = res.user.role || "STUDENT";
+    const roleDashboard = getRoleDashboard(role);
+    if (from && from.startsWith(roleDashboard)) {
+      navigate(from, { replace: true });
+      return;
+    }
+    navigate(roleDashboard, { replace: true });
   };
 
   const handleGoogleLogin = () => {
-    const base = apiBaseUrl.replace(/\/$/, "");
-    window.location.href = `${base}${googleOauth2Url}`;
     // TODO: Uncomment when backend is running (requires JDK 17+)
     // const base = apiBaseUrl.replace(/\/$/, "");
     // window.location.href = `${base}${googleOauth2Url}`;
