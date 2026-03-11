@@ -25,11 +25,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
         .csrf(csrf -> csrf.disable())
+        .cors(Customizer.withDefaults())
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+            .requestMatchers("/api/user/me").authenticated()
             .anyRequest().permitAll()  // TEMPORARY - remove later
         )
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     return http.build();
 }
