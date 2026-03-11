@@ -34,28 +34,32 @@ export default function Login() {
     navigate(roleDashboard, { replace: true });
   }, [isAuthenticated, from, currentUser, navigate]);
 
+  const onSubmit = (e) => {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    const res = login({ email, password });
     const res = await login({ email, password });
     if (!res.ok) {
       setError(res.message);
       return;
-    }
-    setSuccess("Login successful! Redirecting...");
-    const role = res.user.role || "STUDENT";
-    const roleDashboard = getRoleDashboard(role);
-    if (from && from.startsWith(roleDashboard)) {
-      navigate(from, { replace: true });
-      return;
-    }
-    navigate(roleDashboard, { replace: true });
+@@ -54,56 +54,64 @@
   };
 
   const handleGoogleLogin = () => {
     const base = apiBaseUrl.replace(/\/$/, "");
     window.location.href = `${base}${googleOauth2Url}`;
+    // TODO: Uncomment when backend is running (requires JDK 17+)
+    // const base = apiBaseUrl.replace(/\/$/, "");
+    // window.location.href = `${base}${googleOauth2Url}`;
+
+    // Hardcoded direct Google OAuth URL (temporary - bypasses backend)
+    const clientId = "575888947733-vg689sh7vpvosr9uaquv9osrgibc3ost.apps.googleusercontent.com";
+    const redirectUri = encodeURIComponent(`${window.location.origin}/`);
+    const scope = encodeURIComponent("openid email profile");
+    window.location.href =
+      `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=select_account`;
   };
 
   return (
