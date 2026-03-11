@@ -40,8 +40,6 @@ export default function Register() {
   };
 
   const handleGoogleLogin = () => {
-    const base = apiBaseUrl.replace(/\/$/, "");
-    window.location.href = `${base}${googleOauth2Url}`;
     // TODO: Uncomment when backend is running (requires JDK 17+)
     // const base = apiBaseUrl.replace(/\/$/, "");
     // window.location.href = `${base}${googleOauth2Url}`;
