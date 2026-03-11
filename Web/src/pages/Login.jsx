@@ -62,8 +62,9 @@ export default function Login() {
     const clientId = "575888947733-vg689sh7vpvosr9uaquv9osrgibc3ost.apps.googleusercontent.com";
     const redirectUri = encodeURIComponent(`${window.location.origin}/`);
     const scope = encodeURIComponent("openid email profile");
+    const nonce = encodeURIComponent("internmatch-dev-nonce");
     window.location.href =
-      `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=select_account`;
+      `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=${scope}&nonce=${nonce}&prompt=select_account`;
   };
 
   return (
