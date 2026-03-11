@@ -49,20 +49,18 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        if (name == null || name.isBlank()) {
-            name = email;
-        }
+        String resolvedName = (name == null || name.isBlank()) ? email : name;
 
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> userRepository.save(User.builder()
                         .email(email)
-                        .name(name)
+                        .name(resolvedName)
                         .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                         .role(Role.STUDENT)
                         .build()));
 
         if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(name);
+            user.setName(resolvedName);
             user = userRepository.save(user);
         }
 
@@ -72,10 +70,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         claims.put("userId", user.getId());
 
         String token = jwtService.generateToken(claims, user);
-        String dashboardPath = resolveDashboardPath(user.getRole());
 
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendUrl)
-                .path(dashboardPath)
+                .path("/")
                 .queryParam("token", token)
                 .queryParam("email", user.getEmail())
                 .queryParam("name", user.getName())
@@ -84,13 +81,5 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .toUriString();
 
         response.sendRedirect(redirectUrl);
-    }
-
-    private String resolveDashboardPath(Role role) {
-        return switch (role) {
-            case EMPLOYER -> "/dashboard/employer";
-            case ADMIN -> "/dashboard/admin";
-            default -> "/dashboard/student";
-        };
     }
 }
