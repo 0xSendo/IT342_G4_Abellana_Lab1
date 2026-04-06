@@ -4,6 +4,45 @@ import AuthContext from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import "../styles/auth.css";
 
+// ==================== Factory Method Pattern (Creational) ====================
+// Factory that creates the appropriate post-registration handler based on role
+const createRegistrationHandler = (navigate, from, toast) => {
+  const getRoleDashboard = (role) => {
+    if (role === "EMPLOYER") return "/dashboard/employer";
+    if (role === "ADMIN") return "/dashboard/admin";
+    return "/dashboard/student";
+  };
+
+  // Factory method: creates handler for successful registration
+  const createSuccessHandler = (role) => {
+    return () => {
+      toast.show("Registration successful. Please log in.");
+      // For now we redirect to login (common for registration flow)
+      // In future, we could redirect directly to dashboard if auto-login is implemented
+      setTimeout(() => {
+        navigate("/login", { replace: true, state: { from } });
+      }, 1000);
+    };
+  };
+
+  return {
+    handleSuccessfulRegistration: (res) => {
+      const successHandler = createSuccessHandler(res.user?.role || "STUDENT");
+      successHandler();
+    },
+
+    // Factory method for creating Google OAuth URL (different config per context)
+    createGoogleOAuthUrl: () => {
+      const clientId = "575888947733-vg689sh7vpvosr9uaquv9osrgibc3ost.apps.googleusercontent.com";
+      const redirectUri = encodeURIComponent(`${window.location.origin}/`);
+      const scope = encodeURIComponent("openid email profile");
+      const nonce = encodeURIComponent("internmatch-dev-nonce");
+
+      return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=${scope}&nonce=${nonce}&prompt=select_account`;
+    }
+  };
+};
+
 export default function Register() {
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -18,39 +57,36 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const googleOauth2Url = import.meta.env.VITE_GOOGLE_OAUTH2_URL || "/oauth2/authorization/google";
+  // Create the registration handler using Factory
+  const registrationHandler = React.useMemo(() => 
+    createRegistrationHandler(navigate, from, toast), 
+    [navigate, from, toast]
+  );
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+
     if (!name || !email || !password) {
       setError("Please fill out all fields.");
       return;
     }
+
     const res = await register({ name, email, password, role });
+
     if (!res.ok) {
       setError(res.message);
       return;
     }
+
     setSuccess("Account created! Redirecting to login...");
-    toast.show("Registration successful. Please log in.");
-    setTimeout(() => navigate("/login", { replace: true, state: { from } }), 1000);
+    registrationHandler.handleSuccessfulRegistration(res);
   };
 
   const handleGoogleLogin = () => {
-    // TODO: Uncomment when backend is running (requires JDK 17+)
-    // const base = apiBaseUrl.replace(/\/$/, "");
-    // window.location.href = `${base}${googleOauth2Url}`;
-
-    // Hardcoded direct Google OAuth URL (temporary - bypasses backend)
-    const clientId = "575888947733-vg689sh7vpvosr9uaquv9osrgibc3ost.apps.googleusercontent.com";
-    const redirectUri = encodeURIComponent(`${window.location.origin}/`);
-    const scope = encodeURIComponent("openid email profile");
-    const nonce = encodeURIComponent("internmatch-dev-nonce");
-    window.location.href =
-      `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=${scope}&nonce=${nonce}&prompt=select_account`;
+    const googleUrl = registrationHandler.createGoogleOAuthUrl();
+    window.location.href = googleUrl;
   };
 
   return (
@@ -58,7 +94,6 @@ export default function Register() {
       <div className="auth-card">
         <h2>Create Account 🚀</h2>
         <p>Join InternMatch today</p>
-
         <Link className="auth-back" to="/">← Back to home</Link>
 
         <form onSubmit={onSubmit}>
@@ -94,7 +129,7 @@ export default function Register() {
         {success && <div className="auth-feedback auth-feedback--success">{success}</div>}
 
         <div className="auth-divider"><span>or</span></div>
-
+        
         <button type="button" className="google-btn" onClick={handleGoogleLogin}>
           <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
