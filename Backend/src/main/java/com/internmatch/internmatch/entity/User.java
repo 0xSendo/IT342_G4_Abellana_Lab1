@@ -34,6 +34,30 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    @Column
+    private String program;
+
+    @Column
+    private String yearLevel;
+
+    @Column(length = 1000)
+    private String skills;
+
+    @Column
+    private String companyName;
+
+    @Column
+    private String companyLocation;
+
+    @Column
+    private String companyWebsite;
+
+    @Column
+    private String department;
+
+    @Column
+    private String phone;
+
     // Spring Security UserDetails methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
