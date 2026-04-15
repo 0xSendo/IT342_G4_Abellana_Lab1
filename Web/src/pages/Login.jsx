@@ -20,8 +20,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const googleOauth2Url = import.meta.env.VITE_GOOGLE_OAUTH2_URL || "/oauth2/authorization/google";
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -54,17 +53,29 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // TODO: Uncomment when backend is running (requires JDK 17+)
-    // const base = apiBaseUrl.replace(/\/$/, "");
-    // window.location.href = `${base}${googleOauth2Url}`;
+    setError("");
+    setSuccess("");
 
-    // Hardcoded direct Google OAuth URL (temporary - bypasses backend)
-    const clientId = "575888947733-vg689sh7vpvosr9uaquv9osrgibc3ost.apps.googleusercontent.com";
-    const redirectUri = encodeURIComponent(`${window.location.origin}/`);
-    const scope = encodeURIComponent("openid email profile");
-    const nonce = encodeURIComponent("internmatch-dev-nonce");
-    window.location.href =
-      `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=${scope}&nonce=${nonce}&prompt=select_account`;
+    if (!googleClientId) {
+      setError("Google sign-in is not configured. Add VITE_GOOGLE_CLIENT_ID in InternMatch/.env.");
+      return;
+    }
+
+    const redirectUri = `${window.location.origin}/`;
+    const state = `${Date.now()}`;
+    const nonce = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const params = new URLSearchParams({
+      client_id: googleClientId,
+      redirect_uri: redirectUri,
+      response_type: "token id_token",
+      scope: "openid email profile",
+      include_granted_scopes: "true",
+      prompt: "select_account",
+      state,
+      nonce,
+    });
+
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   };
 
   return (
