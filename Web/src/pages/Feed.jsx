@@ -177,7 +177,7 @@ export default function Feed() {
   };
 
   return (
-    <DashboardLayout title="Feed">
+    <DashboardLayout title="Feed" showProfileCard={false}>
       <section className="card feed-hero">
         <div>
           <h3>Community Feed</h3>
