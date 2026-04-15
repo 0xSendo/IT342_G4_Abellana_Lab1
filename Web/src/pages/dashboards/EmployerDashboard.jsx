@@ -71,11 +71,20 @@ const DEFAULT_APPLICANTS = [
   },
 ];
 
+const INITIAL_POSTING_FORM = {
+  title: "",
+  location: "",
+  setup: "Hybrid",
+  status: "OPEN",
+  description: "",
+};
+
 export default function EmployerDashboard() {
   const { currentUser, updateProfile } = useContext(AuthContext);
   const toast = useToast();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPostingModalOpen, setIsPostingModalOpen] = useState(false);
+  const [isCreatePostingModalOpen, setIsCreatePostingModalOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState(null);
   const [postingSearch, setPostingSearch] = useState("");
   const [postingStatusFilter, setPostingStatusFilter] = useState("ALL");
@@ -83,6 +92,7 @@ export default function EmployerDashboard() {
   const [applicantStatusFilter, setApplicantStatusFilter] = useState("ALL");
   const [postings, setPostings] = useState(DEFAULT_POSTINGS);
   const [applicants, setApplicants] = useState(DEFAULT_APPLICANTS);
+  const [postingForm, setPostingForm] = useState(INITIAL_POSTING_FORM);
   const [form, setForm] = useState({
     name: currentUser?.name || "",
     email: currentUser?.email || "",
@@ -91,6 +101,7 @@ export default function EmployerDashboard() {
     companyWebsite: currentUser?.companyWebsite || "",
   });
   const [status, setStatus] = useState("");
+  const [createPostingError, setCreatePostingError] = useState("");
 
   useEffect(() => {
     setForm({
@@ -142,6 +153,11 @@ export default function EmployerDashboard() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const onPostingFormChange = (e) => {
+    const { name, value } = e.target;
+    setPostingForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   const openProfileModal = () => {
     setForm({
       name: currentUser?.name || "",
@@ -156,6 +172,16 @@ export default function EmployerDashboard() {
 
   const closeProfileModal = () => {
     setIsProfileModalOpen(false);
+  };
+
+  const openCreatePostingModal = () => {
+    setPostingForm(INITIAL_POSTING_FORM);
+    setCreatePostingError("");
+    setIsCreatePostingModalOpen(true);
+  };
+
+  const closeCreatePostingModal = () => {
+    setIsCreatePostingModalOpen(false);
   };
 
   const clearPostingFilters = () => {
@@ -205,6 +231,38 @@ export default function EmployerDashboard() {
       )
     );
     toast.show("Applicant status updated");
+  };
+
+  const submitNewPosting = (e) => {
+    e.preventDefault();
+    setCreatePostingError("");
+
+    const title = postingForm.title.trim();
+    const location = postingForm.location.trim();
+    const description = postingForm.description.trim();
+
+    if (!title || !location || !description) {
+      setCreatePostingError("Please fill out all required fields.");
+      return;
+    }
+
+    const newPosting = {
+      id: Date.now(),
+      title,
+      location,
+      setup: postingForm.setup,
+      postedAt: new Date().toISOString().slice(0, 10),
+      applicants: 0,
+      status: postingForm.status,
+      description,
+    };
+
+    setPostings((prev) => [newPosting, ...prev]);
+    setPostingSearch("");
+    setPostingStatusFilter("ALL");
+    setIsCreatePostingModalOpen(false);
+    setPostingForm(INITIAL_POSTING_FORM);
+    toast.show("Internship posted successfully");
   };
 
   const onSave = async (e) => {
@@ -310,7 +368,7 @@ export default function EmployerDashboard() {
           </select>
         </div>
         <div className="action-row">
-          <button className="primary-btn" type="button" onClick={() => toast.show("Create posting flow coming next")}>Post New Internship</button>
+          <button className="primary-btn" type="button" onClick={openCreatePostingModal}>Post New Internship</button>
           <button className="action-btn" type="button" onClick={() => toast.show("Bulk manage coming next")}>Manage Listings</button>
         </div>
         <table>
@@ -492,6 +550,73 @@ export default function EmployerDashboard() {
                 <p>{selectedPosting.description}</p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isCreatePostingModalOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Post new internship">
+          <div className="modal-panel">
+            <div className="section-title-row">
+              <h3>Post New Internship</h3>
+              <button className="action-btn" type="button" onClick={closeCreatePostingModal}>Close</button>
+            </div>
+
+            <form className="profile-form" onSubmit={submitNewPosting}>
+              <div className="profile-grid">
+                <label>
+                  Internship Title
+                  <input
+                    name="title"
+                    value={postingForm.title}
+                    onChange={onPostingFormChange}
+                    placeholder="e.g., Backend Developer Intern"
+                    required
+                  />
+                </label>
+                <label>
+                  Location
+                  <input
+                    name="location"
+                    value={postingForm.location}
+                    onChange={onPostingFormChange}
+                    placeholder="e.g., Cebu, PH"
+                    required
+                  />
+                </label>
+                <label>
+                  Work Setup
+                  <select name="setup" value={postingForm.setup} onChange={onPostingFormChange}>
+                    <option value="Onsite">Onsite</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Remote">Remote</option>
+                  </select>
+                </label>
+                <label>
+                  Posting Status
+                  <select name="status" value={postingForm.status} onChange={onPostingFormChange}>
+                    <option value="OPEN">Open</option>
+                    <option value="DRAFT">Draft</option>
+                  </select>
+                </label>
+                <label className="modal-full-width">
+                  Description
+                  <textarea
+                    name="description"
+                    value={postingForm.description}
+                    onChange={onPostingFormChange}
+                    placeholder="Briefly describe responsibilities and requirements"
+                    rows={4}
+                    required
+                  />
+                </label>
+              </div>
+
+              <div className="profile-actions">
+                <button className="primary-btn" type="submit">Post Internship</button>
+                {createPostingError && <span className="profile-status">{createPostingError}</span>}
+              </div>
+            </form>
           </div>
         </div>
       )}
