@@ -63,7 +63,7 @@ public class AuthController {
         claims.put("userId", user.getId());
 
         String token = jwtService.generateToken(claims, user);
-        return ResponseEntity.ok(new LoginResponse(token, user.getEmail(), user.getName(), user.getRole().name()));
+        return ResponseEntity.ok(LoginResponse.from(user, token));
     }
 
     // ---- DTOs ----
@@ -99,14 +99,71 @@ public class AuthController {
         private final String email;
         private final String name;
         private final String role;
+        private final String program;
+        private final String yearLevel;
+        private final String skills;
+        private final String companyName;
+        private final String companyLocation;
+        private final String companyWebsite;
+        private final String department;
+        private final String phone;
 
-        public LoginResponse(String token, String email, String name, String role) {
-            this.token = token; this.email = email; this.name = name; this.role = role;
+        public LoginResponse(
+                String token,
+                String email,
+                String name,
+                String role,
+                String program,
+                String yearLevel,
+                String skills,
+                String companyName,
+                String companyLocation,
+                String companyWebsite,
+                String department,
+                String phone
+        ) {
+            this.token = token;
+            this.email = email;
+            this.name = name;
+            this.role = role;
+            this.program = program;
+            this.yearLevel = yearLevel;
+            this.skills = skills;
+            this.companyName = companyName;
+            this.companyLocation = companyLocation;
+            this.companyWebsite = companyWebsite;
+            this.department = department;
+            this.phone = phone;
+        }
+
+        public static LoginResponse from(User user, String token) {
+            return new LoginResponse(
+                    token,
+                    user.getEmail(),
+                    user.getName(),
+                    user.getRole().name(),
+                    user.getProgram(),
+                    user.getYearLevel(),
+                    user.getSkills(),
+                    user.getCompanyName(),
+                    user.getCompanyLocation(),
+                    user.getCompanyWebsite(),
+                    user.getDepartment(),
+                    user.getPhone()
+            );
         }
 
         public String getToken() { return token; }
         public String getEmail() { return email; }
         public String getName() { return name; }
         public String getRole() { return role; }
+        public String getProgram() { return program; }
+        public String getYearLevel() { return yearLevel; }
+        public String getSkills() { return skills; }
+        public String getCompanyName() { return companyName; }
+        public String getCompanyLocation() { return companyLocation; }
+        public String getCompanyWebsite() { return companyWebsite; }
+        public String getDepartment() { return department; }
+        public String getPhone() { return phone; }
     }
 }
