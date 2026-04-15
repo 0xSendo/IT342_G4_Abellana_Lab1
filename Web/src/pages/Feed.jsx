@@ -101,6 +101,35 @@ const ACTIVITY_FILTERS = {
   VERIFICATION: "Verification",
 };
 
+const INITIAL_STUDENT_NOTIFICATIONS = [
+  {
+    id: 1,
+    type: "APPLICATION",
+    title: "Application deadline reminder",
+    message: "Frontend Developer Intern closes in 2 days.",
+    time: "10 minutes ago",
+    relatedPostingId: 1,
+    read: false,
+  },
+  {
+    id: 2,
+    type: "MATCH",
+    title: "New role match",
+    message: "Data Analyst Intern is a 86% match with your profile.",
+    time: "1 hour ago",
+    relatedPostingId: 3,
+    read: false,
+  },
+  {
+    id: 3,
+    type: "CHECKLIST",
+    title: "Career checklist tip",
+    message: "Complete interview prep to increase shortlist chances.",
+    time: "Today",
+    read: true,
+  },
+];
+
 export default function Feed() {
   const { currentUser } = useContext(AuthContext);
   const toast = useToast();
@@ -122,6 +151,7 @@ export default function Feed() {
     interview: false,
     networking: false,
   });
+  const [studentNotifications, setStudentNotifications] = useState(INITIAL_STUDENT_NOTIFICATIONS);
   const [selectedPosting, setSelectedPosting] = useState(null);
 
   const studentSkills = useMemo(() => {
@@ -136,6 +166,8 @@ export default function Feed() {
   const studentGoalCompletion = Math.round(
     (Object.values(studentGoals).filter(Boolean).length / Object.keys(studentGoals).length) * 100
   );
+
+  const unreadStudentNotifications = studentNotifications.filter((item) => !item.read).length;
 
   const filteredPostings = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
@@ -235,6 +267,34 @@ export default function Feed() {
     }));
   };
 
+  const markNotificationRead = (notificationId) => {
+    setStudentNotifications((prev) =>
+      prev.map((item) => (item.id === notificationId ? { ...item, read: true } : item))
+    );
+  };
+
+  const dismissNotification = (notificationId) => {
+    setStudentNotifications((prev) => prev.filter((item) => item.id !== notificationId));
+  };
+
+  const markAllNotificationsRead = () => {
+    setStudentNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+    showToast("All notifications marked as read");
+  };
+
+  const openNotificationContext = (notification) => {
+    if (notification.relatedPostingId) {
+      const posting = POSTING_FEED.find((item) => item.id === notification.relatedPostingId);
+      if (posting) {
+        setSelectedPosting(posting);
+        markNotificationRead(notification.id);
+        return;
+      }
+    }
+    markNotificationRead(notification.id);
+    showToast("Notification opened");
+  };
+
   const openPostingDetails = (posting) => {
     setSelectedPosting(posting);
   };
@@ -280,16 +340,60 @@ export default function Feed() {
       </section>
 
       {isStudentView && (
-        <section className="card student-feed-hub">
-          <div className="student-feed-head">
-            <div>
-              <h3>Career Planner</h3>
-              <p className="feed-muted">Track your pipeline and focus on actions that improve interviews.</p>
+        <>
+          <section className="card student-notification-card">
+            <div className="student-feed-head">
+              <div>
+                <h3>Notifications</h3>
+                <p className="feed-muted">Stay updated on deadlines, role matches, and action items.</p>
+              </div>
+              <div className="student-notification-head-actions">
+                <span className="student-notification-badge">{unreadStudentNotifications} unread</span>
+                <button type="button" className="action-btn small" onClick={markAllNotificationsRead}>
+                  Mark all read
+                </button>
+              </div>
             </div>
-            <button type="button" className="action-btn" onClick={() => setHiddenPostingIds([])}>
-              Restore Hidden Posts
-            </button>
-          </div>
+
+            <div className="student-notification-list">
+              {studentNotifications.length === 0 && (
+                <div className="feed-empty-state">No notifications right now.</div>
+              )}
+              {studentNotifications.map((item) => (
+                <article key={item.id} className={`student-notification-item ${item.read ? "read" : "unread"}`}>
+                  <div>
+                    <p className="student-notification-title">{item.title}</p>
+                    <p className="student-notification-message">{item.message}</p>
+                    <span className="feed-muted">{item.type} • {item.time}</span>
+                  </div>
+                  <div className="student-notification-actions">
+                    <button type="button" className="action-btn small" onClick={() => openNotificationContext(item)}>
+                      Open
+                    </button>
+                    {!item.read && (
+                      <button type="button" className="action-btn small" onClick={() => markNotificationRead(item.id)}>
+                        Mark Read
+                      </button>
+                    )}
+                    <button type="button" className="action-btn small danger" onClick={() => dismissNotification(item.id)}>
+                      Dismiss
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="card student-feed-hub">
+            <div className="student-feed-head">
+              <div>
+                <h3>Career Planner</h3>
+                <p className="feed-muted">Track your pipeline and focus on actions that improve interviews.</p>
+              </div>
+              <button type="button" className="action-btn" onClick={() => setHiddenPostingIds([])}>
+                Restore Hidden Posts
+              </button>
+            </div>
 
           <div className="student-feed-stats">
             <div className="student-stat-card">
@@ -346,7 +450,7 @@ export default function Feed() {
             </label>
           </div>
 
-          <div className="student-goal-grid">
+            <div className="student-goal-grid">
             <button type="button" className={`student-goal-item ${studentGoals.resume ? "done" : ""}`} onClick={() => toggleStudentGoal("resume")}>
               Resume Updated
             </button>
@@ -359,8 +463,9 @@ export default function Feed() {
             <button type="button" className={`student-goal-item ${studentGoals.networking ? "done" : ""}`} onClick={() => toggleStudentGoal("networking")}>
               Networking Outreach
             </button>
-          </div>
-        </section>
+            </div>
+          </section>
+        </>
       )}
 
       <section className="card feed-summary-grid">
