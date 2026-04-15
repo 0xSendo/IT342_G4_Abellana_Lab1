@@ -4,6 +4,12 @@ import AuthContext from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import "../styles/auth.css";
 
+function getRoleDashboard(role) {
+  if (role === "EMPLOYER") return "/dashboard/employer";
+  if (role === "ADMIN") return "/dashboard/admin";
+  return "/dashboard/student";
+}
+
 export default function Register() {
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -34,23 +40,22 @@ export default function Register() {
       setError(res.message);
       return;
     }
+
+    if (res.bypassed && res.user) {
+      setSuccess("Development bypass successful. Redirecting...");
+      toast.show("Bypass login active (dev mode)");
+      setTimeout(() => navigate(getRoleDashboard(res.user.role), { replace: true }), 700);
+      return;
+    }
+
     setSuccess("Account created! Redirecting to login...");
     toast.show("Registration successful. Please log in.");
     setTimeout(() => navigate("/login", { replace: true, state: { from } }), 1000);
   };
 
   const handleGoogleLogin = () => {
-    // TODO: Uncomment when backend is running (requires JDK 17+)
-    // const base = apiBaseUrl.replace(/\/$/, "");
-    // window.location.href = `${base}${googleOauth2Url}`;
-
-    // Hardcoded direct Google OAuth URL (temporary - bypasses backend)
-    const clientId = "575888947733-vg689sh7vpvosr9uaquv9osrgibc3ost.apps.googleusercontent.com";
-    const redirectUri = encodeURIComponent(`${window.location.origin}/`);
-    const scope = encodeURIComponent("openid email profile");
-    const nonce = encodeURIComponent("internmatch-dev-nonce");
-    window.location.href =
-      `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token%20id_token&scope=${scope}&nonce=${nonce}&prompt=select_account`;
+    const base = apiBaseUrl.replace(/\/$/, "");
+    window.location.href = `${base}${googleOauth2Url}`;
   };
 
   return (
