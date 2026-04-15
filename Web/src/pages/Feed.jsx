@@ -105,29 +105,79 @@ export default function Feed() {
   const { currentUser } = useContext(AuthContext);
   const toast = useToast();
   const role = currentUser?.role || "STUDENT";
+  const isStudentView = role === "STUDENT";
 
   const [feedSearch, setFeedSearch] = useState("");
   const [postingFilter, setPostingFilter] = useState("ALL");
   const [activityFilter, setActivityFilter] = useState("ALL");
   const [sortMode, setSortMode] = useState("RECENT");
   const [savedPostingIds, setSavedPostingIds] = useState([]);
+  const [appliedPostingIds, setAppliedPostingIds] = useState([]);
+  const [hiddenPostingIds, setHiddenPostingIds] = useState([]);
+  const [studentTab, setStudentTab] = useState("DISCOVER");
+  const [studentAlertSetup, setStudentAlertSetup] = useState("ALL");
+  const [studentGoals, setStudentGoals] = useState({
+    resume: false,
+    portfolio: false,
+    interview: false,
+    networking: false,
+  });
   const [selectedPosting, setSelectedPosting] = useState(null);
+
+  const studentSkills = useMemo(() => {
+    const raw = String(currentUser?.skills || "").trim();
+    if (!raw) return [];
+    return raw
+      .split(",")
+      .map((skill) => skill.trim().toLowerCase())
+      .filter(Boolean);
+  }, [currentUser?.skills]);
+
+  const studentGoalCompletion = Math.round(
+    (Object.values(studentGoals).filter(Boolean).length / Object.keys(studentGoals).length) * 100
+  );
 
   const filteredPostings = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
-    const matches = POSTING_FEED.filter((item) => {
+    let matches = POSTING_FEED.filter((item) => {
       const searchableText = [item.company, item.title, item.location, item.summary, ...(item.tags || [])]
         .join(" ")
         .toLowerCase();
       return (!query || searchableText.includes(query)) && (postingFilter === "ALL" || item.setup === postingFilter);
     });
 
+    if (isStudentView) {
+      matches = matches.filter((item) => !hiddenPostingIds.includes(item.id));
+
+      if (studentAlertSetup !== "ALL") {
+        matches = matches.filter((item) => item.setup === studentAlertSetup);
+      }
+
+      if (studentTab === "SAVED") {
+        matches = matches.filter((item) => savedPostingIds.includes(item.id));
+      }
+
+      if (studentTab === "APPLIED") {
+        matches = matches.filter((item) => appliedPostingIds.includes(item.id));
+      }
+    }
+
     return [...matches].sort((a, b) => {
       if (sortMode === "APPLICANTS") return b.applicants - a.applicants;
       if (sortMode === "COMPANY") return a.company.localeCompare(b.company);
       return b.id - a.id;
     });
-  }, [feedSearch, postingFilter, sortMode]);
+  }, [
+    feedSearch,
+    postingFilter,
+    sortMode,
+    isStudentView,
+    hiddenPostingIds,
+    studentAlertSetup,
+    studentTab,
+    savedPostingIds,
+    appliedPostingIds,
+  ]);
 
   const filteredActivities = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
@@ -144,12 +194,45 @@ export default function Feed() {
 
   const showToast = (message) => toast.show(message);
 
+  const getMatchScore = (posting) => {
+    if (!studentSkills.length) return 72;
+    const postingTags = (posting.tags || []).map((tag) => String(tag).toLowerCase());
+    const overlaps = studentSkills.filter((skill) => postingTags.some((tag) => tag.includes(skill) || skill.includes(tag))).length;
+    return Math.min(98, 62 + overlaps * 12);
+  };
+
   const toggleSavedPosting = (posting) => {
     setSavedPostingIds((prev) => {
       const isSaved = prev.includes(posting.id);
       showToast(isSaved ? "Removed from saved posts" : "Saved for later review");
       return isSaved ? prev.filter((id) => id !== posting.id) : [...prev, posting.id];
     });
+  };
+
+  const applyToPosting = (posting) => {
+    setAppliedPostingIds((prev) => {
+      if (prev.includes(posting.id)) {
+        showToast(`You already applied to ${posting.title}`);
+        return prev;
+      }
+      showToast(`Application submitted to ${posting.title}`);
+      return [...prev, posting.id];
+    });
+  };
+
+  const hidePosting = (posting) => {
+    setHiddenPostingIds((prev) => {
+      if (prev.includes(posting.id)) return prev;
+      showToast(`Hidden ${posting.title} from your feed`);
+      return [...prev, posting.id];
+    });
+  };
+
+  const toggleStudentGoal = (goalKey) => {
+    setStudentGoals((prev) => ({
+      ...prev,
+      [goalKey]: !prev[goalKey],
+    }));
   };
 
   const openPostingDetails = (posting) => {
@@ -166,7 +249,7 @@ export default function Feed() {
       return;
     }
 
-    showToast(`Applied to ${posting.title}`);
+    applyToPosting(posting);
   };
 
   const resetControls = () => {
@@ -174,23 +257,111 @@ export default function Feed() {
     setPostingFilter("ALL");
     setActivityFilter("ALL");
     setSortMode("RECENT");
+    if (isStudentView) {
+      setStudentTab("DISCOVER");
+      setStudentAlertSetup("ALL");
+    }
   };
 
   return (
     <DashboardLayout title="Feed" showProfileCard={false}>
-      <section className="card feed-hero">
+      <section className={`card feed-hero ${isStudentView ? "student-feed-hero" : ""}`}>
         <div>
-          <h3>Community Feed</h3>
+          <h3>{isStudentView ? "Student Opportunity Hub" : "Community Feed"}</h3>
           <p>
             {role === "EMPLOYER"
               ? "See which students are active, explore postings, and review talent in one place."
-              : "Discover internship postings, track updates, and stay connected to employer opportunities."}
+              : "Get role-matched internships, monitor your progress, and build momentum in one focused student feed."}
           </p>
         </div>
-        <div className="feed-role-chip">
+        <div className={`feed-role-chip ${isStudentView ? "feed-role-chip-student" : ""}`}>
           {role === "EMPLOYER" ? "Employer View" : role === "ADMIN" ? "Admin View" : "Student View"}
         </div>
       </section>
+
+      {isStudentView && (
+        <section className="card student-feed-hub">
+          <div className="student-feed-head">
+            <div>
+              <h3>Career Planner</h3>
+              <p className="feed-muted">Track your pipeline and focus on actions that improve interviews.</p>
+            </div>
+            <button type="button" className="action-btn" onClick={() => setHiddenPostingIds([])}>
+              Restore Hidden Posts
+            </button>
+          </div>
+
+          <div className="student-feed-stats">
+            <div className="student-stat-card">
+              <span className="feed-muted">Applied</span>
+              <strong>{appliedPostingIds.length}</strong>
+            </div>
+            <div className="student-stat-card">
+              <span className="feed-muted">Saved</span>
+              <strong>{savedPostingIds.length}</strong>
+            </div>
+            <div className="student-stat-card">
+              <span className="feed-muted">Hidden</span>
+              <strong>{hiddenPostingIds.length}</strong>
+            </div>
+            <div className="student-stat-card">
+              <span className="feed-muted">Goal Completion</span>
+              <strong>{studentGoalCompletion}%</strong>
+            </div>
+          </div>
+
+          <div className="student-feed-actions">
+            <div className="student-tab-row">
+              <button
+                type="button"
+                className={`action-btn small ${studentTab === "DISCOVER" ? "student-tab-active" : ""}`}
+                onClick={() => setStudentTab("DISCOVER")}
+              >
+                Discover
+              </button>
+              <button
+                type="button"
+                className={`action-btn small ${studentTab === "SAVED" ? "student-tab-active" : ""}`}
+                onClick={() => setStudentTab("SAVED")}
+              >
+                Saved
+              </button>
+              <button
+                type="button"
+                className={`action-btn small ${studentTab === "APPLIED" ? "student-tab-active" : ""}`}
+                onClick={() => setStudentTab("APPLIED")}
+              >
+                Applied
+              </button>
+            </div>
+
+            <label className="student-alert-filter">
+              Job Alert Setup
+              <select value={studentAlertSetup} onChange={(e) => setStudentAlertSetup(e.target.value)}>
+                <option value="ALL">All Setups</option>
+                <option value="Remote">Remote First</option>
+                <option value="Hybrid">Hybrid Focus</option>
+                <option value="Onsite">Onsite Focus</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="student-goal-grid">
+            <button type="button" className={`student-goal-item ${studentGoals.resume ? "done" : ""}`} onClick={() => toggleStudentGoal("resume")}>
+              Resume Updated
+            </button>
+            <button type="button" className={`student-goal-item ${studentGoals.portfolio ? "done" : ""}`} onClick={() => toggleStudentGoal("portfolio")}>
+              Portfolio Linked
+            </button>
+            <button type="button" className={`student-goal-item ${studentGoals.interview ? "done" : ""}`} onClick={() => toggleStudentGoal("interview")}>
+              Interview Prep
+            </button>
+            <button type="button" className={`student-goal-item ${studentGoals.networking ? "done" : ""}`} onClick={() => toggleStudentGoal("networking")}>
+              Networking Outreach
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="card feed-summary-grid">
         <div className="feed-summary-card">
@@ -273,6 +444,7 @@ export default function Feed() {
                   <span>{item.time}</span>
                   <span>Due {item.deadline}</span>
                   <span>{item.applicants} applicant(s)</span>
+                  {isStudentView && <span className="feed-match-chip">{getMatchScore(item)}% match</span>}
                 </div>
                 <div className="feed-tags">
                   {item.tags.map((tag) => (
@@ -291,7 +463,12 @@ export default function Feed() {
                     </button>
                   ) : (
                     <button type="button" className="primary-btn" onClick={() => handlePrimaryPostingAction(item)}>
-                      Apply
+                      {appliedPostingIds.includes(item.id) ? "Applied" : "Apply"}
+                    </button>
+                  )}
+                  {isStudentView && (
+                    <button type="button" className="action-btn small" onClick={() => hidePosting(item)}>
+                      Not Interested
                     </button>
                   )}
                 </div>
