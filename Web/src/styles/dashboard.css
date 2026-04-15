@@ -439,6 +439,118 @@ td {
   color: var(--muted);
 }
 
+.student-feed-hero {
+  border-color: rgba(80, 172, 255, 0.24);
+  background: linear-gradient(145deg, rgba(45, 126, 255, 0.14), rgba(30, 72, 137, 0.18));
+}
+
+.feed-role-chip-student {
+  border-color: rgba(80, 172, 255, 0.34);
+  background: rgba(80, 172, 255, 0.16);
+}
+
+.student-feed-hub {
+  border-color: rgba(77, 198, 255, 0.2);
+  background: linear-gradient(160deg, rgba(35, 102, 180, 0.22), rgba(18, 39, 69, 0.35));
+}
+
+.student-feed-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.student-feed-stats {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.student-stat-card {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 0.8rem 0.85rem;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.student-stat-card strong {
+  font-size: 1.2rem;
+}
+
+.student-feed-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.student-tab-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.student-tab-active {
+  border-color: rgba(80, 172, 255, 0.75);
+  background: rgba(80, 172, 255, 0.25);
+}
+
+.student-alert-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.student-alert-filter select {
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  padding: 0.4rem 0.6rem;
+}
+
+.student-goal-grid {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.student-goal-item {
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  padding: 0.55rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.student-goal-item.done {
+  border-color: rgba(65, 211, 157, 0.7);
+  background: rgba(65, 211, 157, 0.16);
+}
+
+.feed-match-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(80, 172, 255, 0.42);
+  background: rgba(80, 172, 255, 0.14);
+  color: #9ed1ff;
+  padding: 0.2rem 0.48rem;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
 .feed-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -641,7 +753,9 @@ td {
   }
 
   .feed-summary-grid,
-  .feed-controls {
+  .feed-controls,
+  .student-feed-stats,
+  .student-goal-grid {
     grid-template-columns: 1fr;
   }
 
