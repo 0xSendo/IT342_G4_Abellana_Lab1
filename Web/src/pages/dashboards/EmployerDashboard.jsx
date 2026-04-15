@@ -86,6 +86,8 @@ export default function EmployerDashboard() {
   const [isPostingModalOpen, setIsPostingModalOpen] = useState(false);
   const [isCreatePostingModalOpen, setIsCreatePostingModalOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState(null);
+  const [isPostingEditMode, setIsPostingEditMode] = useState(false);
+  const [postingEditForm, setPostingEditForm] = useState(INITIAL_POSTING_FORM);
   const [postingSearch, setPostingSearch] = useState("");
   const [postingStatusFilter, setPostingStatusFilter] = useState("ALL");
   const [applicantSearch, setApplicantSearch] = useState("");
@@ -158,6 +160,11 @@ export default function EmployerDashboard() {
     setPostingForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const onPostingEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setPostingEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   const openProfileModal = () => {
     setForm({
       name: currentUser?.name || "",
@@ -196,12 +203,33 @@ export default function EmployerDashboard() {
 
   const viewPosting = (posting) => {
     setSelectedPosting(posting);
+    setPostingEditForm({
+      title: posting.title,
+      location: posting.location,
+      setup: posting.setup,
+      status: posting.status,
+      description: posting.description,
+    });
+    setIsPostingEditMode(false);
     setIsPostingModalOpen(true);
   };
 
   const closePostingModal = () => {
     setSelectedPosting(null);
     setIsPostingModalOpen(false);
+    setIsPostingEditMode(false);
+  };
+
+  const openPostingEditMode = () => {
+    if (!selectedPosting) return;
+    setPostingEditForm({
+      title: selectedPosting.title,
+      location: selectedPosting.location,
+      setup: selectedPosting.setup,
+      status: selectedPosting.status,
+      description: selectedPosting.description,
+    });
+    setIsPostingEditMode(true);
   };
 
   const cyclePostingStatus = (postingId) => {
@@ -222,6 +250,51 @@ export default function EmployerDashboard() {
       closePostingModal();
     }
     toast.show("Posting removed");
+  };
+
+  const savePostingEdits = (e) => {
+    e.preventDefault();
+
+    const title = postingEditForm.title.trim();
+    const location = postingEditForm.location.trim();
+    const description = postingEditForm.description.trim();
+
+    if (!selectedPosting) return;
+    if (!title || !location || !description) {
+      toast.show("Please complete all required fields.");
+      return;
+    }
+
+    setPostings((prev) =>
+      prev.map((posting) =>
+        posting.id === selectedPosting.id
+          ? {
+              ...posting,
+              title,
+              location,
+              setup: postingEditForm.setup,
+              status: postingEditForm.status,
+              description,
+            }
+          : posting
+      )
+    );
+
+    setSelectedPosting((prev) =>
+      prev
+        ? {
+            ...prev,
+            title,
+            location,
+            setup: postingEditForm.setup,
+            status: postingEditForm.status,
+            description,
+          }
+        : prev
+    );
+
+    toast.show("Posting updated successfully");
+      setIsPostingEditMode(false);
   };
 
   const updateApplicantStatus = (applicantId, nextStatus) => {
@@ -517,39 +590,110 @@ export default function EmployerDashboard() {
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Posting details">
           <div className="modal-panel">
             <div className="section-title-row">
-              <h3>Posting Details</h3>
+              <h3>{isPostingEditMode ? "Edit Posting" : "Posting Details"}</h3>
               <button className="action-btn" type="button" onClick={closePostingModal}>Close</button>
             </div>
-            <div className="application-details-grid">
-              <div>
-                <span className="profile-label">Role</span>
-                <p>{selectedPosting.title}</p>
-              </div>
-              <div>
-                <span className="profile-label">Location</span>
-                <p>{selectedPosting.location}</p>
-              </div>
-              <div>
-                <span className="profile-label">Setup</span>
-                <p>{selectedPosting.setup}</p>
-              </div>
-              <div>
-                <span className="profile-label">Date Posted</span>
-                <p>{selectedPosting.postedAt}</p>
-              </div>
-              <div>
-                <span className="profile-label">Applicants</span>
-                <p>{selectedPosting.applicants}</p>
-              </div>
-              <div>
-                <span className="profile-label">Status</span>
-                <p>{selectedPosting.status}</p>
-              </div>
-              <div className="application-note-block">
-                <span className="profile-label">Description</span>
-                <p>{selectedPosting.description}</p>
-              </div>
-            </div>
+            {!isPostingEditMode ? (
+              <>
+                <div className="application-details-grid">
+                  <div>
+                    <span className="profile-label">Role</span>
+                    <p>{selectedPosting.title}</p>
+                  </div>
+                  <div>
+                    <span className="profile-label">Location</span>
+                    <p>{selectedPosting.location}</p>
+                  </div>
+                  <div>
+                    <span className="profile-label">Setup</span>
+                    <p>{selectedPosting.setup}</p>
+                  </div>
+                  <div>
+                    <span className="profile-label">Date Posted</span>
+                    <p>{selectedPosting.postedAt}</p>
+                  </div>
+                  <div>
+                    <span className="profile-label">Applicants</span>
+                    <p>{selectedPosting.applicants}</p>
+                  </div>
+                  <div>
+                    <span className="profile-label">Status</span>
+                    <p>{selectedPosting.status}</p>
+                  </div>
+                  <div className="application-note-block">
+                    <span className="profile-label">Description</span>
+                    <p>{selectedPosting.description}</p>
+                  </div>
+                </div>
+                <div className="profile-actions">
+                  <button className="primary-btn" type="button" onClick={openPostingEditMode}>Edit Posting</button>
+                </div>
+              </>
+            ) : (
+              <form className="profile-form" onSubmit={savePostingEdits}>
+                <div className="profile-grid">
+                  <label>
+                    Internship Title
+                    <input
+                      name="title"
+                      value={postingEditForm.title}
+                      onChange={onPostingEditFormChange}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Location
+                    <input
+                      name="location"
+                      value={postingEditForm.location}
+                      onChange={onPostingEditFormChange}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Work Setup
+                    <select name="setup" value={postingEditForm.setup} onChange={onPostingEditFormChange}>
+                      <option value="Onsite">Onsite</option>
+                      <option value="Hybrid">Hybrid</option>
+                      <option value="Remote">Remote</option>
+                    </select>
+                  </label>
+                  <label>
+                    Posting Status
+                    <select name="status" value={postingEditForm.status} onChange={onPostingEditFormChange}>
+                      <option value="OPEN">Open</option>
+                      <option value="CLOSED">Closed</option>
+                      <option value="DRAFT">Draft</option>
+                    </select>
+                  </label>
+                  <label>
+                    Date Posted
+                    <input value={selectedPosting.postedAt} disabled />
+                  </label>
+                  <label>
+                    Applicants
+                    <input value={selectedPosting.applicants} disabled />
+                  </label>
+                  <label className="modal-full-width">
+                    Description
+                    <textarea
+                      name="description"
+                      value={postingEditForm.description}
+                      onChange={onPostingEditFormChange}
+                      rows={4}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="profile-actions">
+                  <button className="primary-btn" type="submit">Save Changes</button>
+                  <button className="action-btn" type="button" onClick={() => setIsPostingEditMode(false)}>
+                    Cancel Edit
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
