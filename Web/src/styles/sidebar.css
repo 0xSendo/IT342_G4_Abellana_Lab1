@@ -1,49 +1,86 @@
 .sidebar {
+  position: fixed;
+  left: 0;
+  top: 64px;
   width: 220px;
-  background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-  color: var(--text);
-  padding: 1.75rem 1.2rem;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 16px 40px rgba(2,6,23,0.32);
-  position: sticky;
-  top: 88px;
-  height: fit-content;
+  height: calc(100vh - 64px);
+  background: rgba(16, 26, 43, 0.95);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  z-index: 900;
+  overflow-y: auto;
 }
 
-.sidebar h2 {
-  margin: 0 0 1.5rem;
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
+.sidebar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-label {
+  font-size: 0.75rem;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--muted);
+  margin-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  font-weight: 700;
 }
 
-.sidebar a {
-  display: block;
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
   color: var(--text);
-  margin: 0.85rem 0;
   text-decoration: none;
-  padding: 0.45rem 0.6rem;
-  border-radius: 10px;
-  transition: transform 160ms, background 160ms;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
 }
 
-.sidebar a:hover {
-  background: rgba(255,255,255,0.08);
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
   transform: translateX(4px);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--primary);
+}
+
+.sidebar-link.active {
+  background: rgba(255, 107, 74, 0.15);
+  color: var(--primary);
+  border-color: rgba(255, 107, 74, 0.2);
 }
 
 @media (max-width: 900px) {
   .sidebar {
-    width: 100%;
     position: static;
-    display: flex;
-    gap: 0.75rem;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    padding: 1rem;
+    gap: 1.5rem;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     flex-wrap: wrap;
   }
 
-  .sidebar a {
-    margin: 0.35rem 0;
+  .sidebar-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .sidebar-label {
+    display: none;
+  }
+
+  .sidebar-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 }

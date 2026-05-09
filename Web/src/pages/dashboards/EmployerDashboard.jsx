@@ -1,81 +1,15 @@
 import { useContext, useEffect, useState } from "react";
+import axios from "axios";
 import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-
-const DEFAULT_POSTINGS = [
-  {
-    id: 1,
-    title: "Frontend Developer Intern",
-    location: "Makati, PH",
-    setup: "Hybrid",
-    postedAt: "2026-04-08",
-    applicants: 8,
-    status: "OPEN",
-    description: "Assist with React UI implementation and QA support.",
-  },
-  {
-    id: 2,
-    title: "IT Support Intern",
-    location: "Cebu, PH",
-    setup: "Onsite",
-    postedAt: "2026-03-28",
-    applicants: 6,
-    status: "CLOSED",
-    description: "Help with hardware setup and internal ticket resolution.",
-  },
-  {
-    id: 3,
-    title: "Data Analyst Intern",
-    location: "Remote",
-    setup: "Remote",
-    postedAt: "2026-04-11",
-    applicants: 4,
-    status: "DRAFT",
-    description: "Build weekly data dashboards and KPI reports.",
-  },
-];
-
-const DEFAULT_APPLICANTS = [
-  {
-    id: 1,
-    name: "Juan Dela Cruz",
-    internship: "Frontend Developer Intern",
-    dateApplied: "2026-04-10",
-    status: "PENDING",
-    note: "Strong React portfolio.",
-  },
-  {
-    id: 2,
-    name: "Maria Santos",
-    internship: "IT Support Intern",
-    dateApplied: "2026-04-07",
-    status: "ACCEPTED",
-    note: "Completed interview and accepted.",
-  },
-  {
-    id: 3,
-    name: "Paolo Reyes",
-    internship: "Data Analyst Intern",
-    dateApplied: "2026-04-09",
-    status: "REJECTED",
-    note: "Insufficient SQL experience.",
-  },
-  {
-    id: 4,
-    name: "Alyssa Tan",
-    internship: "Frontend Developer Intern",
-    dateApplied: "2026-04-12",
-    status: "SHORTLISTED",
-    note: "Proceed to final panel interview.",
-  },
-];
+import JobTrendsWidget from "../../components/JobTrendsWidget";
 
 const INITIAL_POSTING_FORM = {
   title: "",
   location: "",
   setup: "Hybrid",
-  status: "OPEN",
+  status: "ACTIVE",
   description: "",
 };
 
@@ -92,8 +26,10 @@ export default function EmployerDashboard() {
   const [postingStatusFilter, setPostingStatusFilter] = useState("ALL");
   const [applicantSearch, setApplicantSearch] = useState("");
   const [applicantStatusFilter, setApplicantStatusFilter] = useState("ALL");
-  const [postings, setPostings] = useState(DEFAULT_POSTINGS);
-  const [applicants, setApplicants] = useState(DEFAULT_APPLICANTS);
+  const [postings, setPostings] = useState([]);
+  const [applicants, setApplicants] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
   const [postingForm, setPostingForm] = useState(INITIAL_POSTING_FORM);
   const [form, setForm] = useState({
     name: currentUser?.name || "",
@@ -105,6 +41,72 @@ export default function EmployerDashboard() {
   const [status, setStatus] = useState("");
   const [createPostingError, setCreatePostingError] = useState("");
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) return;
+      const res = await axios.get("/api/notifications", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(res.data);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
+  const fetchMyPostings = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.get("/api/internships/my-postings", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const data = res.data;
+      
+      // Fetch applicant counts and details for each posting
+      const postingsWithCounts = await Promise.all(data.map(async (p) => {
+        try {
+          const appRes = await axios.get(`/api/applications/internship/${p.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          return { ...p, applicants: appRes.data.length, applicantsList: appRes.data };
+        } catch (e) {
+          return { ...p, applicants: 0, applicantsList: [] };
+        }
+      }));
+      
+      setPostings(postingsWithCounts);
+
+      // Map all applications to the applicants state for the Recent Applicants table
+      const allApplicants = postingsWithCounts.flatMap(p => 
+        (p.applicantsList || []).map(app => ({
+          id: app.id,
+          name: app.studentName,
+          internship: app.internshipTitle,
+          dateApplied: new Date(app.appliedAt).toISOString().split('T')[0],
+          status: app.status,
+          note: "New application received via portal."
+        }))
+      );
+
+      setApplicants(allApplicants);
+    } catch (err) {
+      console.error("Failed to fetch postings", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyPostings();
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     setForm({
       name: currentUser?.name || "",
@@ -115,6 +117,7 @@ export default function EmployerDashboard() {
     });
   }, [currentUser]);
 
+  // Derived State
   const normalizedPostingSearch = postingSearch.trim().toLowerCase();
   const filteredPostings = postings.filter((posting) => {
     const matchesStatus = postingStatusFilter === "ALL" || posting.status === postingStatusFilter;
@@ -135,9 +138,9 @@ export default function EmployerDashboard() {
     return matchesStatus && matchesSearch;
   });
 
-  const activePostings = postings.filter((p) => p.status === "OPEN").length;
-  const newApplicants = applicants.filter((a) => a.status === "PENDING").length;
-  const shortlistedApplicants = applicants.filter((a) => a.status === "SHORTLISTED").length;
+  const activePostingsCount = postings.filter((p) => p.status === "ACTIVE").length;
+  const newApplicantsCount = applicants.filter((a) => a.status === "PENDING").length;
+  const shortlistedApplicantsCount = applicants.filter((a) => a.status === "SHORTLISTED").length;
 
   const profileFields = [
     currentUser?.name,
@@ -150,6 +153,7 @@ export default function EmployerDashboard() {
     (profileFields.filter((field) => !!String(field || "").trim()).length / profileFields.length) * 100
   );
 
+  // Handlers
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -206,7 +210,7 @@ export default function EmployerDashboard() {
     setPostingEditForm({
       title: posting.title,
       location: posting.location,
-      setup: posting.setup,
+      setup: posting.setup || "Hybrid",
       status: posting.status,
       description: posting.description,
     });
@@ -225,88 +229,39 @@ export default function EmployerDashboard() {
     setPostingEditForm({
       title: selectedPosting.title,
       location: selectedPosting.location,
-      setup: selectedPosting.setup,
+      setup: selectedPosting.setup || "Hybrid",
       status: selectedPosting.status,
       description: selectedPosting.description,
     });
     setIsPostingEditMode(true);
   };
 
-  const cyclePostingStatus = (postingId) => {
-    setPostings((prev) =>
-      prev.map((posting) => {
-        if (posting.id !== postingId) return posting;
-        if (posting.status === "OPEN") return { ...posting, status: "CLOSED" };
-        if (posting.status === "CLOSED") return { ...posting, status: "OPEN" };
-        return { ...posting, status: "OPEN" };
-      })
-    );
-    toast.show("Posting status updated");
-  };
+  const cyclePostingStatus = async (postingId) => {
+    const posting = postings.find(p => p.id === postingId);
+    if (!posting) return;
 
-  const removePosting = (postingId) => {
-    setPostings((prev) => prev.filter((posting) => posting.id !== postingId));
-    if (selectedPosting?.id === postingId) {
-      closePostingModal();
+    const nextStatus = posting.status === "ACTIVE" ? "CLOSED" : "ACTIVE";
+    
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.put(`/api/internships/${postingId}`, {
+        ...posting,
+        status: nextStatus
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setPostings((prev) =>
+        prev.map((p) => (p.id === postingId ? { ...p, status: nextStatus } : p))
+      );
+      toast.show("Posting status updated");
+    } catch (err) {
+      console.error("Status toggle error:", err);
+      toast.show("Failed to update status", "error");
     }
-    toast.show("Posting removed");
   };
 
-  const savePostingEdits = (e) => {
-    e.preventDefault();
-
-    const title = postingEditForm.title.trim();
-    const location = postingEditForm.location.trim();
-    const description = postingEditForm.description.trim();
-
-    if (!selectedPosting) return;
-    if (!title || !location || !description) {
-      toast.show("Please complete all required fields.");
-      return;
-    }
-
-    setPostings((prev) =>
-      prev.map((posting) =>
-        posting.id === selectedPosting.id
-          ? {
-              ...posting,
-              title,
-              location,
-              setup: postingEditForm.setup,
-              status: postingEditForm.status,
-              description,
-            }
-          : posting
-      )
-    );
-
-    setSelectedPosting((prev) =>
-      prev
-        ? {
-            ...prev,
-            title,
-            location,
-            setup: postingEditForm.setup,
-            status: postingEditForm.status,
-            description,
-          }
-        : prev
-    );
-
-    toast.show("Posting updated successfully");
-      setIsPostingEditMode(false);
-  };
-
-  const updateApplicantStatus = (applicantId, nextStatus) => {
-    setApplicants((prev) =>
-      prev.map((applicant) =>
-        applicant.id === applicantId ? { ...applicant, status: nextStatus } : applicant
-      )
-    );
-    toast.show("Applicant status updated");
-  };
-
-  const submitNewPosting = (e) => {
+  const submitNewPosting = async (e) => {
     e.preventDefault();
     setCreatePostingError("");
 
@@ -319,23 +274,113 @@ export default function EmployerDashboard() {
       return;
     }
 
-    const newPosting = {
-      id: Date.now(),
-      title,
-      location,
-      setup: postingForm.setup,
-      postedAt: new Date().toISOString().slice(0, 10),
-      applicants: 0,
-      status: postingForm.status,
-      description,
-    };
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.post("/api/internships", {
+        title,
+        description,
+        company: currentUser?.companyName || "My Company",
+        location,
+        setup: postingForm.setup,
+        status: postingForm.status,
+        startDate: new Date().toISOString().slice(0, 10),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    setPostings((prev) => [newPosting, ...prev]);
-    setPostingSearch("");
-    setPostingStatusFilter("ALL");
-    setIsCreatePostingModalOpen(false);
-    setPostingForm(INITIAL_POSTING_FORM);
-    toast.show("Internship posted successfully");
+      setPostings((prev) => [res.data, ...prev]);
+      setIsCreatePostingModalOpen(false);
+      setPostingForm(INITIAL_POSTING_FORM);
+      toast.show("Internship posted successfully");
+    } catch (err) {
+      console.error("Create posting error:", err);
+      setCreatePostingError(err.response?.data || "Failed to create posting");
+    }
+  };
+
+  const removePosting = async (postingId) => {
+    if (!window.confirm("Are you sure you want to remove this posting?")) return;
+    
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.delete(`/api/internships/${postingId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setPostings((prev) => prev.filter((posting) => posting.id !== postingId));
+      if (selectedPosting?.id === postingId) {
+        closePostingModal();
+      }
+      toast.show("Posting removed");
+    } catch (err) {
+      console.error("Remove posting error:", err);
+      toast.show("Failed to remove posting", "error");
+    }
+  };
+
+  const savePostingEdits = async (e) => {
+    e.preventDefault();
+
+    const title = postingEditForm.title.trim();
+    const location = postingEditForm.location.trim();
+    const description = postingEditForm.description.trim();
+
+    if (!selectedPosting) return;
+    if (!title || !location || !description) {
+      toast.show("Please complete all required fields.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.put(`/api/internships/${selectedPosting.id}`, {
+        title,
+        description,
+        company: selectedPosting.company,
+        location,
+        setup: postingEditForm.setup,
+        status: postingEditForm.status,
+        startDate: selectedPosting.startDate,
+        endDate: selectedPosting.endDate
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setPostings((prev) =>
+        prev.map((posting) =>
+          posting.id === res.data.id ? res.data : posting
+        )
+      );
+
+      setSelectedPosting(res.data);
+      toast.show("Posting updated successfully");
+      setIsPostingEditMode(false);
+    } catch (err) {
+      console.error("Edit posting error:", err);
+      toast.show("Failed to update posting", "error");
+    }
+  };
+
+  const updateApplicantStatus = async (applicantId, nextStatus) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.put(`/api/applications/${applicantId}/status?status=${nextStatus}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === applicantId ? { ...applicant, status: nextStatus } : applicant
+        )
+      );
+      toast.show(`Applicant status updated to ${nextStatus}`);
+      // Refresh postings to sync applicant counts
+      fetchMyPostings();
+    } catch (err) {
+      console.error("Status update error:", err);
+      toast.show(err.response?.data?.message || "Failed to update status", "error");
+    }
   };
 
   const onSave = async (e) => {
@@ -397,26 +442,51 @@ export default function EmployerDashboard() {
         </div>
       </section>
 
+      {/* Overview Section */}
       <section className="card">
         <h3>Overview</h3>
         <div className="stats-grid">
           <div className="stat-card">
             <span className="stat-label">Active Postings</span>
-            <span className="stat-value">{activePostings}</span>
+            <span className="stat-value">{activePostingsCount}</span>
             <span className="stat-trend positive">Currently open listings</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">Pending Applicants</span>
-            <span className="stat-value">{newApplicants}</span>
+            <span className="stat-value">{newApplicantsCount}</span>
             <span className="stat-trend">Need review</span>
           </div>
           <div className="stat-card">
             <span className="stat-label">Shortlisted</span>
-            <span className="stat-value">{shortlistedApplicants}</span>
+            <span className="stat-value">{shortlistedApplicantsCount}</span>
             <span className="stat-trend">Ready for next step</span>
           </div>
         </div>
       </section>
+
+      {/* Market Trends Section */}
+      <JobTrendsWidget />
+
+      {/* Notifications Section */}
+      {notifications.length > 0 && (
+        <section className="card">
+          <div className="section-title-row">
+            <h3>🔔 System Notifications</h3>
+            <button className="action-btn small" onClick={() => fetchNotifications()}>Refresh</button>
+          </div>
+          <div className="student-notification-list">
+            {notifications.map((n) => (
+              <article key={n.id} className={`student-notification-item ${n.read ? "read" : "unread"}`}>
+                <div className="notif-content">
+                  <p className="student-notification-title">{n.title}</p>
+                  <p className="student-notification-message">{n.message}</p>
+                  <span className="feed-muted">{new Date(n.createdAt).toLocaleString()}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="card">
         <div className="section-title-row">
@@ -435,7 +505,7 @@ export default function EmployerDashboard() {
           />
           <select value={postingStatusFilter} onChange={(e) => setPostingStatusFilter(e.target.value)}>
             <option value="ALL">All Status</option>
-            <option value="OPEN">Open</option>
+            <option value="ACTIVE">Active</option>
             <option value="CLOSED">Closed</option>
             <option value="DRAFT">Draft</option>
           </select>
@@ -455,30 +525,31 @@ export default function EmployerDashboard() {
             </tr>
           </thead>
           <tbody>
-            {filteredPostings.length === 0 && (
-              <tr>
-                <td colSpan="5" className="empty-row">No postings match your search/filter.</td>
-              </tr>
+            {isLoading ? (
+              <tr><td colSpan="5" className="empty-row">Loading postings...</td></tr>
+            ) : filteredPostings.length === 0 ? (
+              <tr><td colSpan="5" className="empty-row">No postings match your search/filter.</td></tr>
+            ) : (
+              filteredPostings.map((posting) => (
+                <tr key={posting.id}>
+                  <td>{posting.title}</td>
+                  <td>{posting.location}</td>
+                  <td>{posting.applicants || 0}</td>
+                  <td>
+                    <span className={`chip ${posting.status === "ACTIVE" ? "chip-open" : posting.status === "CLOSED" ? "chip-closed" : "chip-draft"}`}>
+                      {posting.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="table-actions">
+                      <button className="action-btn small" type="button" onClick={() => viewPosting(posting)}>View</button>
+                      <button className="action-btn small" type="button" onClick={() => cyclePostingStatus(posting.id)}>Toggle</button>
+                      <button className="action-btn small danger" type="button" onClick={() => removePosting(posting.id)}>Remove</button>
+                    </div>
+                  </td>
+                </tr>
+              ))
             )}
-            {filteredPostings.map((posting) => (
-              <tr key={posting.id}>
-                <td>{posting.title}</td>
-                <td>{posting.location}</td>
-                <td>{posting.applicants}</td>
-                <td>
-                  <span className={`chip ${posting.status === "OPEN" ? "chip-open" : posting.status === "CLOSED" ? "chip-closed" : "chip-draft"}`}>
-                    {posting.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="table-actions">
-                    <button className="action-btn small" type="button" onClick={() => viewPosting(posting)}>View</button>
-                    <button className="action-btn small" type="button" onClick={() => cyclePostingStatus(posting.id)}>Toggle</button>
-                    <button className="action-btn small danger" type="button" onClick={() => removePosting(posting.id)}>Remove</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
           </tbody>
         </table>
       </section>
@@ -533,11 +604,15 @@ export default function EmployerDashboard() {
                     {applicant.status === "PENDING" && (
                       <>
                         <button className="action-btn small" type="button" onClick={() => updateApplicantStatus(applicant.id, "SHORTLISTED")}>Shortlist</button>
+                        <button className="action-btn small" type="button" onClick={() => updateApplicantStatus(applicant.id, "ACCEPTED")}>Accept</button>
                         <button className="action-btn small danger" type="button" onClick={() => updateApplicantStatus(applicant.id, "REJECTED")}>Reject</button>
                       </>
                     )}
                     {applicant.status === "SHORTLISTED" && (
-                      <button className="action-btn small" type="button" onClick={() => updateApplicantStatus(applicant.id, "ACCEPTED")}>Accept</button>
+                      <>
+                        <button className="action-btn small" type="button" onClick={() => updateApplicantStatus(applicant.id, "ACCEPTED")}>Accept</button>
+                        <button className="action-btn small danger" type="button" onClick={() => updateApplicantStatus(applicant.id, "REJECTED")}>Reject</button>
+                      </>
                     )}
                   </div>
                 </td>
@@ -610,11 +685,11 @@ export default function EmployerDashboard() {
                   </div>
                   <div>
                     <span className="profile-label">Date Posted</span>
-                    <p>{selectedPosting.postedAt}</p>
+                    <p>{selectedPosting.postedAt || selectedPosting.createdAt}</p>
                   </div>
                   <div>
                     <span className="profile-label">Applicants</span>
-                    <p>{selectedPosting.applicants}</p>
+                    <p>{selectedPosting.applicants || 0}</p>
                   </div>
                   <div>
                     <span className="profile-label">Status</span>
@@ -661,18 +736,10 @@ export default function EmployerDashboard() {
                   <label>
                     Posting Status
                     <select name="status" value={postingEditForm.status} onChange={onPostingEditFormChange}>
-                      <option value="OPEN">Open</option>
+                      <option value="ACTIVE">Active</option>
                       <option value="CLOSED">Closed</option>
                       <option value="DRAFT">Draft</option>
                     </select>
-                  </label>
-                  <label>
-                    Date Posted
-                    <input value={selectedPosting.postedAt} disabled />
-                  </label>
-                  <label>
-                    Applicants
-                    <input value={selectedPosting.applicants} disabled />
                   </label>
                   <label className="modal-full-width">
                     Description
@@ -739,7 +806,7 @@ export default function EmployerDashboard() {
                 <label>
                   Posting Status
                   <select name="status" value={postingForm.status} onChange={onPostingFormChange}>
-                    <option value="OPEN">Open</option>
+                    <option value="ACTIVE">Active</option>
                     <option value="DRAFT">Draft</option>
                   </select>
                 </label>

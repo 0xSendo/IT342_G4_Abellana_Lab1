@@ -1,59 +1,9 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useState, useEffect } from "react";
+import axios from "axios";
 import DashboardLayout from "../components/DashboardLayout";
 import AuthContext from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import "../styles/dashboard.css";
-
-const POSTING_FEED = [
-  {
-    id: 1,
-    company: "Nova Digital",
-    title: "Frontend Developer Intern",
-    location: "Cebu, PH",
-    setup: "Hybrid",
-    time: "2 hours ago",
-    summary: "React and UI work for an internal internship project.",
-    deadline: "Apr 30, 2026",
-    applicants: 12,
-    tags: ["React", "UI", "Internship"],
-  },
-  {
-    id: 2,
-    company: "Vertex Solutions",
-    title: "Systems Analyst Intern",
-    location: "Quezon City, PH",
-    setup: "Onsite",
-    time: "5 hours ago",
-    summary: "Support process mapping, documentation, and reporting.",
-    deadline: "May 05, 2026",
-    applicants: 9,
-    tags: ["Documentation", "Process", "Support"],
-  },
-  {
-    id: 3,
-    company: "Insight Labs",
-    title: "Data Analyst Intern",
-    location: "Remote",
-    setup: "Remote",
-    time: "1 day ago",
-    summary: "Build dashboards and assist with weekly insights.",
-    deadline: "May 12, 2026",
-    applicants: 18,
-    tags: ["SQL", "Dashboards", "Analytics"],
-  },
-  {
-    id: 4,
-    company: "OrbitTech",
-    title: "QA Engineering Intern",
-    location: "Mandaluyong, PH",
-    setup: "Hybrid",
-    time: "2 days ago",
-    summary: "Test product flows and document regression findings.",
-    deadline: "May 02, 2026",
-    applicants: 7,
-    tags: ["Testing", "Automation", "Quality"],
-  },
-];
+import "../styles/feed.css";
 
 const STUDENT_ACTIVITY_FEED = [
   {
@@ -105,19 +55,17 @@ const INITIAL_STUDENT_NOTIFICATIONS = [
   {
     id: 1,
     type: "APPLICATION",
-    title: "Application deadline reminder",
-    message: "Frontend Developer Intern closes in 2 days.",
+    title: "Application reminder",
+    message: "Check your pending applications for any updates.",
     time: "10 minutes ago",
-    relatedPostingId: 1,
     read: false,
   },
   {
     id: 2,
     type: "MATCH",
-    title: "New role match",
-    message: "Data Analyst Intern is a 86% match with your profile.",
+    title: "Career Tip",
+    message: "Keep your skills updated to get better role matches.",
     time: "1 hour ago",
-    relatedPostingId: 3,
     read: false,
   },
   {
@@ -136,6 +84,8 @@ export default function Feed() {
   const role = currentUser?.role || "STUDENT";
   const isStudentView = role === "STUDENT";
 
+  const [backendPostings, setBackendPostings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [feedSearch, setFeedSearch] = useState("");
   const [postingFilter, setPostingFilter] = useState("ALL");
   const [activityFilter, setActivityFilter] = useState("ALL");
@@ -151,8 +101,84 @@ export default function Feed() {
     interview: false,
     networking: false,
   });
-  const [studentNotifications, setStudentNotifications] = useState(INITIAL_STUDENT_NOTIFICATIONS);
+  const [studentNotifications, setStudentNotifications] = useState([]);
   const [selectedPosting, setSelectedPosting] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(!document.body.classList.contains("light-theme"));
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+
+  // Fetch real internships from backend
+  const fetchPostings = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.get("/api/internships/active", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      
+      console.log("Feed data received:", res.data);
+      
+      const formatted = res.data.map(item => ({
+        id: item.id,
+        company: item.company || "Unknown Company",
+        title: item.title || "Untitled Role",
+        location: item.location || "PH",
+        setup: item.setup || "Onsite",
+        time: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Recently",
+        summary: item.description || "No description provided.",
+        deadline: item.endDate || "N/A",
+        applicants: item.applicantsList?.length || 0,
+        tags: [item.setup || "Internship", "Active"],
+      }));
+      setBackendPostings(formatted);
+    } catch (err) {
+      console.error("Failed to fetch postings:", err.response || err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch real notifications
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) return;
+      const res = await axios.get("/api/notifications", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const formatted = res.data.map(n => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        time: new Date(n.createdAt).toLocaleString(),
+        read: n.read,
+        relatedId: n.relatedId
+      }));
+      setStudentNotifications(formatted);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPostings();
+    fetchNotifications();
+    // Poll for notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Sync theme with body class
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.remove("light-theme");
+    } else {
+      document.body.classList.add("light-theme");
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const studentSkills = useMemo(() => {
     const raw = String(currentUser?.skills || "").trim();
@@ -171,7 +197,8 @@ export default function Feed() {
 
   const filteredPostings = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
-    let matches = POSTING_FEED.filter((item) => {
+    
+    let matches = backendPostings.filter((item) => {
       const searchableText = [item.company, item.title, item.location, item.summary, ...(item.tags || [])]
         .join(" ")
         .toLowerCase();
@@ -200,6 +227,7 @@ export default function Feed() {
       return b.id - a.id;
     });
   }, [
+    backendPostings,
     feedSearch,
     postingFilter,
     sortMode,
@@ -222,7 +250,7 @@ export default function Feed() {
     });
   }, [feedSearch, activityFilter]);
 
-  const savedPostings = POSTING_FEED.filter((item) => savedPostingIds.includes(item.id));
+  const savedPostings = backendPostings.filter((item) => savedPostingIds.includes(item.id));
 
   const showToast = (message) => toast.show(message);
 
@@ -241,15 +269,26 @@ export default function Feed() {
     });
   };
 
-  const applyToPosting = (posting) => {
-    setAppliedPostingIds((prev) => {
-      if (prev.includes(posting.id)) {
-        showToast(`You already applied to ${posting.title}`);
-        return prev;
-      }
+  const applyToPosting = async (posting) => {
+    if (appliedPostingIds.includes(posting.id)) {
+      showToast(`You already applied to ${posting.title}`);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.post(`/api/applications/apply/${posting.id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setAppliedPostingIds((prev) => [...prev, posting.id]);
       showToast(`Application submitted to ${posting.title}`);
-      return [...prev, posting.id];
-    });
+      closePostingDetails();
+    } catch (err) {
+      console.error("Application error", err);
+      const msg = err.response?.data?.message || "Failed to submit application";
+      showToast(msg, "error");
+    }
   };
 
   const hidePosting = (posting) => {
@@ -284,7 +323,7 @@ export default function Feed() {
 
   const openNotificationContext = (notification) => {
     if (notification.relatedPostingId) {
-      const posting = POSTING_FEED.find((item) => item.id === notification.relatedPostingId);
+      const posting = backendPostings.find((item) => item.id === notification.relatedPostingId);
       if (posting) {
         setSelectedPosting(posting);
         markNotificationRead(notification.id);
@@ -304,12 +343,8 @@ export default function Feed() {
   };
 
   const handlePrimaryPostingAction = (posting) => {
-    if (role === "EMPLOYER") {
-      openPostingDetails(posting);
-      return;
-    }
-
-    applyToPosting(posting);
+    // Always open details modal for both students and employers
+    openPostingDetails(posting);
   };
 
   const resetControls = () => {
@@ -324,9 +359,9 @@ export default function Feed() {
   };
 
   return (
-    <DashboardLayout title="Feed" showProfileCard={false}>
-      <section className={`card feed-hero ${isStudentView ? "student-feed-hero" : ""}`}>
-        <div>
+    <DashboardLayout showProfileCard={false}>
+      <section className="card feed-hero">
+        <div className="hero-text">
           <h3>{isStudentView ? "Student Opportunity Hub" : "Community Feed"}</h3>
           <p>
             {role === "EMPLOYER"
@@ -334,21 +369,21 @@ export default function Feed() {
               : "Get role-matched internships, monitor your progress, and build momentum in one focused student feed."}
           </p>
         </div>
-        <div className={`feed-role-chip ${isStudentView ? "feed-role-chip-student" : ""}`}>
+        <div className="feed-role-chip">
           {role === "EMPLOYER" ? "Employer View" : role === "ADMIN" ? "Admin View" : "Student View"}
         </div>
       </section>
 
       {isStudentView && (
-        <>
+        <div className="student-dashboard-grid">
           <section className="card student-notification-card">
             <div className="student-feed-head">
               <div>
-                <h3>Notifications</h3>
-                <p className="feed-muted">Stay updated on deadlines, role matches, and action items.</p>
+                <h3>🔔 Notifications</h3>
+                <p className="feed-muted">Stay updated on deadlines and matches.</p>
               </div>
               <div className="student-notification-head-actions">
-                <span className="student-notification-badge">{unreadStudentNotifications} unread</span>
+                <span className="student-notification-badge">{unreadStudentNotifications} NEW</span>
                 <button type="button" className="action-btn small" onClick={markAllNotificationsRead}>
                   Mark all read
                 </button>
@@ -361,7 +396,7 @@ export default function Feed() {
               )}
               {studentNotifications.map((item) => (
                 <article key={item.id} className={`student-notification-item ${item.read ? "read" : "unread"}`}>
-                  <div>
+                  <div className="notif-content">
                     <p className="student-notification-title">{item.title}</p>
                     <p className="student-notification-message">{item.message}</p>
                     <span className="feed-muted">{item.type} • {item.time}</span>
@@ -372,11 +407,11 @@ export default function Feed() {
                     </button>
                     {!item.read && (
                       <button type="button" className="action-btn small" onClick={() => markNotificationRead(item.id)}>
-                        Mark Read
+                        Read
                       </button>
                     )}
                     <button type="button" className="action-btn small danger" onClick={() => dismissNotification(item.id)}>
-                      Dismiss
+                      ✕
                     </button>
                   </div>
                 </article>
@@ -387,85 +422,78 @@ export default function Feed() {
           <section className="card student-feed-hub">
             <div className="student-feed-head">
               <div>
-                <h3>Career Planner</h3>
-                <p className="feed-muted">Track your pipeline and focus on actions that improve interviews.</p>
+                <h3>🚀 Career Planner</h3>
+                <p className="feed-muted">Build your momentum and track progress.</p>
               </div>
-              <button type="button" className="action-btn" onClick={() => setHiddenPostingIds([])}>
-                Restore Hidden Posts
+              <button type="button" className="action-btn small" onClick={() => setHiddenPostingIds([])}>
+                Restore Hidden
               </button>
             </div>
 
-          <div className="student-feed-stats">
-            <div className="student-stat-card">
-              <span className="feed-muted">Applied</span>
-              <strong>{appliedPostingIds.length}</strong>
-            </div>
-            <div className="student-stat-card">
-              <span className="feed-muted">Saved</span>
-              <strong>{savedPostingIds.length}</strong>
-            </div>
-            <div className="student-stat-card">
-              <span className="feed-muted">Hidden</span>
-              <strong>{hiddenPostingIds.length}</strong>
-            </div>
-            <div className="student-stat-card">
-              <span className="feed-muted">Goal Completion</span>
-              <strong>{studentGoalCompletion}%</strong>
-            </div>
-          </div>
-
-          <div className="student-feed-actions">
-            <div className="student-tab-row">
-              <button
-                type="button"
-                className={`action-btn small ${studentTab === "DISCOVER" ? "student-tab-active" : ""}`}
-                onClick={() => setStudentTab("DISCOVER")}
-              >
-                Discover
-              </button>
-              <button
-                type="button"
-                className={`action-btn small ${studentTab === "SAVED" ? "student-tab-active" : ""}`}
-                onClick={() => setStudentTab("SAVED")}
-              >
-                Saved
-              </button>
-              <button
-                type="button"
-                className={`action-btn small ${studentTab === "APPLIED" ? "student-tab-active" : ""}`}
-                onClick={() => setStudentTab("APPLIED")}
-              >
-                Applied
-              </button>
+            <div className="student-feed-stats">
+              <div className="student-stat-card">
+                <span className="feed-muted">Applied</span>
+                <strong>{appliedPostingIds.length}</strong>
+              </div>
+              <div className="student-stat-card">
+                <span className="feed-muted">Saved</span>
+                <strong>{savedPostingIds.length}</strong>
+              </div>
+              <div className="student-stat-card">
+                <span className="feed-muted">Goal Progress</span>
+                <strong>{studentGoalCompletion}%</strong>
+              </div>
             </div>
 
-            <label className="student-alert-filter">
-              Job Alert Setup
-              <select value={studentAlertSetup} onChange={(e) => setStudentAlertSetup(e.target.value)}>
+            <div className="student-feed-actions">
+              <div className="student-tab-row">
+                <button
+                  type="button"
+                  className={`action-btn small ${studentTab === "DISCOVER" ? "student-tab-active" : ""}`}
+                  onClick={() => setStudentTab("DISCOVER")}
+                >
+                  Discover
+                </button>
+                <button
+                  type="button"
+                  className={`action-btn small ${studentTab === "SAVED" ? "student-tab-active" : ""}`}
+                  onClick={() => setStudentTab("SAVED")}
+                >
+                  Saved
+                </button>
+                <button
+                  type="button"
+                  className={`action-btn small ${studentTab === "APPLIED" ? "student-tab-active" : ""}`}
+                  onClick={() => setStudentTab("APPLIED")}
+                >
+                  Applied
+                </button>
+              </div>
+
+              <select value={studentAlertSetup} onChange={(e) => setStudentAlertSetup(e.target.value)} className="action-btn small">
                 <option value="ALL">All Setups</option>
                 <option value="Remote">Remote First</option>
                 <option value="Hybrid">Hybrid Focus</option>
                 <option value="Onsite">Onsite Focus</option>
               </select>
-            </label>
-          </div>
+            </div>
 
             <div className="student-goal-grid">
-            <button type="button" className={`student-goal-item ${studentGoals.resume ? "done" : ""}`} onClick={() => toggleStudentGoal("resume")}>
-              Resume Updated
-            </button>
-            <button type="button" className={`student-goal-item ${studentGoals.portfolio ? "done" : ""}`} onClick={() => toggleStudentGoal("portfolio")}>
-              Portfolio Linked
-            </button>
-            <button type="button" className={`student-goal-item ${studentGoals.interview ? "done" : ""}`} onClick={() => toggleStudentGoal("interview")}>
-              Interview Prep
-            </button>
-            <button type="button" className={`student-goal-item ${studentGoals.networking ? "done" : ""}`} onClick={() => toggleStudentGoal("networking")}>
-              Networking Outreach
-            </button>
+              <button type="button" className={`student-goal-item ${studentGoals.resume ? "done" : ""}`} onClick={() => toggleStudentGoal("resume")}>
+                {studentGoals.resume ? "✓ Resume" : "Resume"}
+              </button>
+              <button type="button" className={`student-goal-item ${studentGoals.portfolio ? "done" : ""}`} onClick={() => toggleStudentGoal("portfolio")}>
+                {studentGoals.portfolio ? "✓ Portfolio" : "Portfolio"}
+              </button>
+              <button type="button" className={`student-goal-item ${studentGoals.interview ? "done" : ""}`} onClick={() => toggleStudentGoal("interview")}>
+                {studentGoals.interview ? "✓ Interview" : "Interview"}
+              </button>
+              <button type="button" className={`student-goal-item ${studentGoals.networking ? "done" : ""}`} onClick={() => toggleStudentGoal("networking")}>
+                {studentGoals.networking ? "✓ Networking" : "Network"}
+              </button>
             </div>
           </section>
-        </>
+        </div>
       )}
 
       <section className="card feed-summary-grid">
@@ -482,18 +510,20 @@ export default function Feed() {
           <strong>{savedPostings.length}</strong>
         </div>
         <div className="feed-summary-card">
-          <span className="feed-muted">Your View</span>
+          <span className="feed-muted">Current Role</span>
           <strong>{role}</strong>
         </div>
       </section>
 
       <section className="card feed-toolbar-card">
         <div className="section-title-row">
-          <h3>Feed Controls</h3>
+          <h3>⚡ Feed Controls</h3>
           <div className="toolbar-actions">
-            <span className="results-count">Live updates</span>
-            <button type="button" className="action-btn" onClick={resetControls}>
-              Reset
+            <button type="button" className="action-btn small" onClick={toggleTheme}>
+              {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            </button>
+            <button type="button" className="action-btn small" onClick={resetControls}>
+              Reset Filters
             </button>
           </div>
         </div>
@@ -502,10 +532,11 @@ export default function Feed() {
             type="text"
             value={feedSearch}
             onChange={(e) => setFeedSearch(e.target.value)}
-            placeholder="Search postings, companies, students, or skills"
+            placeholder="Search anything..."
+            className="search-input"
           />
           <select value={postingFilter} onChange={(e) => setPostingFilter(e.target.value)}>
-            <option value="ALL">All Setups</option>
+            <option value="ALL">Work Setup</option>
             <option value="Remote">Remote</option>
             <option value="Hybrid">Hybrid</option>
             <option value="Onsite">Onsite</option>
@@ -519,8 +550,8 @@ export default function Feed() {
           </select>
           <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
             <option value="RECENT">Sort: Recent</option>
-            <option value="APPLICANTS">Sort: Most Applicants</option>
-            <option value="COMPANY">Sort: Company A-Z</option>
+            <option value="APPLICANTS">Most Popular</option>
+            <option value="COMPANY">Company A-Z</option>
           </select>
         </div>
       </section>
@@ -528,11 +559,17 @@ export default function Feed() {
       <div className="feed-grid">
         <section className="card feed-column">
           <div className="section-title-row">
-            <h3>Latest Internship Postings</h3>
-            <span className="results-count">{filteredPostings.length} posts</span>
+            <h3>💼 Job Postings</h3>
+            <span className="results-badge">{filteredPostings.length} results</span>
           </div>
           <div className="feed-list">
-            {filteredPostings.length === 0 && <div className="feed-empty-state">No postings match the current filters.</div>}
+            {(isLoading && backendPostings.length === 0) ? (
+              <div style={{ padding: "2rem", textAlign: "center" }}>
+                <p>Loading real-time opportunities...</p>
+              </div>
+            ) : filteredPostings.length === 0 && (
+              <div className="feed-empty-state">No matching internships found.</div>
+            )}
             {filteredPostings.map((item) => (
               <article className="feed-card" key={item.id}>
                 <div className="feed-card-head">
@@ -540,16 +577,14 @@ export default function Feed() {
                     <span className="feed-muted">{item.company}</span>
                     <h4>{item.title}</h4>
                   </div>
-                  <span className="feed-pill feed-pill-posting">Posting</span>
+                  <span className="feed-pill">Internship</span>
                 </div>
-                <p>{item.summary}</p>
+                <p className="feed-summary">{item.summary}</p>
                 <div className="feed-meta">
-                  <span>{item.location}</span>
-                  <span>{item.setup}</span>
-                  <span>{item.time}</span>
-                  <span>Due {item.deadline}</span>
-                  <span>{item.applicants} applicant(s)</span>
-                  {isStudentView && <span className="feed-match-chip">{getMatchScore(item)}% match</span>}
+                  <span>📍 {item.location}</span>
+                  <span>🏠 {item.setup}</span>
+                  <span>⏰ {item.time}</span>
+                  {isStudentView && <span className="feed-match-chip">{getMatchScore(item)}% Match</span>}
                 </div>
                 <div className="feed-tags">
                   {item.tags.map((tag) => (
@@ -560,20 +595,20 @@ export default function Feed() {
                 </div>
                 <div className="feed-actions">
                   <button type="button" className="action-btn small" onClick={() => toggleSavedPosting(item)}>
-                    {savedPostingIds.includes(item.id) ? "Saved" : "Save"}
+                    {savedPostingIds.includes(item.id) ? "★ Saved" : "☆ Save"}
                   </button>
                   {role === "EMPLOYER" ? (
                     <button type="button" className="primary-btn" onClick={() => openPostingDetails(item)}>
-                      View Posting
+                      Manage
                     </button>
                   ) : (
                     <button type="button" className="primary-btn" onClick={() => handlePrimaryPostingAction(item)}>
-                      {appliedPostingIds.includes(item.id) ? "Applied" : "Apply"}
+                      {appliedPostingIds.includes(item.id) ? "Applied" : "Apply Now"}
                     </button>
                   )}
                   {isStudentView && (
                     <button type="button" className="action-btn small" onClick={() => hidePosting(item)}>
-                      Not Interested
+                      Hide
                     </button>
                   )}
                 </div>
@@ -584,12 +619,12 @@ export default function Feed() {
 
         <section className="card feed-column">
           <div className="section-title-row">
-            <h3>Student Activity</h3>
-            <span className="results-count">{filteredActivities.length} updates</span>
+            <h3>✨ Community Activity</h3>
+            <span className="results-badge">{filteredActivities.length} updates</span>
           </div>
           <div className="feed-list">
             {filteredActivities.length === 0 && (
-              <div className="feed-empty-state">No student activity matches the current filters.</div>
+              <div className="feed-empty-state">No recent activity found.</div>
             )}
             {filteredActivities.map((item) => (
               <article className="feed-card" key={item.id}>
@@ -600,12 +635,12 @@ export default function Feed() {
                     </span>
                     <h4>{item.activity}</h4>
                   </div>
-                  <span className="feed-pill feed-pill-activity">Activity</span>
+                  <span className="feed-pill">Activity</span>
                 </div>
-                <p>{item.details}</p>
+                <p className="feed-summary">{item.details}</p>
                 <div className="feed-meta">
-                  <span>{item.time}</span>
-                  <span>{item.type.replace("_", " ")}</span>
+                  <span>⏰ {item.time}</span>
+                  <span>🏷️ {item.type.replace("_", " ")}</span>
                 </div>
                 <div className="feed-actions">
                   {role === "EMPLOYER" ? (
@@ -613,7 +648,7 @@ export default function Feed() {
                       <button type="button" className="action-btn small" onClick={() => showToast(`Shortlisted ${item.student}`)}>
                         Shortlist
                       </button>
-                      <button type="button" className="action-btn small" onClick={() => showToast(`Opened ${item.student}'s profile`)}>
+                      <button type="button" className="primary-btn" onClick={() => showToast(`Opening ${item.student}'s profile`)}>
                         View Profile
                       </button>
                     </>
@@ -622,7 +657,7 @@ export default function Feed() {
                       <button type="button" className="action-btn small" onClick={() => showToast(`Followed ${item.student}`)}>
                         Follow
                       </button>
-                      <button type="button" className="action-btn small" onClick={() => showToast("Saved activity for later review")}>
+                      <button type="button" className="action-btn small" onClick={() => showToast("Saved activity")}>
                         Save
                       </button>
                     </>
@@ -635,12 +670,12 @@ export default function Feed() {
       </div>
 
       {selectedPosting && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Feed posting details">
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-panel feed-modal-panel">
             <div className="section-title-row">
-              <h3>Posting Details</h3>
-              <button type="button" className="action-btn" onClick={closePostingDetails}>
-                Close
+              <h3>Internship Details</h3>
+              <button type="button" className="action-btn small" onClick={closePostingDetails}>
+                ✕
               </button>
             </div>
             <div className="feed-detail-grid">
@@ -678,10 +713,15 @@ export default function Feed() {
                 {savedPostingIds.includes(selectedPosting.id) ? "Unsave" : "Save for Later"}
               </button>
               {role === "EMPLOYER" ? (
-                <button type="button" className="action-btn" onClick={() => showToast("Opening posting management")}>Open in Dashboard</button>
+                <button type="button" className="action-btn" onClick={() => showToast("Opening management...")}>Management Dashboard</button>
               ) : (
-                <button type="button" className="action-btn" onClick={() => handlePrimaryPostingAction(selectedPosting)}>
-                  Apply Now
+                <button 
+                  type="button" 
+                  className="action-btn" 
+                  onClick={() => applyToPosting(selectedPosting)}
+                  disabled={appliedPostingIds.includes(selectedPosting.id)}
+                >
+                  {appliedPostingIds.includes(selectedPosting.id) ? "Already Applied" : "Confirm Application"}
                 </button>
               )}
             </div>

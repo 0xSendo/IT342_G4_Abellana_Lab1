@@ -28,9 +28,15 @@ function getRoleDashboard(role) {
 }
 
 export default function Home() {
-  const { loginWithOAuth } = useContext(AuthContext);
+  const { loginWithOAuth, isAuthenticated, currentUser } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      navigate(getRoleDashboard(currentUser.role), { replace: true });
+    }
+  }, [isAuthenticated, currentUser, navigate]);
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const hashParams = useMemo(() => parseHashParams(location.hash), [location.hash]);

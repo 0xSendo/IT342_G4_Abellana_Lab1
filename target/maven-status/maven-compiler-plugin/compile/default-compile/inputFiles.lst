@@ -1,8 +1,22 @@
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\config\SecurityConfig.java
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\controller\AuthController.java
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\entity\Role.java
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\entity\User.java
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\InternmatchApplication.java
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\repository\UserRepository.java
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\security\JwtAuthenticationFilter.java
-C:\Users\Paul Abellana\Downloads\internmatch\internmatch\src\main\java\com\internmatch\internmatch\security\JwtService.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\core\entity\Internship.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\core\entity\Role.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\core\entity\User.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\core\repository\UserRepository.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\config\ApplicationConfig.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\config\GlobalExceptionHandler.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\config\SecurityConfig.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\config\WebConfig.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\controller\AuthController.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\RegisterRequest.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\security\JwtAuthenticationFilter.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\security\JwtService.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\auth\security\OAuth2AuthenticationSuccessHandler.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\common\controller\GlobalErrorController.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\common\controller\TestController.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\internship\dto\CreateInternshipRequest.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\internship\dto\InternshipResponse.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\internship\InternshipController.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\internship\InternshipRepository.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\internship\InternshipService.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\features\internship\InternshipStatus.java
+C:\Users\Paul Abellana\Downloads\internmatch - Copy\internmatch\src\main\java\com\internmatch\internmatch\InternmatchApplication.java
