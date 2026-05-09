@@ -1,9 +1,12 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
+import JobTrendsWidget from "../../components/JobTrendsWidget";
+import "../../styles/dashboard.css";
 
 export default function AdminDashboard() {
-  const { currentUser, updateProfile } = useContext(AuthContext);
+  const { currentUser, updateProfile, getUsers } = useContext(AuthContext);
+  const [users, setUsers] = useState([]);
   const [form, setForm] = useState({
     name: currentUser?.name || "",
     email: currentUser?.email || "",
@@ -11,6 +14,14 @@ export default function AdminDashboard() {
     phone: currentUser?.phone || "",
   });
   const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const data = await getUsers();
+      setUsers(data);
+    };
+    fetchUsers();
+  }, [getUsers]);
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -59,52 +70,62 @@ export default function AdminDashboard() {
       </section>
 
       <section className="card">
-        <h3>Overview</h3>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="stat-label">Total Students</span>
-            <span className="stat-value">120</span>
-            <span className="stat-trend positive">+8 this month</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Employers</span>
-            <span className="stat-value">15</span>
-            <span className="stat-trend">Stable</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Active Postings</span>
-            <span className="stat-value">25</span>
-            <span className="stat-trend positive">+4 this week</span>
-          </div>
+        <h3>System Users</h3>
+        <div style={{ overflowX: "auto" }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="empty-row">No users found.</td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <span className={`chip ${user.role === 'ADMIN' ? 'chip-closed' : user.role === 'EMPLOYER' ? 'chip-draft' : 'chip-open'}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
 
       <section className="card">
-        <h3>Internship Monitoring</h3>
-        <ul className="list">
-          <li>
-            <div>
-              <strong>Active Postings</strong>
-              <span className="muted">Across all employers</span>
-            </div>
-            <span className="chip chip-open">25</span>
-          </li>
-          <li>
-            <div>
-              <strong>Reported Listings</strong>
-              <span className="muted">Requires review</span>
-            </div>
-            <span className="chip chip-draft">0</span>
-          </li>
-          <li>
-            <div>
-              <strong>Pending Approvals</strong>
-              <span className="muted">New company requests</span>
-            </div>
-            <span className="chip chip-closed">3</span>
-          </li>
-        </ul>
+        <h3>Overview</h3>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <span className="stat-label">Total Users</span>
+            <span className="stat-value">{users.length}</span>
+            <span className="stat-trend positive">Active on system</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Employers</span>
+            <span className="stat-value">{users.filter(u => u.role === 'EMPLOYER').length}</span>
+            <span className="stat-trend">Partners</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Students</span>
+            <span className="stat-value">{users.filter(u => u.role === 'STUDENT').length}</span>
+            <span className="stat-trend positive">Seeking internships</span>
+          </div>
+        </div>
       </section>
+
+      <JobTrendsWidget />
+
     </DashboardLayout>
   );
 }

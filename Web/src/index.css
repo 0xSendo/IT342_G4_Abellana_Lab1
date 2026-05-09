@@ -137,3 +137,20 @@ button:focus-visible {
   a:hover { color: var(--primary-600); }
   button { background-color: #ffffff; }
 }
+
+/* Manual Light Theme Override */
+body.light-theme {
+  --bg: #ffffff;
+  --surface: #f6f8fb;
+  --muted: #6b7280;
+  --text: #0f1724;
+  --card-bg: #ffffff;
+  --primary: #ff6b4a;
+  --primary-600: #f0552f;
+  --glass: rgba(2,6,23,0.03);
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+body.light-theme a:hover { color: var(--primary-600); }
+body.light-theme button { background-color: #ffffff; }

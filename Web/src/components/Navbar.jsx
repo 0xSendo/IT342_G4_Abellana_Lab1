@@ -14,9 +14,10 @@ export default function Navbar() {
 
 	return (
 		<nav className="navbar">
-			<h2>InternMatch</h2>
-			<div>
-				<Link to="/">Home</Link>
+			<Link to="/" className="navbar-logo">
+				<h2>InternMatch</h2>
+			</Link>
+			<div className="navbar-actions">
 				{!isAuthenticated && <Link to="/login">Login</Link>}
 				{!isAuthenticated && <Link className="nav-btn" to="/register">Get Started</Link>}
 				{isAuthenticated && (
@@ -31,4 +32,3 @@ export default function Navbar() {
 		</nav>
 	);
 }
-

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useContext } from "react";
 import AuthContext from "../context/AuthContext";
 import "../styles/sidebar.css";
@@ -9,12 +9,34 @@ export default function Sidebar() {
 
 	return (
 		<aside className="sidebar">
-			<h2>Dashboard</h2>
-			{role === "STUDENT" && <Link to="/dashboard/student">Student</Link>}
-			{role === "EMPLOYER" && <Link to="/dashboard/employer">Employer</Link>}
-			{role === "ADMIN" && <Link to="/dashboard/admin">Admin</Link>}
-			<Link to="/">Home</Link>
+			<div className="sidebar-group">
+				<h3 className="sidebar-label">Main Navigation</h3>
+				{role === "STUDENT" && (
+					<NavLink to="/dashboard/student" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+						Dashboard
+					</NavLink>
+				)}
+				{role === "EMPLOYER" && (
+					<NavLink to="/dashboard/employer" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+						Dashboard
+					</NavLink>
+				)}
+				{role === "ADMIN" && (
+					<NavLink to="/dashboard/admin" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+						Dashboard
+					</NavLink>
+				)}
+				<NavLink to="/feed" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+					Feed
+				</NavLink>
+			</div>
+			
+			<div className="sidebar-group">
+				<h3 className="sidebar-label">General</h3>
+				<NavLink to="/" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+					Home
+				</NavLink>
+			</div>
 		</aside>
 	);
 }
-
