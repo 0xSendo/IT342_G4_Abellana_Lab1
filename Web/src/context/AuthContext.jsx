@@ -1,8 +1,8 @@
 import React, { createContext, useEffect, useState } from "react";
-
+import { Navigate, useLocation } from "react-router-dom";
 const AuthContext = createContext(null);
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
@@ -67,9 +67,39 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+
+    localStorage.removeItem("internmatch_currentUser");   
+
     localStorage.removeItem("internmatch_currentUser");
+
     localStorage.removeItem("internmatch_token");
     setCurrentUser(null);
+  };
+
+  const updateProfile = async (formData) => {
+    // In a real app, this would be a PATCH/PUT request to the backend
+    // For now, we update local state and storage
+    try {
+      const updatedUser = { ...currentUser, ...formData };
+      localStorage.setItem("internmatch_currentUser", JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: "Failed to update profile locally." };
+    }
+  };
+
+  const getUsers = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await fetch(`${API_BASE}/api/auth/users`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
   };
 
   const value = {
@@ -79,6 +109,8 @@ export function AuthProvider({ children }) {
     login,
     loginWithOAuth,
     logout,
+    updateProfile,
+    getUsers,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
