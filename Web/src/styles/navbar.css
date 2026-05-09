@@ -16,16 +16,23 @@
 	border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.navbar h2 {
-	margin: 0;
-	font-size: 1.15rem;
-	letter-spacing: -0.02em;
-	color: var(--text);
+.navbar-logo {
+	text-decoration: none;
 }
 
-.navbar > div {
+.navbar-logo h2 {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 800;
+	letter-spacing: -0.03em;
+	background: var(--accent);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.navbar-actions {
 	display: flex;
-	gap: 0.75rem;
+	gap: 1rem;
 	align-items: center;
 }
 
@@ -33,12 +40,16 @@
 	color: var(--text);
 	text-decoration: none;
 	font-weight: 600;
-	padding: 0.35rem 0.5rem;
-	border-radius: 8px;
-	transition: background 160ms, transform 160ms, color 160ms;
+	padding: 0.5rem 0.75rem;
+	border-radius: 10px;
+	transition: all 0.2s ease;
 }
 
-.navbar a:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+.navbar a:hover { 
+	background: rgba(255,255,255,0.08); 
+	transform: translateY(-1px);
+	color: var(--primary);
+}
 
 .navbar .nav-btn {
 	background: var(--accent);
@@ -73,5 +84,9 @@
 	cursor: pointer;
 	transition: background 140ms, transform 120ms;
 }
+
 .nav-logout:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px);} 
+
+.nav-logout:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px);} 
+
 

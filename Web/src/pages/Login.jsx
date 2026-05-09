@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import "../styles/auth.css";
 
 function getRoleDashboard(role) {
@@ -11,6 +12,7 @@ function getRoleDashboard(role) {
 
 export default function Login() {
   const { login, isAuthenticated, currentUser } = useContext(AuthContext);
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname;
@@ -20,18 +22,19 @@ export default function Login() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+  const googleOauth2Url = import.meta.env.VITE_GOOGLE_OAUTH2_URL || "/oauth2/authorization/google";
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    
+    // If user is already authenticated and lands here (e.g. via back button),
+    // show a message and send them back to their dashboard.
     const role = currentUser?.role || "STUDENT";
     const roleDashboard = getRoleDashboard(role);
-    if (from && from.startsWith(roleDashboard)) {
-      navigate(from, { replace: true });
-      return;
-    }
+    
     navigate(roleDashboard, { replace: true });
-  }, [isAuthenticated, from, currentUser, navigate]);
+  }, [isAuthenticated, currentUser, navigate]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -42,6 +45,8 @@ export default function Login() {
       setError(res.message);
       return;
     }
+    
+    toast.show("Successfully logged in!");
     setSuccess("Login successful! Redirecting...");
     const role = res.user.role || "STUDENT";
     const roleDashboard = getRoleDashboard(role);
@@ -53,29 +58,8 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    setError("");
-    setSuccess("");
-
-    if (!googleClientId) {
-      setError("Google sign-in is not configured. Add VITE_GOOGLE_CLIENT_ID in InternMatch/.env.");
-      return;
-    }
-
-    const redirectUri = `${window.location.origin}/`;
-    const state = `${Date.now()}`;
-    const nonce = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    const params = new URLSearchParams({
-      client_id: googleClientId,
-      redirect_uri: redirectUri,
-      response_type: "token id_token",
-      scope: "openid email profile",
-      include_granted_scopes: "true",
-      prompt: "select_account",
-      state,
-      nonce,
-    });
-
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    const base = apiBaseUrl.replace(/\/$/, "");
+    window.location.href = `${base}${googleOauth2Url}`;
   };
 
   return (
