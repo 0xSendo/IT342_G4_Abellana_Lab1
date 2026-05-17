@@ -364,10 +364,14 @@ const profileCompletion = Math.round(
         <div className="modal-overlay">
           <div className="modal-content profile-modal-pro">
             <div className="modal-aurora-glow"></div>
+            <div className="modal-aurora-glow secondary"></div>
             <div className="modal-inner-content">
               <div className="modal-header-pro">
-                <h3>Edit Your Profile</h3>
-                <div className="modal-tabs-pro">
+                <div>
+                  <span className="bento-label">Profile Management</span>
+                  <h3>Edit Your Identity</h3>
+                </div>
+                <div className="modal-tabs-pro" style={{ width: 'auto', flex: 'none', marginLeft: 'auto', marginRight: '2rem' }}>
                   <button 
                     className={`modal-tab-btn ${profileTab === 'essentials' ? 'active' : ''}`}
                     onClick={() => setProfileTab('essentials')}
@@ -383,49 +387,51 @@ const profileCompletion = Math.round(
                 </div>
                 <button className="close-btn-glass" onClick={closeProfileModal}>✕</button>
               </div>
-              <div className="modal-body-pro">
+              <div className="modal-body-pro" style={{ minHeight: '400px' }}>
                 <form className="form-grid-pro" onSubmit={onSave}>
                   {profileTab === 'essentials' && (
-                    <>
+                    <div style={{ display: 'contents', animation: 'fadeUp 0.4s ease-out' }}>
                       <div className="input-group-pro">
                         <label>Full Name</label>
-                        <input name="name" value={form.name} onChange={onChange} required />
+                        <input name="name" value={form.name} onChange={onChange} required placeholder="Enter your full name" />
                       </div>
                       <div className="input-group-pro">
                         <label>Email Address</label>
-                        <input name="email" type="email" value={form.email} onChange={onChange} required />
+                        <input name="email" type="email" value={form.email} onChange={onChange} required placeholder="your@email.com" />
                       </div>
                       <div className="input-group-pro">
                         <label>Program / Course</label>
-                        <input name="program" value={form.program} onChange={onChange} />
+                        <input name="program" value={form.program} onChange={onChange} placeholder="e.g. BS Information Technology" />
                       </div>
                       <div className="input-group-pro">
                         <label>Year Level</label>
-                        <input name="yearLevel" value={form.yearLevel} onChange={onChange} />
+                        <input name="yearLevel" value={form.yearLevel} onChange={onChange} placeholder="e.g. 3rd Year" />
                       </div>
                       <div className="input-group-pro full-width">
-                        <label>Skills (comma separated)</label>
+                        <label>Skills & Expertise (comma separated)</label>
                         <textarea 
                           name="skills" 
                           value={form.skills} 
                           onChange={onChange} 
-                          placeholder="React, Python, Design..."
+                          placeholder="React, Python, UI Design, Project Management..."
                           rows={3}
+                          style={{ minHeight: '100px' }}
                         />
                       </div>
-                    </>
+                    </div>
                   )}
 
                   {profileTab === 'portfolio' && (
-                    <>
+                    <div style={{ display: 'contents', animation: 'fadeUp 0.4s ease-out' }}>
                       <div className="input-group-pro full-width">
                         <label>Professional Bio <span style={{ opacity: 0.5, fontSize: '0.7rem' }}>(Optional)</span></label>
                         <textarea 
                           name="bio" 
                           value={form.bio} 
                           onChange={onChange} 
-                          placeholder="Briefly describe yourself and your career goals..."
+                          placeholder="Briefly describe yourself, your career goals, and what makes you a unique candidate..."
                           rows={5}
+                          style={{ minHeight: '150px' }}
                         />
                       </div>
                       <div className="input-group-pro full-width">
@@ -434,16 +440,17 @@ const profileCompletion = Math.round(
                           name="projects" 
                           value={form.projects} 
                           onChange={onChange} 
-                          placeholder="Describe key projects you've worked on..."
+                          placeholder="Highlight key academic or personal projects. Include links if available..."
                           rows={5}
+                          style={{ minHeight: '150px' }}
                         />
                       </div>
-                    </>
+                    </div>
                   )}
 
-                  <div className="modal-footer-pro full-width">
+                  <div className="modal-footer-pro full-width" style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
                     <button className="btn-secondary-glass" type="button" onClick={closeProfileModal}>Cancel</button>
-                    <button className="btn-primary-pro" type="submit">Save Changes</button>
+                    <button className="btn-primary-pro" type="submit" style={{ padding: '12px 40px' }}>Save Changes</button>
                   </div>
                 </form>
               </div>
