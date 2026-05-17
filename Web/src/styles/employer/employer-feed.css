@@ -1,17 +1,295 @@
-/* ==================== EMPLOYER FEED SPECIFIC STYLES ==================== */
+/* ==================== EMPLOYER FEED "PRO MAX" STYLES ==================== */
 
-.employer-activity-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 24px;
-  padding: 20px;
+.employer-feed-wrapper {
+  padding: 0 0 4rem;
+  animation: fadeUp 0.6s ease-out;
 }
 
-.talent-pill {
-  background: rgba(57, 198, 184, 0.15);
-  color: #39c6b8;
-  padding: 4px 10px;
+/* Feed Controls */
+.feed-controls-pro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.search-box-pro {
+  flex: 1;
+  min-width: 300px;
+  background: var(--glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.search-box-pro:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(255, 107, 74, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.search-icon {
+  font-size: 1.1rem;
+  margin-right: 0.75rem;
+  opacity: 0.6;
+}
+
+.search-box-pro input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 0.85rem 0;
+  width: 100%;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.filter-group-pro {
+  display: flex;
+  gap: 0.75rem;
+  background: var(--glass);
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.filter-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 0.5rem 1.25rem;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.2);
+}
+
+.filter-btn:not(.active):hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+/* Ecosystem Grid */
+.ecosystem-postings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.ecosystem-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 22px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ecosystem-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 107, 74, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.ecosystem-card.is-mine {
+  border-color: rgba(255, 107, 74, 0.2);
+  background: linear-gradient(145deg, rgba(255, 107, 74, 0.05), rgba(255, 255, 255, 0.01));
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.company-logo-placeholder {
+  width: 48px;
+  height: 48px;
+  background: var(--accent);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: white;
+  box-shadow: 0 8px 16px rgba(255, 107, 74, 0.15);
+}
+
+.mine-badge {
+  background: var(--primary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-info h4 {
+  font-size: 1.2rem;
   font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: var(--text);
+}
+
+.company-name {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  opacity: 1;
+}
+
+.meta-info {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.card-description p {
+  font-size: 0.9rem;
+  color: var(--text);
+  opacity: 0.8;
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-footer-pro {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-date {
+  font-size: 0.75rem;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.btn-action-pro {
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-action-pro.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-action-pro.secondary {
+  background: var(--glass);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-action-pro:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* States */
+.loading-state, .empty-state-pro {
+  grid-column: 1 / -1;
+  padding: 4rem;
+  text-align: center;
+  color: var(--text);
+}
+
+.loading-state p {
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state-pro h4 {
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-pro p {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+/* Community Activity Placeholder Text */
+.community-activity-bento .insight-text {
+  color: var(--text) !important;
+  opacity: 0.9 !important;
+  font-weight: 500;
+}
+
+.community-activity-bento .bento-label {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feed-controls-pro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group-pro {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .ecosystem-postings-grid {
+    grid-template-columns: 1fr;
+  }
 }
