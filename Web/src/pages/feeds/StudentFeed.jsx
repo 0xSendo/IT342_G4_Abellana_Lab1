@@ -16,7 +16,7 @@ const STUDENT_ACTIVITY_FEED = [
     student: "Juan Dela Cruz",
     program: "BSIT",
     activity: "Updated skills and portfolio",
-    time: "30 minutes ago",
+    time: "30 min ago",
     details: "Added React, Node.js, and SQL to his profile.",
     type: "PROFILE",
   },
@@ -25,7 +25,7 @@ const STUDENT_ACTIVITY_FEED = [
     student: "Maria Santos",
     program: "BSCS",
     activity: "Applied to Frontend Developer Intern",
-    time: "3 hours ago",
+    time: "3 hrs ago",
     details: "Currently shortlisted for technical interview.",
     type: "APPLICATION",
   },
@@ -59,13 +59,6 @@ export default function StudentFeed() {
   const [sortMode, setSortMode] = useState("RECENT");
   const [savedPostingIds, setSavedPostingIds] = useState([]);
   const [appliedPostingIds, setAppliedPostingIds] = useState([]);
-  const [hiddenPostingIds, setHiddenPostingIds] = useState([]);
-  const [studentGoals, setStudentGoals] = useState({
-    resume: false,
-    portfolio: false,
-    interview: false,
-    networking: false,
-  });
   const [notifications, setNotifications] = useState([]);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState(null);
@@ -126,10 +119,6 @@ export default function StudentFeed() {
     return raw.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
   }, [currentUser?.skills]);
 
-  const studentGoalCompletion = Math.round(
-    (Object.values(studentGoals).filter(Boolean).length / Object.keys(studentGoals).length) * 100
-  );
-
   const filteredPostings = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
     let matches = backendPostings.filter((item) => {
@@ -139,14 +128,12 @@ export default function StudentFeed() {
       return (!query || searchableText.includes(query)) && (postingFilter === "ALL" || item.setup === postingFilter);
     });
 
-    matches = matches.filter((item) => !hiddenPostingIds.includes(item.id));
-
     return matches.sort((a, b) => {
       if (sortMode === "APPLICANTS") return b.applicants - a.applicants;
       if (sortMode === "COMPANY") return a.company.localeCompare(b.company);
       return b.id - a.id;
     });
-  }, [backendPostings, feedSearch, postingFilter, sortMode, hiddenPostingIds]);
+  }, [backendPostings, feedSearch, postingFilter, sortMode]);
 
   const filteredActivities = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
@@ -163,6 +150,24 @@ export default function StudentFeed() {
     const postingTags = (posting.tags || []).map((tag) => String(tag).toLowerCase());
     const overlaps = studentSkills.filter((skill) => postingTags.some((tag) => tag.includes(skill) || skill.includes(tag))).length;
     return Math.min(98, 62 + overlaps * 12);
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) return;
+      await axios.put(`${API_BASE}/api/notifications/read-all`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Failed to mark notifications as read", err);
+    }
+  };
+
+  const openNotifications = () => {
+    setIsNotificationsModalOpen(true);
+    markNotificationsAsRead();
   };
 
   const showToast = (message) => toast.show(message);
@@ -197,21 +202,6 @@ export default function StudentFeed() {
     }
   };
 
-  const hidePosting = (posting) => {
-    setHiddenPostingIds((prev) => {
-      if (prev.includes(posting.id)) return prev;
-      showToast(`Hidden ${posting.title} from your feed`);
-      return [...prev, posting.id];
-    });
-  };
-
-  const toggleStudentGoal = (goalKey) => {
-    setStudentGoals((prev) => ({
-      ...prev,
-      [goalKey]: !prev[goalKey],
-    }));
-  };
-
   const resetControls = () => {
     setFeedSearch("");
     setPostingFilter("ALL");
@@ -221,8 +211,8 @@ export default function StudentFeed() {
 
   return (
     <DashboardLayout 
-      showProfileCard={false}
-      onNotificationClick={() => setIsNotificationsModalOpen(true)}
+      title="Opportunity Feed"
+      onNotificationClick={openNotifications}
       notificationCount={notifications.filter(n => !n.read).length}
     >
       <div className="student-dashboard-wrapper">
@@ -234,155 +224,154 @@ export default function StudentFeed() {
           <div className="hero-inner">
             <div className="hero-text">
               <span className="hero-badge">Student Opportunity Hub</span>
-              <h1>Find Your Next Career Move</h1>
-              <p>Get role-matched internships, monitor your progress, and build momentum in one focused student feed.</p>
+              <h1>Explore the <span className="gradient-text">Future</span> 🌐</h1>
+              <p>Discover roles tailored to your skills, track ecosystem activity, and monitor market trends in one focused feed.</p>
             </div>
             <div className="hero-summary-stats">
               <div className="summary-stat-glass primary">
                 <span className="val">{filteredPostings.length}</span>
-                <span className="lab">Jobs</span>
+                <span className="lab">Open Roles</span>
               </div>
               <div className="summary-stat-glass">
                 <span className="val">{filteredActivities.length}</span>
-                <span className="lab">Updates</span>
+                <span className="lab">New Updates</span>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="student-bento-grid" style={{ marginBottom: '24px' }}>
-            <section className="bento-card apps-bento">
-              <div className="bento-header">
-                <div>
-                  <span className="bento-label">Career Planner</span>
-                  <h3>My Momentum</h3>
-                </div>
-              </div>
-...
-            </section>
-
-            {/* Market Intelligence in Feed */}
-            <section className="bento-card trends-bento" style={{ gridColumn: 'span 4' }}>
-               <JobTrendsWidget />
-            </section>
-        </div>
-
-        <section className="bento-card" style={{ marginBottom: '24px' }}>
-          <div className="bento-header">
-            <div>
-              <span className="bento-label">Filters</span>
-              <h3>Feed Controls</h3>
-            </div>
-            <button type="button" className="edit-btn-glass" onClick={resetControls}>
-              Reset
-            </button>
-          </div>
-          <div className="app-filters-mini" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '12px' }}>
-            <input
-              type="text"
-              value={feedSearch}
-              onChange={(e) => setFeedSearch(e.target.value)}
-              placeholder="Search anything..."
-            />
-            <select value={postingFilter} onChange={(e) => setPostingFilter(e.target.value)}>
-              <option value="ALL">All Setup</option>
-              <option value="Remote">Remote</option>
-              <option value="Hybrid">Hybrid</option>
-              <option value="Onsite">Onsite</option>
-            </select>
-            <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
-              {Object.entries(ACTIVITY_FILTERS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-            <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
-              <option value="RECENT">Recent</option>
-              <option value="APPLICANTS">Popular</option>
-              <option value="COMPANY">Company</option>
-            </select>
-          </div>
-        </section>
-
-        <div className="feed-grid">
+        {/* Pro Max Layout: Filters and Quick Tips */}
+        <div className="feed-controls-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
           <section className="bento-card">
             <div className="bento-header">
               <div>
-                <span className="bento-label">Opportunities</span>
-                <h3>Recommended Internships</h3>
+                <span className="bento-label">Filters</span>
+                <h3>Targeted Search</h3>
               </div>
-              <span className="hero-badge" style={{ margin: 0 }}>{filteredPostings.length} results</span>
+              <button type="button" className="edit-btn-glass" onClick={resetControls}>Reset</button>
             </div>
-            
-            <div className="postings-grid-pro" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {(isLoading && backendPostings.length === 0) ? (
-                <div className="market-status-overlay">
-                  <div className="loading-pulse"><div className="pulse-dot"></div>Loading...</div>
-                </div>
-              ) : filteredPostings.length === 0 ? (
-                <p className="feed-muted" style={{ textAlign: 'center', padding: '20px' }}>No matches found</p>
-              ) : (
-                filteredPostings.map((item) => (
-                  <div key={item.id} className="feed-card-enhanced">
-                    <div className="card-top">
-                      <span className="card-tag active">Internship</span>
-                      <div className="match-badge">{getMatchScore(item)}% Match</div>
-                    </div>
-                    <div className="card-body-pro">
-                      <span className="company-name">{item.company}</span>
-                      <h4>{item.title}</h4>
-                      <div className="card-stats-row">
-                        <span>📍 {item.location}</span>
-                        <span>🏠 {item.setup}</span>
-                        <span>📅 {item.time}</span>
-                      </div>
-                      <p className="job-summary">{item.summary.substring(0, 120)}...</p>
-                    </div>
-                    <div className="card-actions-pro">
-                      <button type="button" className="edit-btn-glass" onClick={() => toggleSavedPosting(item)}>
-                        {savedPostingIds.includes(item.id) ? "★ Saved" : "☆ Save"}
-                      </button>
-                      <button type="button" className="btn-primary-pro" onClick={() => setSelectedPosting(item)}>
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="app-filters-mini" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '12px', marginTop: '1rem' }}>
+              <input
+                type="text"
+                value={feedSearch}
+                onChange={(e) => setFeedSearch(e.target.value)}
+                placeholder="Search by role, company, or skills..."
+              />
+              <select value={postingFilter} onChange={(e) => setPostingFilter(e.target.value)}>
+                <option value="ALL">All Setups</option>
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Onsite">Onsite</option>
+              </select>
+              <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+                <option value="RECENT">Newest First</option>
+                <option value="APPLICANTS">Most Popular</option>
+                <option value="COMPANY">A-Z Company</option>
+              </select>
             </div>
           </section>
 
-          <section className="bento-card">
-             <div className="bento-header">
+          <section className="bento-card pro-tips-bento">
+            <div className="bento-header">
               <div>
-                <span className="bento-label">Community</span>
-                <h3>Activity Ecosystem</h3>
+                <span className="bento-label">Pro Tip</span>
+                <h3>Boost Visibility</h3>
               </div>
-              <span className="hero-badge" style={{ margin: 0 }}>{filteredActivities.length} updates</span>
             </div>
-
-            <div className="postings-grid-pro" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {filteredActivities.length === 0 ? (
-                <p className="feed-muted" style={{ textAlign: 'center', padding: '20px' }}>No recent updates</p>
-              ) : (
-                filteredActivities.map((item) => (
-                  <div key={item.id} className="posting-card-pro">
-                    <span className="card-tag" style={{ background: 'rgba(57, 198, 184, 0.15)', color: '#39c6b8' }}>Activity</span>
-                    <div className="card-body-pro">
-                      <span className="loc" style={{ marginBottom: '4px' }}>{item.student} • {item.program}</span>
-                      <h4>{item.activity}</h4>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '8px' }}>{item.details}</p>
-                    </div>
-                    <div className="card-actions-pro">
-                      <button type="button" className="edit-btn-glass" onClick={() => showToast(`Followed ${item.student}`)}>Follow</button>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="tip-content">
+              <p>Students with <strong>5+ verified skills</strong> are 3x more likely to be shortlisted by top employers.</p>
+              <a href="/dashboard" className="tip-link">Update Profile →</a>
             </div>
           </section>
         </div>
+
+        {/* Balanced Grid for Content and Intelligence */}
+        <div className="feed-grid-pro-v2" style={{ display: 'grid', gridTemplateColumns: '2.2fr 1.3fr', gap: '2rem' }}>
+          {/* Main Opportunities Column */}
+          <div className="feed-main-col">
+            <section className="bento-card">
+              <div className="bento-header">
+                <div>
+                  <span className="bento-label">Recommendations</span>
+                  <h3>Matched For You</h3>
+                </div>
+                <span className="hero-badge" style={{ margin: 0 }}>{filteredPostings.length} Matches</span>
+              </div>
+              
+              <div className="postings-grid-pro" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+                {(isLoading && backendPostings.length === 0) ? (
+                  <div className="market-status-overlay">
+                    <div className="loading-pulse"><div className="pulse-dot"></div>Analyzing ecosystem...</div>
+                  </div>
+                ) : filteredPostings.length === 0 ? (
+                  <div className="empty-state-pro" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                    <div className="empty-icon">🔍</div>
+                    <h4>No exact matches</h4>
+                    <p>Try widening your filters to see more opportunities.</p>
+                  </div>
+                ) : (
+                  filteredPostings.map((item) => (
+                    <div key={item.id} className="feed-card-enhanced">
+                      <div className="card-top">
+                        <span className="card-tag active">{item.setup}</span>
+                        <div className="match-badge">{getMatchScore(item)}% Match</div>
+                      </div>
+                      <div className="card-body-pro">
+                        <span className="company-name">{item.company}</span>
+                        <h4>{item.title}</h4>
+                        <div className="card-stats-row">
+                          <span>📍 {item.location}</span>
+                          <span>📅 {item.time}</span>
+                          <span>👥 {item.applicants} Apps</span>
+                        </div>
+                        <p className="job-summary">{item.summary.substring(0, 140)}...</p>
+                      </div>
+                      <div className="card-actions-pro">
+                        <button type="button" className="edit-btn-glass" onClick={() => toggleSavedPosting(item)}>
+                          {savedPostingIds.includes(item.id) ? "★ Saved" : "☆ Save"}
+                        </button>
+                        <button type="button" className="btn-primary-pro" onClick={() => setSelectedPosting(item)}>
+                          View & Apply
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Intelligence & Activity Column */}
+          <div className="feed-side-col" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <section className="bento-card trends-bento">
+              <JobTrendsWidget />
+            </section>
+
+            <section className="bento-card activity-bento">
+              <div className="bento-header">
+                <div>
+                  <span className="bento-label">Live Feed</span>
+                  <h3>Community Activity</h3>
+                </div>
+              </div>
+              <div className="activity-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                {filteredActivities.map((item) => (
+                  <div key={item.id} className="posting-card-pro" style={{ padding: '1rem' }}>
+                    <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span className="loc" style={{ fontSize: '0.75rem', fontWeight: 700 }}>{item.student}</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>{item.time}</span>
+                    </div>
+                    <h5 style={{ fontSize: '0.9rem', margin: '6px 0', fontWeight: 700 }}>{item.activity}</h5>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>{item.details.substring(0, 40)}...</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
       </div>
 
+      {/* Selected Posting Modal */}
       {selectedPosting && (
         <div className="modal-overlay">
           <div className="modal-content application-modal-pro">
@@ -466,7 +455,7 @@ export default function StudentFeed() {
                         <div className="notif-content-full">
                           <h4 className="notif-title-full">{n.title}</h4>
                           <p className="notif-msg-full">{n.message}</p>
-                          <span className="notif-time-full">Just now</span>
+                          <span className="notif-time-full">{new Date(n.createdAt).toLocaleString()}</span>
                         </div>
                       </div>
                     ))
