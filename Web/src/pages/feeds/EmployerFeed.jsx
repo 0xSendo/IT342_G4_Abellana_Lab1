@@ -20,6 +20,7 @@ export default function EmployerFeed() {
   const [notifications, setNotifications] = useState([]);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentProfileTab, setStudentProfileTab] = useState("essentials");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
@@ -125,6 +126,7 @@ export default function EmployerFeed() {
 
   const openStudentProfile = (student) => {
     setSelectedStudent(student);
+    setStudentProfileTab("essentials");
     setIsProfileModalOpen(true);
   };
 
@@ -321,52 +323,86 @@ export default function EmployerFeed() {
                   <span className="bento-label">Talent Profile</span>
                   <h3>{selectedStudent.studentName}</h3>
                 </div>
+                <div className="modal-tabs-pro" style={{ width: 'auto', flex: 'none', marginLeft: 'auto', marginRight: '2rem' }}>
+                  <button 
+                    className={`modal-tab-btn ${studentProfileTab === 'essentials' ? 'active' : ''}`}
+                    onClick={() => setStudentProfileTab('essentials')}
+                  >
+                    <span>🔑 Info</span>
+                  </button>
+                  <button 
+                    className={`modal-tab-btn ${studentProfileTab === 'portfolio' ? 'active' : ''}`}
+                    onClick={() => setStudentProfileTab('portfolio')}
+                  >
+                    <span>🚀 Portfolio</span>
+                  </button>
+                </div>
                 <button className="close-btn-glass" onClick={() => setIsProfileModalOpen(false)}>✕</button>
               </div>
-              <div className="modal-body-pro" style={{ padding: '20px 40px' }}>
-                <div className="profile-details-mini">
-                  <div className="profile-meta-row" style={{ display: 'flex', gap: '30px', marginBottom: '20px' }}>
+              
+              <div className="modal-body-pro" style={{ minHeight: '300px' }}>
+                {studentProfileTab === 'essentials' && (
+                  <div className="profile-details-mini" style={{ animation: 'fadeUp 0.4s ease-out' }}>
+                    <div className="profile-meta-row" style={{ display: 'flex', gap: '30px', marginBottom: '24px' }}>
+                      <div className="mini-item">
+                        <label>Program / Course</label>
+                        <p style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{selectedStudent.studentProgram}</p>
+                      </div>
+                      <div className="mini-item">
+                        <label>Year Level</label>
+                        <p style={{ fontSize: '1.2rem' }}>{selectedStudent.studentYearLevel || "Not specified"}</p>
+                      </div>
+                    </div>
+
                     <div className="mini-item">
-                      <label>Program</label>
-                      <p style={{ fontSize: '1.1rem' }}>{selectedStudent.studentProgram}</p>
+                      <label>Contact Interest</label>
+                      <p style={{ fontSize: '0.95rem', opacity: 0.8 }}>Available for internship inquiries</p>
                     </div>
+
+                    <div className="mini-item" style={{ marginTop: '24px' }}>
+                      <label>Technical Skills & Expertise</label>
+                      <div className="skills-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                        {(selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).length > 0 ? (
+                          (selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).map((skill, i) => (
+                            <span key={i} className="skill-tag" style={{ background: 'rgba(255,107,74,0.1)', color: 'var(--primary)', padding: '8px 14px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, border: '1px solid rgba(255,107,74,0.2)' }}>{skill}</span>
+                          ))
+                        ) : (
+                          <p style={{ fontSize: '0.85rem', color: 'var(--muted)', fontStyle: 'italic' }}>No specific skills listed yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {studentProfileTab === 'portfolio' && (
+                  <div className="profile-details-mini" style={{ animation: 'fadeUp 0.4s ease-out' }}>
                     <div className="mini-item">
-                      <label>Year Level</label>
-                      <p style={{ fontSize: '1.1rem' }}>{selectedStudent.studentYearLevel || "Not specified"}</p>
+                      <label>Professional Bio</label>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', marginTop: '10px' }}>
+                        <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--text)', opacity: 0.9, margin: 0 }}>
+                          {selectedStudent.studentBio || "This student hasn't added a professional bio yet."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mini-item" style={{ marginTop: '24px' }}>
+                      <label>Featured Projects & Accomplishments</label>
+                      <div style={{ background: 'rgba(57, 198, 184, 0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(57, 198, 184, 0.1)', marginTop: '10px' }}>
+                        <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--text)', opacity: 0.9, margin: 0 }}>
+                          {selectedStudent.studentProjects || "No featured projects documented at this time."}
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="mini-item" style={{ marginTop: '20px' }}>
-                    <label>Professional Bio</label>
-                    <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text)', opacity: 0.9 }}>
-                      {selectedStudent.studentBio || "This student hasn't written a bio yet."}
-                    </p>
-                  </div>
-
-                  <div className="mini-item" style={{ marginTop: '20px' }}>
-                    <label>Skills & Expertise</label>
-                    <div className="skills-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
-                      {(selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).length > 0 ? (
-                        (selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).map((skill, i) => (
-                          <span key={i} className="skill-tag" style={{ background: 'rgba(255,107,74,0.1)', color: 'var(--primary)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700 }}>{skill}</span>
-                        ))
-                      ) : (
-                        <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>No specific skills listed.</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mini-item" style={{ marginTop: '20px' }}>
-                    <label>Featured Projects</label>
-                    <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text)', opacity: 0.9 }}>
-                      {selectedStudent.studentProjects || "No projects listed yet."}
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
-              <div className="modal-footer-pro">
-                <button className="btn-secondary-glass" onClick={() => setIsProfileModalOpen(false)}>Close Profile</button>
-                <button className="btn-primary-pro" onClick={() => toast.show(`Contacting ${selectedStudent.studentName}...`)}>Contact Student</button>
+
+              <div className="modal-footer-pro" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 40px' }}>
+                <button className="btn-secondary-glass" onClick={() => setIsProfileModalOpen(false)}>Back to Feed</button>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                  <button className="btn-secondary-glass" style={{ borderColor: 'rgba(57, 198, 184, 0.3)', color: '#39c6b8' }} onClick={() => toast.show("Bookmark feature coming soon!")}>🔖 Save Profile</button>
+                  <button className="btn-primary-pro" onClick={() => toast.show(`Inquiry request sent to ${selectedStudent.studentName}!`)}>Contact Student</button>
+                </div>
               </div>
             </div>
           </div>

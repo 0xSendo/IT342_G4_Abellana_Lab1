@@ -285,10 +285,18 @@
   left: -100px;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(255, 107, 74, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 107, 74, 0.1) 0%, transparent 70%);
   filter: blur(40px);
   pointer-events: none;
   z-index: -1;
+}
+
+.modal-aurora-glow.secondary {
+  top: auto;
+  left: auto;
+  bottom: -100px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(57, 198, 184, 0.1) 0%, transparent 70%);
 }
 
 /* Profile Modal Form Styles */
