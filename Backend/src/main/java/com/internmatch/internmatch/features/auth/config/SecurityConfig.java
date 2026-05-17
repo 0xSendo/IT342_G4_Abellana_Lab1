@@ -32,7 +32,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**", "/api/v1/stats/**", "/api/internships/active", "/error").permitAll()
+                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**", "/api/v1/stats/**", "/api/internships/active", "/api/community/all", "/error").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/internships/**").hasRole("EMPLOYER")
                 .anyRequest().authenticated()
             )

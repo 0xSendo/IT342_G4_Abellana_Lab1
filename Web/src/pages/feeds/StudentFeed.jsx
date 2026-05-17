@@ -10,36 +10,6 @@ import "../../styles/student/student-dashboard.css";
 import "../../styles/student/student-feed.css";
 import "../../styles/notifications.css";
 
-const STUDENT_ACTIVITY_FEED = [
-  {
-    id: 1,
-    student: "Juan Dela Cruz",
-    program: "BSIT",
-    activity: "Updated skills and portfolio",
-    time: "30 min ago",
-    details: "Added React, Node.js, and SQL to his profile.",
-    type: "PROFILE",
-  },
-  {
-    id: 2,
-    student: "Maria Santos",
-    program: "BSCS",
-    activity: "Applied to Frontend Developer Intern",
-    time: "3 hrs ago",
-    details: "Currently shortlisted for technical interview.",
-    type: "APPLICATION",
-  },
-  {
-    id: 3,
-    student: "Alyssa Tan",
-    program: "BSIT",
-    activity: "Completed profile verification",
-    time: "1 day ago",
-    details: "Ready for employer review and recruitment.",
-    type: "VERIFICATION",
-  },
-];
-
 const ACTIVITY_FILTERS = {
   ALL: "All Activity",
   PROFILE: "Profile Updates",
@@ -52,6 +22,9 @@ export default function StudentFeed() {
   const toast = useToast();
 
   const [backendPostings, setBackendPostings] = useState([]);
+  const [communityPosts, setCommunityPosts] = useState([]);
+  const [newPostContent, setNewPostContent] = useState("");
+  const [isPosting, setIsPosting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [feedSearch, setFeedSearch] = useState("");
   const [postingFilter, setPostingFilter] = useState("ALL");
@@ -64,6 +37,9 @@ export default function StudentFeed() {
   const [selectedPosting, setSelectedPosting] = useState(null);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editPostContent, setEditPostContent] = useState("");
 
   const fetchPostings = async () => {
     try {
@@ -93,6 +69,129 @@ export default function StudentFeed() {
     }
   };
 
+  const fetchCommunityPosts = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.get("/api/community/all", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      console.log(`Live Data Check: Fetched ${res.data?.length || 0} community posts`);
+      setCommunityPosts(res.data || []);
+    } catch (err) {
+      console.error("Critical: Failed to sync community posts", err);
+    }
+  };
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    if (!newPostContent.trim()) return;
+
+    // Frontend pre-check: Check if student already has a post in the current list
+    const hasExisting = communityPosts.some(p => p.studentEmail === currentUser?.email);
+    if (hasExisting) {
+      toast.show("Limit reached: You can only have one active community post at a time. Please edit or delete your current post.", "error");
+      return;
+    }
+
+    try {
+      setIsPosting(true);
+      const token = localStorage.getItem("internmatch_token");
+      await axios.post("/api/community/post", {
+        content: newPostContent,
+        type: "GENERAL_UPDATE"
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setNewPostContent("");
+      toast.show("Status shared with the community!");
+      await fetchCommunityPosts();
+    } catch (err) {
+      console.error("Failed to post", err);
+      const msg = err.response?.data?.message || err.response?.data || "Failed to share update";
+      toast.show(msg, "error");
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.delete(`/api/community/delete/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.show("Post deleted");
+      fetchCommunityPosts();
+    } catch (err) {
+      console.error("Failed to delete post", err);
+      toast.show("Failed to delete post", "error");
+    }
+  };
+
+  const handleUpdatePost = async (postId) => {
+    if (!editPostContent.trim()) return;
+
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.put(`/api/community/update/${postId}`, {
+        content: editPostContent
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.show("Post updated");
+      setEditingPostId(null);
+      fetchCommunityPosts();
+    } catch (err) {
+      console.error("Failed to update post", err);
+      toast.show("Failed to update post", "error");
+    }
+  };
+
+  const startEditing = (post) => {
+    setEditingPostId(post.id);
+    setEditPostContent(post.content);
+  };
+
+  const shareProfileToCommunity = async () => {
+    if (!currentUser) {
+      toast.show("Please complete your profile first", "error");
+      return;
+    }
+
+    // Frontend pre-check: Block if a post already exists for this student
+    const hasExisting = communityPosts.some(p => p.studentEmail === currentUser?.email);
+    if (hasExisting) {
+      toast.show("Action Denied: You already have an active presence on the community feed. Please delete your current post to reshare your profile.", "error");
+      return;
+    }
+
+    try {
+      const content = `Hi everyone! I'm ${currentUser.name || "a student"}, a ${currentUser.program || "dedicated"} student. I'm currently looking for internships in ${currentUser.skills || "tech"}. Check out my profile!`;
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) {
+        toast.show("Session expired, please login again", "error");
+        return;
+      }
+
+      await axios.post("/api/community/post", {
+        content,
+        type: "PROFILE_SHARE"
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.show("Profile shared to community feed!");
+      await fetchCommunityPosts();
+    } catch (err) {
+      console.error("Failed to share profile", err);
+      const msg = err.response?.data?.message || "Failed to share profile";
+      toast.show(msg, "error");
+    }
+  };
+
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem("internmatch_token");
@@ -108,8 +207,12 @@ export default function StudentFeed() {
 
   useEffect(() => {
     fetchPostings();
+    fetchCommunityPosts();
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetchCommunityPosts();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -137,13 +240,13 @@ export default function StudentFeed() {
 
   const filteredActivities = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
-    return STUDENT_ACTIVITY_FEED.filter((item) => {
-      const searchableText = [item.student, item.program, item.activity, item.details, item.type]
+    return communityPosts.filter((item) => {
+      const searchableText = [item.studentName, item.studentProgram, item.content, item.type]
         .join(" ")
         .toLowerCase();
       return (!query || searchableText.includes(query)) && (activityFilter === "ALL" || item.type === activityFilter);
     });
-  }, [feedSearch, activityFilter]);
+  }, [communityPosts, feedSearch, activityFilter]);
 
   const getMatchScore = (posting) => {
     if (!studentSkills.length) return 72;
@@ -156,7 +259,7 @@ export default function StudentFeed() {
     try {
       const token = localStorage.getItem("internmatch_token");
       if (!token) return;
-      await axios.put(`${API_BASE}/api/notifications/read-all`, {}, {
+      await axios.put("/api/notifications/read-all", {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -240,13 +343,67 @@ export default function StudentFeed() {
           </div>
         </section>
 
-        {/* Pro Max Layout: Filters and Quick Tips */}
+        {/* Community Posting & Filters */}
         <div className="feed-controls-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-          <section className="bento-card">
+          <section className="bento-card community-post-bento">
             <div className="bento-header">
               <div>
-                <span className="bento-label">Filters</span>
-                <h3>Targeted Search</h3>
+                <span className="bento-label">Community</span>
+                <h3>Share an Update</h3>
+              </div>
+              <button className="btn-secondary-glass" style={{ fontSize: '0.75rem' }} onClick={shareProfileToCommunity}>
+                Share My Profile 🚀
+              </button>
+            </div>
+            <form onSubmit={handleCreatePost} style={{ marginTop: '1.25rem' }}>
+              <div className="post-input-wrapper" style={{ position: 'relative' }}>
+                <textarea
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  placeholder="What's happening? Share your progress or ask a question..."
+                  rows={3}
+                  style={{ 
+                    width: '100%', 
+                    background: 'var(--glass)', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    borderRadius: '14px', 
+                    padding: '1rem',
+                    color: 'var(--text)',
+                    resize: 'none'
+                  }}
+                />
+                <button 
+                  type="submit" 
+                  className="btn-primary-pro" 
+                  disabled={isPosting || !newPostContent.trim()}
+                  style={{ position: 'absolute', bottom: '12px', right: '12px', padding: '6px 16px', fontSize: '0.85rem' }}
+                >
+                  {isPosting ? "Posting..." : "Post"}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section className="bento-card pro-tips-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Pro Tip</span>
+                <h3>Boost Visibility</h3>
+              </div>
+            </div>
+            <div className="tip-content">
+              <p>Students with <strong>5+ verified skills</strong> are 3x more likely to be shortlisted by top employers.</p>
+              <a href="/dashboard" className="tip-link">Update Profile →</a>
+            </div>
+          </section>
+        </div>
+
+        {/* Filter Bar */}
+        <section className="bento-card filter-bento" style={{ marginBottom: '2rem' }}>
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Refine Feed</span>
+                <h3>Search & Filters</h3>
               </div>
               <button type="button" className="edit-btn-glass" onClick={resetControls}>Reset</button>
             </div>
@@ -269,21 +426,7 @@ export default function StudentFeed() {
                 <option value="COMPANY">A-Z Company</option>
               </select>
             </div>
-          </section>
-
-          <section className="bento-card pro-tips-bento">
-            <div className="bento-header">
-              <div>
-                <span className="bento-label">Pro Tip</span>
-                <h3>Boost Visibility</h3>
-              </div>
-            </div>
-            <div className="tip-content">
-              <p>Students with <strong>5+ verified skills</strong> are 3x more likely to be shortlisted by top employers.</p>
-              <a href="/dashboard" className="tip-link">Update Profile →</a>
-            </div>
-          </section>
-        </div>
+        </section>
 
         {/* Balanced Grid for Content and Intelligence */}
         <div className="feed-grid-pro-v2" style={{ display: 'grid', gridTemplateColumns: '2.2fr 1.3fr', gap: '2rem' }}>
@@ -355,16 +498,57 @@ export default function StudentFeed() {
                 </div>
               </div>
               <div className="activity-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-                {filteredActivities.map((item) => (
-                  <div key={item.id} className="posting-card-pro" style={{ padding: '1rem' }}>
-                    <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <span className="loc" style={{ fontSize: '0.75rem', fontWeight: 700 }}>{item.student}</span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>{item.time}</span>
-                    </div>
-                    <h5 style={{ fontSize: '0.9rem', margin: '6px 0', fontWeight: 700 }}>{item.activity}</h5>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>{item.details.substring(0, 40)}...</p>
-                  </div>
-                ))}
+                {filteredActivities.length === 0 ? (
+                  <p className="feed-muted" style={{ textAlign: 'center', padding: '20px' }}>No community activity yet.</p>
+                ) : (
+                  filteredActivities.map((item) => {
+                    const isOwnPost = item.studentEmail === currentUser?.email;
+                    const isEditing = editingPostId === item.id;
+
+                    return (
+                      <div key={item.id} className="posting-card-pro" style={{ padding: '1rem', borderLeft: item.type === 'PROFILE_SHARE' ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span className="loc" style={{ fontSize: '0.75rem', fontWeight: 700 }}>{item.studentName}</span>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>
+                              {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            {isOwnPost && !isEditing && (
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <button onClick={() => startEditing(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}>✏️</button>
+                                <button onClick={() => handleDeletePost(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}>🗑️</button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {isEditing ? (
+                          <div style={{ marginTop: '8px' }}>
+                            <textarea 
+                              value={editPostContent} 
+                              onChange={(e) => setEditPostContent(e.target.value)}
+                              rows={2}
+                              style={{ width: '100%', background: 'var(--glass)', border: '1px solid var(--primary)', borderRadius: '8px', color: 'var(--text)', padding: '8px', fontSize: '0.85rem' }}
+                            />
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
+                              <button onClick={() => setEditingPostId(null)} className="edit-btn-glass" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Cancel</button>
+                              <button onClick={() => handleUpdatePost(item.id)} className="btn-primary-pro" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Save</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text)', margin: '8px 0 0', lineHeight: 1.4 }}>{item.content}</p>
+                        )}
+
+                        {item.type === 'PROFILE_SHARE' && (
+                          <span style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 800, marginTop: '4px', display: 'block' }}>🚀 SHARED PROFILE</span>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </section>
           </div>
