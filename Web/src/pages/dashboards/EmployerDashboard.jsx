@@ -4,6 +4,9 @@ import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import JobTrendsWidget from "../../components/JobTrendsWidget";
+import "../../styles/common/bento.css";
+import "../../styles/employer/employer-dashboard.css";
+import "../../styles/notifications.css";
 
 const INITIAL_POSTING_FORM = {
   title: "",

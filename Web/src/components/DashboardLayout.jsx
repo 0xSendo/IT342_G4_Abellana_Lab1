@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import AuthContext from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import "../styles/dashboard.css";
+import "../styles/common/bento.css";
 
 export default function DashboardLayout({ title, children, showProfileCard = true, onNotificationClick, notificationCount }) {
 	const { currentUser, logout } = useContext(AuthContext);

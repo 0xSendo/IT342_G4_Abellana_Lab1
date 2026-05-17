@@ -3,7 +3,8 @@ import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import JobTrendsWidget from "../../components/JobTrendsWidget"; 
-import "../../styles/dashboard.css";
+import "../../styles/common/bento.css";
+import "../../styles/student/student-dashboard.css";
 import "../../styles/notifications.css";
 
 export default function StudentDashboard() {
@@ -39,7 +40,7 @@ export default function StudentDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        setNotifications(data);
+        setNotifications(data || []);
       }
     } catch (err) {
       console.error("Failed to fetch notifications", err);
@@ -55,12 +56,11 @@ export default function StudentDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Map backend DTO to local state format
         const formatted = data.map(app => ({
           id: app.id,
           internship: app.internshipTitle,
           company: app.company,
-          location: "See Posting", // In a real app, you might join this data
+          location: "See Posting", 
           setup: "See Posting",
           dateApplied: app.appliedAt,
           status: app.status,
@@ -105,10 +105,6 @@ export default function StudentDashboard() {
 
   const totalApplications = applications.length;
   const pendingApplications = applications.filter((app) => app.status === "PENDING").length;
-  const acceptedApplications = applications.filter((app) => app.status === "ACCEPTED").length;
-  const completedApplications = applications.filter((app) =>
-    ["ACCEPTED", "REJECTED", "WITHDRAWN"].includes(app.status)
-  ).length;
 
   const profileFields = [
     currentUser?.name,
@@ -128,11 +124,6 @@ export default function StudentDashboard() {
 
   const openProfileModal = () => setIsProfileModalOpen(true);
   const closeProfileModal = () => setIsProfileModalOpen(false);
-
-  const clearApplicationFilters = () => {
-    setApplicationSearch("");
-    setStatusFilter("ALL");
-  };
 
   const openApplicationModal = (application) => {
     setSelectedApplication(application);
@@ -161,6 +152,12 @@ export default function StudentDashboard() {
     }
   };
 
+  const readinessChecklist = [
+    { id: 'info', text: 'Basic Information', done: !!(currentUser?.name && currentUser?.program && currentUser?.yearLevel) },
+    { id: 'skills', text: 'Add Skills & Expertise', done: !!(currentUser?.skills?.trim()) },
+    { id: 'app', text: 'First Application Sent', done: totalApplications > 0 }
+  ];
+
   return (
     <DashboardLayout 
       showProfileCard={false}
@@ -168,7 +165,6 @@ export default function StudentDashboard() {
       notificationCount={notifications.filter(n => !n.read).length}
     >
       <div className="student-dashboard-wrapper">
-        {/* Aurora Hero Banner */}
         <section className="student-hero">
           <div className="hero-aurora-bg">
             <div className="blob one"></div>
@@ -248,18 +244,12 @@ export default function StudentDashboard() {
               </div>
             </div>
             <div className="readiness-list">
-              <div className={`readiness-item ${currentUser?.name ? 'done' : ''}`}>
-                <div className="check-circle">{currentUser?.name ? '✓' : ''}</div>
-                <span className="task-text">Basic Information</span>
-              </div>
-              <div className={`readiness-item ${currentUser?.skills ? 'done' : ''}`}>
-                <div className="check-circle">{currentUser?.skills ? '✓' : ''}</div>
-                <span className="task-text">Add Skills & Expertise</span>
-              </div>
-              <div className={`readiness-item ${totalApplications > 0 ? 'done' : ''}`}>
-                <div className="check-circle">{totalApplications > 0 ? '✓' : ''}</div>
-                <span className="task-text">First Application Sent</span>
-              </div>
+              {readinessChecklist.map((item) => (
+                <div key={item.id} className={`readiness-item ${item.done ? 'done' : ''}`}>
+                  <div className="check-circle">{item.done ? '✓' : ''}</div>
+                  <span className="task-text">{item.text}</span>
+                </div>
+              ))}
             </div>
           </section>
 

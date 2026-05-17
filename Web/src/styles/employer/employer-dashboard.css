@@ -1,0 +1,113 @@
+/* ==================== EMPLOYER DASHBOARD SPECIFIC STYLES ==================== */
+
+/* Employer Specific Bento Spans */
+.employer-profile-bento { grid-column: span 5; }
+.employer-stats-bento { grid-column: span 7; }
+.employer-postings-bento { grid-column: span 12; }
+.employer-applicants-bento { grid-column: span 12; }
+
+/* Stats Mini Grid */
+.stats-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: auto;
+}
+
+.stat-mini-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stat-mini-box:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--primary);
+}
+
+.stat-mini-box .v {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.stat-mini-box .l {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* Postings & Applicants Grids */
+.postings-grid-pro, .applicants-grid-pro {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.posting-card-pro, .applicant-card-pro {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 24px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.posting-card-pro:hover, .applicant-card-pro:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--primary);
+  transform: translateY(-4px);
+}
+
+.card-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.card-tag.active { background: rgba(57, 198, 184, 0.15); color: #39c6b8; }
+.card-tag.closed { background: rgba(255, 107, 74, 0.15); color: #ff6b4a; }
+.card-tag.pending { background: rgba(255, 214, 102, 0.15); color: #ffd666; }
+
+.card-body-pro h4 { margin: 0 0 4px; font-size: 1.1rem; font-weight: 800; }
+.card-body-pro .loc { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; display: block; }
+
+.card-stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.c-stat {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.card-actions-pro {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 16px;
+}
+
+.card-actions-pro button {
+  flex: 1;
+  font-size: 0.75rem;
+  padding: 6px;
+}
+
+@media (max-width: 1100px) {
+  .employer-profile-bento, .employer-stats-bento { grid-column: span 12; }
+}

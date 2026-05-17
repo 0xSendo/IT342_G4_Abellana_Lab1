@@ -128,6 +128,10 @@ public class StatsService {
             // Sort by employment rate descending
             sectors.sort((a, b) -> Double.compare((Double) b.get("employmentRate"), (Double) a.get("employmentRate")));
 
+            if (sectors.isEmpty()) {
+                return getFallbackData();
+            }
+
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("data", sectors);
             response.put("lastUpdated", LocalDateTime.now().toString());

@@ -1,0 +1,66 @@
+/* ==================== SHARED FEED STYLES ==================== */
+
+.feed-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+  color: white;
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 20px 40px rgba(255, 107, 74, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-hero h3 {
+  color: white;
+  margin: 0 0 0.75rem 0;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.feed-hero p {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  max-width: 550px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Feed Controls */
+.feed-controls input,
+.feed-controls select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+}
+
+/* Feed Layout */
+.feed-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+}
+
+@media (max-width: 1024px) {
+  .feed-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Common Modal */
+.modal-panel {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+  border-radius: 32px;
+  padding: 3rem;
+  color: var(--text);
+}
