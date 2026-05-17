@@ -117,6 +117,25 @@ export default function StudentDashboard() {
     (profileFields.filter((field) => !!String(field || "").trim()).length / profileFields.length) * 100
   );
 
+  const markNotificationsAsRead = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) return;
+      await fetch(`${API_BASE}/api/notifications/read-all`, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Failed to mark notifications as read", err);
+    }
+  };
+
+  const openNotifications = () => {
+    setIsNotificationsModalOpen(true);
+    markNotificationsAsRead();
+  };
+
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -161,7 +180,7 @@ export default function StudentDashboard() {
   return (
     <DashboardLayout 
       showProfileCard={false}
-      onNotificationClick={() => setIsNotificationsModalOpen(true)}
+      onNotificationClick={openNotifications}
       notificationCount={notifications.filter(n => !n.read).length}
     >
       <div className="student-dashboard-wrapper">
@@ -429,7 +448,9 @@ export default function StudentDashboard() {
                         <div className="notif-content-full">
                           <h4 className="notif-title-full">{n.title}</h4>
                           <p className="notif-msg-full">{n.message}</p>
-                          <span className="notif-time-full">Just now</span>
+                          <span className="notif-time-full">
+                            {new Date(n.createdAt).toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     ))

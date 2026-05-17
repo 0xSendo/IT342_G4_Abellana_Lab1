@@ -138,106 +138,105 @@ export default function JobTrendsWidget() {
                   <BarChart data={trends} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
                     <XAxis
-                      dataKey="sector"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)", fontWeight: 600 }}
-                      dy={10}
+                    dataKey="sector"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: "var(--text)", opacity: 0.8, fontWeight: 600 }}
+                    dy={10}
                     />
                     <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)" }}
-                      domain={[0, 100]}
-                      tickFormatter={(v) => `${v}%`}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: "var(--text)", opacity: 0.7 }}
+                    domain={[0, 100]}
+                    tickFormatter={(v) => `${v}%`}
+                    />
+                    <Tooltip 
+                    content={<CustomTooltip />} 
+                    cursor={{ fill: "rgba(255, 255, 255, 0.05)" }} 
+                    contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
+                    />
+                    <Bar dataKey="employmentRate" radius={[6, 6, 0, 0]} barSize={40}>
+                    {trends.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                    </Bar>
+                    </BarChart>
+                    </ResponsiveContainer>
+                    </div>
+                    </div>
+
+                    {/* Internal Interest Row */}
+                    <div className="interest-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="chart-section">
+                    <div className="chart-header">
+                    <h4 style={{ color: "var(--text)" }}>💼 Demand</h4>
+                    </div>
+                    <div className="chart-wrapper" style={{ height: '140px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={[...interest].sort((a,b) => b.postings - a.postings).slice(0, 3)} layout="vertical" margin={{ left: -20, right: 20 }}>
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="category" 
+                      type="category" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 9, fill: "var(--text)", fontWeight: 700 }}
+                      width={70}
                     />
                     <Tooltip 
                       content={<CustomTooltip />} 
-                      cursor={{ fill: "rgba(255, 255, 255, 0.03)" }} 
                       contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
+                      cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
                     />
-                    <Bar dataKey="employmentRate" radius={[6, 6, 0, 0]} barSize={40}>
-                      {trends.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Internal Interest Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              <div className="chart-section">
-                <div className="chart-header">
-                  <h4>💼 Demand</h4>
-                </div>
-                <div className="chart-wrapper" style={{ height: '140px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={[...interest].sort((a,b) => b.postings - a.postings).slice(0, 3)} layout="vertical" margin={{ left: -20, right: 20 }}>
-                      <XAxis type="number" hide />
-                      <YAxis 
-                        dataKey="category" 
-                        type="category" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fontSize: 9, fill: "white", fontWeight: 700 }}
-                        width={70}
-                      />
-                      <Tooltip 
-                        content={<CustomTooltip />} 
-                        contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
-                        cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
-                      />
-                      <Bar dataKey="postings" fill="#10B981" radius={[0, 4, 4, 0]} barSize={10} />
+                    <Bar dataKey="postings" fill="#10B981" radius={[0, 4, 4, 0]} barSize={10} />
                     </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+                    </ResponsiveContainer>
+                    </div>
+                    </div>
 
-              <div className="chart-section">
-                <div className="chart-header">
-                  <h4>👥 Heat</h4>
-                </div>
-                <div className="chart-wrapper" style={{ height: '140px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
+                    <div className="chart-section">
+                    <div className="chart-header">
+                    <h4 style={{ color: "var(--text)" }}>👥 Heat</h4>
+                    </div>
+                    <div className="chart-wrapper" style={{ height: '140px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={[...interest].sort((a,b) => b.applications - a.applications).slice(0, 3)} layout="vertical" margin={{ left: -20, right: 20 }}>
-                      <XAxis type="number" hide />
-                      <YAxis 
-                        dataKey="category" 
-                        type="category" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fontSize: 9, fill: "white", fontWeight: 700 }}
-                        width={70}
-                      />
-                      <Tooltip 
-                        content={<CustomTooltip />} 
-                        contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
-                        cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
-                      />
-                      <Bar dataKey="applications" fill="#4F46E5" radius={[0, 4, 4, 0]} barSize={10} />
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="category" 
+                      type="category" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 9, fill: "var(--text)", fontWeight: 700 }}
+                      width={70}
+                    />
+                    <Tooltip 
+                      content={<CustomTooltip />} 
+                      contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
+                      cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
+                    />
+                    <Bar dataKey="applications" fill="#4F46E5" radius={[0, 4, 4, 0]} barSize={10} />
                     </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
+                    </ResponsiveContainer>
+                    </div>
+                    </div>
+                    </div>
 
-            {/* Callout */}
-            {(() => {
-              const topD = [...interest].sort((a, b) => b.postings - a.postings)[0];
-              const topH = [...interest].sort((a, b) => b.applications - a.applications)[0];
-              if (!topD) return null;
-              return (
-                <div className="insight-callout-pro" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '16px', borderRadius: '16px' }}>
-                  <p className="insight-text" style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
-                    <strong style={{ color: '#10B981' }}>{topD.category}</strong> has the most openings, while 
-                    <strong style={{ color: '#4F46E5' }}> {topH.category}</strong> has the most competition.
-                  </p>
-                </div>
-              );
-            })()}
-          </>
+                    {/* Callout */}
+                    {(() => {
+                    const topD = [...interest].sort((a, b) => b.postings - a.postings)[0];
+                    const topH = [...interest].sort((a, b) => b.applications - a.applications)[0];
+                    if (!topD) return null;
+                    return (
+                    <div className="insight-callout-pro" style={{ background: 'var(--glass)', border: '1px solid rgba(255,255,255,0.1)', padding: '16px', borderRadius: '16px' }}>
+                    <p className="insight-text" style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text)', opacity: 0.9, lineHeight: 1.5 }}>
+                    <strong style={{ color: '#10B981', filter: 'brightness(1.2)' }}>{topD.category}</strong> has the most openings, while 
+                    <strong style={{ color: '#4F46E5', filter: 'brightness(1.2)' }}> {topH.category}</strong> has the most competition.
+                    </p>
+                    </div>
+                    );
+                    })()}          </>
         )}
       </div>
     </div>

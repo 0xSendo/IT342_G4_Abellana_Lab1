@@ -22,6 +22,7 @@ export default function EmployerDashboard() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPostingModalOpen, setIsPostingModalOpen] = useState(false);
   const [isCreatePostingModalOpen, setIsCreatePostingModalOpen] = useState(false);
+  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState(null);
   const [isPostingEditMode, setIsPostingEditMode] = useState(false);
   const [postingEditForm, setPostingEditForm] = useState(INITIAL_POSTING_FORM);
@@ -57,6 +58,24 @@ export default function EmployerDashboard() {
     } catch (err) {
       console.error("Failed to fetch notifications", err);
     }
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) return;
+      await axios.put("/api/notifications/read-all", {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Failed to mark notifications as read", err);
+    }
+  };
+
+  const openNotifications = () => {
+    setIsNotificationsModalOpen(true);
+    markNotificationsAsRead();
   };
 
   const fetchMyPostings = async () => {
@@ -406,7 +425,11 @@ export default function EmployerDashboard() {
   };
 
   return (
-    <DashboardLayout title="Employer Dashboard">
+    <DashboardLayout 
+      title="Employer Dashboard"
+      onNotificationClick={openNotifications}
+      notificationCount={notifications.filter(n => !n.read).length}
+    >
       <div className="student-dashboard-wrapper">
         {/* Hero Section */}
         <section className="student-hero">
@@ -791,6 +814,53 @@ export default function EmployerDashboard() {
                     <button className="btn-primary-pro" type="submit">Post Internship</button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Modal */}
+      {isNotificationsModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <div>
+                  <span className="bento-label">Updates</span>
+                  <h3>Company Notifications</h3>
+                </div>
+                <button className="close-btn-glass" onClick={() => setIsNotificationsModalOpen(false)}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                <div className="notif-modal-list">
+                  {notifications.length === 0 ? (
+                    <div className="notif-empty-state">
+                      <div className="empty-icon">🔔</div>
+                      <p>No new activity yet.</p>
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`}>
+                        <div className="notif-icon-box">
+                          {n.type === "APPLICATION" ? "📩" : "🔔"}
+                        </div>
+                        <div className="notif-content-full">
+                          <h4 className="notif-title-full">{n.title}</h4>
+                          <p className="notif-msg-full">{n.message}</p>
+                          <span className="notif-time-full">
+                            {new Date(n.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer-pro">
+                <button className="btn-secondary-glass" onClick={() => setIsNotificationsModalOpen(false)}>Close</button>
+                <button className="btn-primary-pro" onClick={fetchNotifications}>Refresh</button>
               </div>
             </div>
           </div>
