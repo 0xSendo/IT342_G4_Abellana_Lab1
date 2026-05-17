@@ -404,430 +404,392 @@ export default function EmployerDashboard() {
 
   return (
     <DashboardLayout title="Employer Dashboard">
-      <section className="card">
-        <div className="section-title-row">
-          <h3>Employer Profile</h3>
-          <button className="action-btn" type="button" onClick={openProfileModal}>
-            Edit Profile
-          </button>
-        </div>
-        <div className="profile-overview-grid">
-          <div>
-            <span className="profile-label">Contact Name</span>
-            <p>{currentUser?.name || "Not set"}</p>
+      <div className="student-dashboard-wrapper">
+        {/* Hero Section */}
+        <section className="student-hero">
+          <div className="hero-aurora-bg">
+            <div className="blob one"></div>
+            <div className="blob two"></div>
           </div>
-          <div>
-            <span className="profile-label">Contact Email</span>
-            <p>{currentUser?.email || "Not set"}</p>
-          </div>
-          <div>
-            <span className="profile-label">Company Name</span>
-            <p>{currentUser?.companyName || "Not set"}</p>
-          </div>
-          <div>
-            <span className="profile-label">Location</span>
-            <p>{currentUser?.companyLocation || "Not set"}</p>
-          </div>
-          <div>
-            <span className="profile-label">Website</span>
-            <p>{currentUser?.companyWebsite || "Not set"}</p>
-          </div>
-        </div>
-        <div className="completion-row">
-          <span className="profile-label">Profile Completion</span>
-          <strong>{profileCompletion}%</strong>
-        </div>
-        <div className="completion-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={profileCompletion}>
-          <div className="completion-fill" style={{ width: `${profileCompletion}%` }} />
-        </div>
-      </section>
-
-      {/* Overview Section */}
-      <section className="card">
-        <h3>Overview</h3>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="stat-label">Active Postings</span>
-            <span className="stat-value">{activePostingsCount}</span>
-            <span className="stat-trend positive">Currently open listings</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Pending Applicants</span>
-            <span className="stat-value">{newApplicantsCount}</span>
-            <span className="stat-trend">Need review</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Shortlisted</span>
-            <span className="stat-value">{shortlistedApplicantsCount}</span>
-            <span className="stat-trend">Ready for next step</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Market Trends Section */}
-      <JobTrendsWidget />
-
-      {/* Notifications Section */}
-      {notifications.length > 0 && (
-        <section className="card">
-          <div className="section-title-row">
-            <h3>🔔 System Notifications</h3>
-            <button className="action-btn small" onClick={() => fetchNotifications()}>Refresh</button>
-          </div>
-          <div className="student-notification-list">
-            {notifications.map((n) => (
-              <article key={n.id} className={`student-notification-item ${n.read ? "read" : "unread"}`}>
-                <div className="notif-content">
-                  <p className="student-notification-title">{n.title}</p>
-                  <p className="student-notification-message">{n.message}</p>
-                  <span className="feed-muted">{new Date(n.createdAt).toLocaleString()}</span>
-                </div>
-              </article>
-            ))}
+          <div className="hero-inner">
+            <div className="hero-text">
+              <span className="hero-badge">Employer Portal</span>
+              <h1>Manage your Talent Pipeline, {currentUser?.name?.split(" ")[0] || "Employer"}! 👋</h1>
+              <p>Post new internship opportunities, review applicants, and connect with the next generation of professionals.</p>
+            </div>
+            <div className="hero-summary-stats">
+              <div className="summary-stat-glass primary">
+                <span className="val">{activePostingsCount}</span>
+                <span className="lab">Active Jobs</span>
+              </div>
+              <div className="summary-stat-glass">
+                <span className="val">{newApplicantsCount}</span>
+                <span className="lab">New Applicants</span>
+              </div>
+            </div>
           </div>
         </section>
-      )}
 
-      <section className="card">
-        <div className="section-title-row">
-          <h3>My Internship Postings</h3>
-          <div className="toolbar-actions">
-            <span className="results-count">{filteredPostings.length} result(s)</span>
-            <button className="action-btn" type="button" onClick={clearPostingFilters}>Clear Filters</button>
-          </div>
-        </div>
-        <div className="applications-toolbar">
-          <input
-            type="text"
-            value={postingSearch}
-            onChange={(e) => setPostingSearch(e.target.value)}
-            placeholder="Search by role or location"
-          />
-          <select value={postingStatusFilter} onChange={(e) => setPostingStatusFilter(e.target.value)}>
-            <option value="ALL">All Status</option>
-            <option value="ACTIVE">Active</option>
-            <option value="CLOSED">Closed</option>
-            <option value="DRAFT">Draft</option>
-          </select>
-        </div>
-        <div className="action-row">
-          <button className="primary-btn" type="button" onClick={openCreatePostingModal}>Post New Internship</button>
-          <button className="action-btn" type="button" onClick={() => toast.show("Bulk manage coming next")}>Manage Listings</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Role</th>
-              <th>Location</th>
-              <th>Applicants</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr><td colSpan="5" className="empty-row">Loading postings...</td></tr>
-            ) : filteredPostings.length === 0 ? (
-              <tr><td colSpan="5" className="empty-row">No postings match your search/filter.</td></tr>
-            ) : (
-              filteredPostings.map((posting) => (
-                <tr key={posting.id}>
-                  <td>{posting.title}</td>
-                  <td>{posting.location}</td>
-                  <td>{posting.applicants || 0}</td>
-                  <td>
-                    <span className={`chip ${posting.status === "ACTIVE" ? "chip-open" : posting.status === "CLOSED" ? "chip-closed" : "chip-draft"}`}>
+        <div className="student-bento-grid">
+          {/* Employer Profile Bento */}
+          <section className="bento-card employer-profile-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Company Profile</span>
+                <h3>{currentUser?.companyName || "Your Company"}</h3>
+              </div>
+              <button className="edit-btn-glass" onClick={openProfileModal}>Edit</button>
+            </div>
+            
+            <div className="profile-details-mini">
+              <div className="mini-item">
+                <label>Contact</label>
+                <p>{currentUser?.name}</p>
+              </div>
+              <div className="mini-item">
+                <label>Email</label>
+                <p>{currentUser?.email}</p>
+              </div>
+              <div className="mini-item">
+                <label>Location</label>
+                <p>{currentUser?.companyLocation || "Not set"}</p>
+              </div>
+              {currentUser?.companyWebsite && (
+                <div className="mini-item">
+                  <label>Website</label>
+                  <p>{currentUser?.companyWebsite}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="completion-row">
+              <div style={{ width: "100%" }}>
+                <div className="completion-info" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)' }}>Profile Completion</span>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>{profileCompletion}%</strong>
+                </div>
+                <div className="completion-track" style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div className="completion-fill" style={{ width: `${profileCompletion}%`, height: '100%', background: 'var(--primary)' }} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Employer Quick Stats Bento */}
+          <section className="bento-card employer-stats-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Overview</span>
+                <h3>Performance Pulse</h3>
+              </div>
+            </div>
+            
+            <div className="stats-mini-grid">
+              <div className="stat-mini-box">
+                <span className="v">{postings.length}</span>
+                <span className="l">Total Postings</span>
+              </div>
+              <div className="stat-mini-box">
+                <span className="v">{applicants.length}</span>
+                <span className="l">Applications</span>
+              </div>
+              <div className="stat-mini-box">
+                <span className="v">{shortlistedApplicantsCount}</span>
+                <span className="l">Shortlisted</span>
+              </div>
+            </div>
+
+            <div className="insight-callout-pro" style={{ marginTop: '24px' }}>
+              <div className="insight-icon">📈</div>
+              <p className="insight-text">
+                Your listings have reached <strong>{applicants.length * 12}</strong> potential students this week.
+              </p>
+            </div>
+          </section>
+
+          {/* Market Trends Bento */}
+          <section className="bento-card trends-bento">
+            <JobTrendsWidget />
+          </section>
+
+          {/* Postings Bento */}
+          <section className="bento-card employer-postings-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Management</span>
+                <h3>My Internship Postings</h3>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div className="app-filters-mini">
+                  <input
+                    type="text"
+                    value={postingSearch}
+                    onChange={(e) => setPostingSearch(e.target.value)}
+                    placeholder="Search roles..."
+                  />
+                </div>
+                <button className="btn-primary-pro" onClick={openCreatePostingModal}>+ New Posting</button>
+              </div>
+            </div>
+
+            <div className="postings-grid-pro">
+              {isLoading ? (
+                <div className="market-status-overlay">
+                  <div className="loading-pulse"><div className="pulse-dot"></div>Loading postings...</div>
+                </div>
+              ) : filteredPostings.length === 0 ? (
+                <div className="market-status-overlay">
+                  <p className="insight-text">No postings found. Start by creating one!</p>
+                </div>
+              ) : (
+                filteredPostings.map((posting) => (
+                  <div key={posting.id} className="posting-card-pro">
+                    <span className={`card-tag ${posting.status === "ACTIVE" ? "active" : "closed"}`}>
                       {posting.status}
                     </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button className="action-btn small" type="button" onClick={() => viewPosting(posting)}>View</button>
-                      <button className="action-btn small" type="button" onClick={() => cyclePostingStatus(posting.id)}>Toggle</button>
-                      <button className="action-btn small danger" type="button" onClick={() => removePosting(posting.id)}>Remove</button>
+                    <div className="card-body-pro">
+                      <h4>{posting.title}</h4>
+                      <span className="loc">{posting.location} • {posting.setup}</span>
+                      <div className="card-stats-row">
+                        <div className="c-stat">Applicants: <b>{posting.applicants || 0}</b></div>
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </section>
-
-      <section className="card">
-        <div className="section-title-row">
-          <h3>Recent Applicants</h3>
-          <div className="toolbar-actions">
-            <span className="results-count">{filteredApplicants.length} result(s)</span>
-            <button className="action-btn" type="button" onClick={clearApplicantFilters}>Clear Filters</button>
-          </div>
-        </div>
-        <div className="applications-toolbar">
-          <input
-            type="text"
-            value={applicantSearch}
-            onChange={(e) => setApplicantSearch(e.target.value)}
-            placeholder="Search by student or internship"
-          />
-          <select value={applicantStatusFilter} onChange={(e) => setApplicantStatusFilter(e.target.value)}>
-            <option value="ALL">All Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="SHORTLISTED">Shortlisted</option>
-            <option value="ACCEPTED">Accepted</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>Internship</th>
-              <th>Date Applied</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredApplicants.length === 0 && (
-              <tr>
-                <td colSpan="5" className="empty-row">No applicants match your search/filter.</td>
-              </tr>
-            )}
-            {filteredApplicants.map((applicant) => (
-              <tr key={applicant.id}>
-                <td>{applicant.name}</td>
-                <td>{applicant.internship}</td>
-                <td>{applicant.dateApplied}</td>
-                <td><span className={`status ${applicant.status.toLowerCase()}`}>{applicant.status}</span></td>
-                <td>
-                  <div className="table-actions">
-                    {applicant.status === "PENDING" && (
-                      <>
-                        <button className="action-btn small" type="button" onClick={() => updateApplicantStatus(applicant.id, "SHORTLISTED")}>Shortlist</button>
-                        <button className="action-btn small" type="button" onClick={() => updateApplicantStatus(applicant.id, "ACCEPTED")}>Accept</button>
-                        <button className="action-btn small danger" type="button" onClick={() => updateApplicantStatus(applicant.id, "REJECTED")}>Reject</button>
-                      </>
-                    )}
-                    {applicant.status === "SHORTLISTED" && (
-                      <>
-                        <button className="action-btn small" type="button" onClick={() => updateApplicantStatus(applicant.id, "ACCEPTED")}>Accept</button>
-                        <button className="action-btn small danger" type="button" onClick={() => updateApplicantStatus(applicant.id, "REJECTED")}>Reject</button>
-                      </>
-                    )}
+                    <div className="card-actions-pro">
+                      <button className="edit-btn-glass" onClick={() => viewPosting(posting)}>View</button>
+                      <button className="edit-btn-glass" onClick={() => cyclePostingStatus(posting.id)}>Toggle</button>
+                      <button className="edit-btn-glass" style={{ color: '#ff6b6b' }} onClick={() => removePosting(posting.id)}>Delete</button>
+                    </div>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      {isProfileModalOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit employer profile">
-          <div className="modal-panel">
-            <div className="section-title-row">
-              <h3>Edit Employer Profile</h3>
-              <button className="action-btn" type="button" onClick={closeProfileModal}>Close</button>
+                ))
+              )}
             </div>
-            <form className="profile-form" onSubmit={onSave}>
-              <div className="profile-grid">
-                <label>
-                  Contact Name
-                  <input name="name" value={form.name} onChange={onChange} required />
-                </label>
-                <label>
-                  Contact Email
-                  <input name="email" type="email" value={form.email} onChange={onChange} required />
-                </label>
-                <label>
-                  Company Name
-                  <input name="companyName" value={form.companyName} onChange={onChange} placeholder="InternMatch Inc." />
-                </label>
-                <label>
-                  Location
-                  <input name="companyLocation" value={form.companyLocation} onChange={onChange} placeholder="Cebu, PH" />
-                </label>
-                <label>
-                  Website
-                  <input name="companyWebsite" value={form.companyWebsite} onChange={onChange} placeholder="https://" />
-                </label>
+          </section>
+
+          {/* Applicants Bento */}
+          <section className="bento-card employer-applicants-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Talent Pool</span>
+                <h3>Recent Applicants</h3>
               </div>
-              <div className="profile-actions">
-                <button className="primary-btn" type="submit">Save Profile</button>
-                {status && <span className="profile-status">{status}</span>}
+              <div className="app-filters-mini">
+                <input
+                  type="text"
+                  value={applicantSearch}
+                  onChange={(e) => setApplicantSearch(e.target.value)}
+                  placeholder="Search applicants..."
+                />
+                <select value={applicantStatusFilter} onChange={(e) => setApplicantStatusFilter(e.target.value)}>
+                  <option value="ALL">All Status</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="SHORTLISTED">Shortlisted</option>
+                  <option value="ACCEPTED">Accepted</option>
+                </select>
               </div>
-            </form>
+            </div>
+
+            <div className="applicants-grid-pro">
+              {filteredApplicants.length === 0 ? (
+                <div className="market-status-overlay">
+                  <p className="insight-text">No applicants to show.</p>
+                </div>
+              ) : (
+                filteredApplicants.map((applicant) => (
+                  <div key={applicant.id} className="applicant-card-pro">
+                    <span className={`card-tag ${applicant.status.toLowerCase()}`}>
+                      {applicant.status}
+                    </span>
+                    <div className="card-body-pro">
+                      <h4>{applicant.name}</h4>
+                      <span className="loc">Applying for: {applicant.internship}</span>
+                      <div className="c-stat" style={{ marginBottom: '12px' }}>Applied: {applicant.dateApplied}</div>
+                    </div>
+                    <div className="card-actions-pro">
+                      {applicant.status === "PENDING" && (
+                        <>
+                          <button className="btn-primary-pro" style={{ padding: '6px' }} onClick={() => updateApplicantStatus(applicant.id, "SHORTLISTED")}>Shortlist</button>
+                          <button className="btn-primary-pro" style={{ padding: '6px', background: '#39c6b8' }} onClick={() => updateApplicantStatus(applicant.id, "ACCEPTED")}>Accept</button>
+                        </>
+                      )}
+                      {applicant.status === "SHORTLISTED" && (
+                        <button className="btn-primary-pro" style={{ background: '#39c6b8' }} onClick={() => updateApplicantStatus(applicant.id, "ACCEPTED")}>Accept</button>
+                      )}
+                      <button className="edit-btn-glass" style={{ color: '#ff6b6b' }} onClick={() => updateApplicantStatus(applicant.id, "REJECTED")}>Reject</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {isProfileModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <h3>Edit Employer Profile</h3>
+                <button className="close-btn-glass" onClick={closeProfileModal}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                <form className="form-grid-pro" onSubmit={onSave}>
+                  <div className="input-group-pro">
+                    <label>Contact Name</label>
+                    <input name="name" value={form.name} onChange={onChange} required />
+                  </div>
+                  <div className="input-group-pro">
+                    <label>Contact Email</label>
+                    <input name="email" type="email" value={form.email} onChange={onChange} required />
+                  </div>
+                  <div className="input-group-pro">
+                    <label>Company Name</label>
+                    <input name="companyName" value={form.companyName} onChange={onChange} />
+                  </div>
+                  <div className="input-group-pro">
+                    <label>Location</label>
+                    <input name="companyLocation" value={form.companyLocation} onChange={onChange} />
+                  </div>
+                  <div className="input-group-pro full-width">
+                    <label>Website</label>
+                    <input name="companyWebsite" value={form.companyWebsite} onChange={onChange} />
+                  </div>
+                  <div className="modal-footer-pro full-width">
+                    <button className="btn-secondary-glass" type="button" onClick={closeProfileModal}>Cancel</button>
+                    <button className="btn-primary-pro" type="submit">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {isPostingModalOpen && selectedPosting && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Posting details">
-          <div className="modal-panel">
-            <div className="section-title-row">
-              <h3>{isPostingEditMode ? "Edit Posting" : "Posting Details"}</h3>
-              <button className="action-btn" type="button" onClick={closePostingModal}>Close</button>
+        <div className="modal-overlay">
+          <div className="modal-content application-modal-pro">
+            <div className="modal-aurora-glow secondary"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <h3>{isPostingEditMode ? "Edit Posting" : "Posting Details"}</h3>
+                <button className="close-btn-glass" onClick={closePostingModal}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                {!isPostingEditMode ? (
+                  <div className="app-details-grid-pro">
+                    <div className="detail-card-mini">
+                      <span className="label">Role</span>
+                      <p>{selectedPosting.title}</p>
+                    </div>
+                    <div className="detail-card-mini">
+                      <span className="label">Location</span>
+                      <p>{selectedPosting.location}</p>
+                    </div>
+                    <div className="detail-card-mini">
+                      <span className="label">Setup</span>
+                      <p>{selectedPosting.setup}</p>
+                    </div>
+                    <div className="detail-card-mini">
+                      <span className="label">Status</span>
+                      <p>{selectedPosting.status}</p>
+                    </div>
+                    <div className="detail-card-mini full-width">
+                      <span className="label">Description</span>
+                      <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--muted)' }}>{selectedPosting.description}</p>
+                    </div>
+                    <div className="modal-footer-pro full-width">
+                      <button className="btn-primary-pro" onClick={openPostingEditMode}>Edit Posting</button>
+                    </div>
+                  </div>
+                ) : (
+                  <form className="form-grid-pro" onSubmit={savePostingEdits}>
+                    <div className="input-group-pro">
+                      <label>Internship Title</label>
+                      <input name="title" value={postingEditForm.title} onChange={onPostingEditFormChange} required />
+                    </div>
+                    <div className="input-group-pro">
+                      <label>Location</label>
+                      <input name="location" value={postingEditForm.location} onChange={onPostingEditFormChange} required />
+                    </div>
+                    <div className="input-group-pro">
+                      <label>Work Setup</label>
+                      <select name="setup" value={postingEditForm.setup} onChange={onPostingEditFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                        <option value="Onsite">Onsite</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="Remote">Remote</option>
+                      </select>
+                    </div>
+                    <div className="input-group-pro">
+                      <label>Status</label>
+                      <select name="status" value={postingEditForm.status} onChange={onPostingEditFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                        <option value="ACTIVE">Active</option>
+                        <option value="CLOSED">Closed</option>
+                        <option value="DRAFT">Draft</option>
+                      </select>
+                    </div>
+                    <div className="input-group-pro full-width">
+                      <label>Description</label>
+                      <textarea name="description" value={postingEditForm.description} onChange={onPostingEditFormChange} rows={4} required />
+                    </div>
+                    <div className="modal-footer-pro full-width">
+                      <button className="btn-secondary-glass" type="button" onClick={() => setIsPostingEditMode(false)}>Cancel</button>
+                      <button className="btn-primary-pro" type="submit">Save Changes</button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
-            {!isPostingEditMode ? (
-              <>
-                <div className="application-details-grid">
-                  <div>
-                    <span className="profile-label">Role</span>
-                    <p>{selectedPosting.title}</p>
-                  </div>
-                  <div>
-                    <span className="profile-label">Location</span>
-                    <p>{selectedPosting.location}</p>
-                  </div>
-                  <div>
-                    <span className="profile-label">Setup</span>
-                    <p>{selectedPosting.setup}</p>
-                  </div>
-                  <div>
-                    <span className="profile-label">Date Posted</span>
-                    <p>{selectedPosting.postedAt || selectedPosting.createdAt}</p>
-                  </div>
-                  <div>
-                    <span className="profile-label">Applicants</span>
-                    <p>{selectedPosting.applicants || 0}</p>
-                  </div>
-                  <div>
-                    <span className="profile-label">Status</span>
-                    <p>{selectedPosting.status}</p>
-                  </div>
-                  <div className="application-note-block">
-                    <span className="profile-label">Description</span>
-                    <p>{selectedPosting.description}</p>
-                  </div>
-                </div>
-                <div className="profile-actions">
-                  <button className="primary-btn" type="button" onClick={openPostingEditMode}>Edit Posting</button>
-                </div>
-              </>
-            ) : (
-              <form className="profile-form" onSubmit={savePostingEdits}>
-                <div className="profile-grid">
-                  <label>
-                    Internship Title
-                    <input
-                      name="title"
-                      value={postingEditForm.title}
-                      onChange={onPostingEditFormChange}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Location
-                    <input
-                      name="location"
-                      value={postingEditForm.location}
-                      onChange={onPostingEditFormChange}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Work Setup
-                    <select name="setup" value={postingEditForm.setup} onChange={onPostingEditFormChange}>
-                      <option value="Onsite">Onsite</option>
-                      <option value="Hybrid">Hybrid</option>
-                      <option value="Remote">Remote</option>
-                    </select>
-                  </label>
-                  <label>
-                    Posting Status
-                    <select name="status" value={postingEditForm.status} onChange={onPostingEditFormChange}>
-                      <option value="ACTIVE">Active</option>
-                      <option value="CLOSED">Closed</option>
-                      <option value="DRAFT">Draft</option>
-                    </select>
-                  </label>
-                  <label className="modal-full-width">
-                    Description
-                    <textarea
-                      name="description"
-                      value={postingEditForm.description}
-                      onChange={onPostingEditFormChange}
-                      rows={4}
-                      required
-                    />
-                  </label>
-                </div>
-
-                <div className="profile-actions">
-                  <button className="primary-btn" type="submit">Save Changes</button>
-                  <button className="action-btn" type="button" onClick={() => setIsPostingEditMode(false)}>
-                    Cancel Edit
-                  </button>
-                </div>
-              </form>
-            )}
           </div>
         </div>
       )}
 
       {isCreatePostingModalOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Post new internship">
-          <div className="modal-panel">
-            <div className="section-title-row">
-              <h3>Post New Internship</h3>
-              <button className="action-btn" type="button" onClick={closeCreatePostingModal}>Close</button>
+        <div className="modal-overlay">
+          <div className="modal-content application-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <h3>Post New Internship</h3>
+                <button className="close-btn-glass" onClick={closeCreatePostingModal}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                <form className="form-grid-pro" onSubmit={submitNewPosting}>
+                  <div className="input-group-pro">
+                    <label>Internship Title</label>
+                    <input name="title" value={postingForm.title} onChange={onPostingFormChange} placeholder="e.g., Backend Developer Intern" required />
+                  </div>
+                  <div className="input-group-pro">
+                    <label>Location</label>
+                    <input name="location" value={postingForm.location} onChange={onPostingFormChange} placeholder="e.g., Cebu, PH" required />
+                  </div>
+                  <div className="input-group-pro">
+                    <label>Work Setup</label>
+                    <select name="setup" value={postingForm.setup} onChange={onPostingFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                      <option value="Onsite">Onsite</option>
+                      <option value="Hybrid">Hybrid</option>
+                      <option value="Remote">Remote</option>
+                    </select>
+                  </div>
+                  <div className="input-group-pro">
+                    <label>Posting Status</label>
+                    <select name="status" value={postingForm.status} onChange={onPostingFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                      <option value="ACTIVE">Active</option>
+                      <option value="DRAFT">Draft</option>
+                    </select>
+                  </div>
+                  <div className="input-group-pro full-width">
+                    <label>Description</label>
+                    <textarea name="description" value={postingForm.description} onChange={onPostingFormChange} rows={4} placeholder="Briefly describe responsibilities and requirements" required />
+                  </div>
+                  <div className="modal-footer-pro full-width">
+                    <button className="btn-secondary-glass" type="button" onClick={closeCreatePostingModal}>Cancel</button>
+                    <button className="btn-primary-pro" type="submit">Post Internship</button>
+                  </div>
+                </form>
+              </div>
             </div>
-
-            <form className="profile-form" onSubmit={submitNewPosting}>
-              <div className="profile-grid">
-                <label>
-                  Internship Title
-                  <input
-                    name="title"
-                    value={postingForm.title}
-                    onChange={onPostingFormChange}
-                    placeholder="e.g., Backend Developer Intern"
-                    required
-                  />
-                </label>
-                <label>
-                  Location
-                  <input
-                    name="location"
-                    value={postingForm.location}
-                    onChange={onPostingFormChange}
-                    placeholder="e.g., Cebu, PH"
-                    required
-                  />
-                </label>
-                <label>
-                  Work Setup
-                  <select name="setup" value={postingForm.setup} onChange={onPostingFormChange}>
-                    <option value="Onsite">Onsite</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Remote">Remote</option>
-                  </select>
-                </label>
-                <label>
-                  Posting Status
-                  <select name="status" value={postingForm.status} onChange={onPostingFormChange}>
-                    <option value="ACTIVE">Active</option>
-                    <option value="DRAFT">Draft</option>
-                  </select>
-                </label>
-                <label className="modal-full-width">
-                  Description
-                  <textarea
-                    name="description"
-                    value={postingForm.description}
-                    onChange={onPostingFormChange}
-                    placeholder="Briefly describe responsibilities and requirements"
-                    rows={4}
-                    required
-                  />
-                </label>
-              </div>
-
-              <div className="profile-actions">
-                <button className="primary-btn" type="submit">Post Internship</button>
-                {createPostingError && <span className="profile-status">{createPostingError}</span>}
-              </div>
-            </form>
           </div>
         </div>
       )}

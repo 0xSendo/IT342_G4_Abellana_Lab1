@@ -1,0 +1,80 @@
+/* Notification Item Styles for Modal */
+.notif-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.notif-item-full {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.notif-item-full:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--primary);
+  transform: translateX(4px);
+}
+
+.notif-item-full.unread {
+  background: rgba(255, 107, 74, 0.05);
+  border-left: 3px solid var(--primary);
+}
+
+.notif-icon-box {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.notif-content-full {
+  flex: 1;
+}
+
+.notif-title-full {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text);
+}
+
+.notif-msg-full {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.notif-time-full {
+  font-size: 0.75rem;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.notif-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.notif-empty-state .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.2;
+}
+
+.notif-empty-state p {
+  color: var(--muted);
+  font-size: 1rem;
+}

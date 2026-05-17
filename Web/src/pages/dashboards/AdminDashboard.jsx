@@ -41,91 +41,124 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout title="Admin Dashboard">
-      <section className="card">
-        <h3>Admin Profile</h3>
-        <form className="profile-form" onSubmit={onSave}>
-          <div className="profile-grid">
-            <label>
-              Full Name
-              <input name="name" value={form.name} onChange={onChange} required />
-            </label>
-            <label>
-              Email
-              <input name="email" type="email" value={form.email} onChange={onChange} required />
-            </label>
-            <label>
-              Department
-              <input name="department" value={form.department} onChange={onChange} placeholder="Career Services" />
-            </label>
-            <label>
-              Phone
-              <input name="phone" value={form.phone} onChange={onChange} placeholder="+63" />
-            </label>
+      <div className="student-dashboard-wrapper">
+        <section className="student-hero">
+          <div className="hero-aurora-bg">
+            <div className="blob one"></div>
+            <div className="blob two"></div>
           </div>
-          <div className="profile-actions">
-            <button className="primary-btn" type="submit">Save Profile</button>
-            {status && <span className="profile-status">{status}</span>}
+          <div className="hero-inner">
+            <div className="hero-text">
+              <span className="hero-badge">System Administration</span>
+              <h1>Welcome, System Admin {currentUser?.name?.split(" ")[0] || ""}! 👋</h1>
+              <p>Monitor system health, manage users, and oversee the internship marketplace.</p>
+            </div>
+            <div className="hero-summary-stats">
+              <div className="summary-stat-glass primary">
+                <span className="val">{users.length}</span>
+                <span className="lab">Total Users</span>
+              </div>
+            </div>
           </div>
-        </form>
-      </section>
+        </section>
 
-      <section className="card">
-        <h3>System Users</h3>
-        <div style={{ overflowX: "auto" }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="student-bento-grid">
+          {/* Admin Profile Bento */}
+          <section className="bento-card profile-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Admin Identity</span>
+                <h3>{currentUser?.name || "Administrator"}</h3>
+              </div>
+            </div>
+            
+            <form className="form-grid-pro" onSubmit={onSave} style={{ marginTop: '20px' }}>
+              <div className="input-group-pro">
+                <label>Full Name</label>
+                <input name="name" value={form.name} onChange={onChange} required />
+              </div>
+              <div className="input-group-pro">
+                <label>Email Address</label>
+                <input name="email" type="email" value={form.email} onChange={onChange} required />
+              </div>
+              <div className="input-group-pro">
+                <label>Department</label>
+                <input name="department" value={form.department} onChange={onChange} placeholder="Career Services" />
+              </div>
+              <div className="input-group-pro">
+                <label>Phone</label>
+                <input name="phone" value={form.phone} onChange={onChange} placeholder="+63" />
+              </div>
+              <div className="modal-footer-pro full-width" style={{ marginTop: '20px', paddingBottom: 0 }}>
+                {status && <span style={{ marginRight: 'auto', fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 700 }}>{status}</span>}
+                <button className="btn-primary-pro" type="submit">Update Profile</button>
+              </div>
+            </form>
+          </section>
+
+          {/* System Status Bento */}
+          <section className="bento-card readiness-bento">
+             <div className="bento-header">
+              <div>
+                <span className="bento-label">Quick Insights</span>
+                <h3>System Status</h3>
+              </div>
+            </div>
+            <div className="readiness-list">
+              <div className="readiness-item done">
+                <div className="check-circle">✓</div>
+                <span className="task-text">Database Connected</span>
+              </div>
+              <div className="readiness-item done">
+                <div className="check-circle">✓</div>
+                <span className="task-text">Auth Service Active</span>
+              </div>
+              <div className="readiness-item">
+                <div className="check-circle"></div>
+                <span className="task-text">API Performance: Optimal</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="bento-card trends-bento">
+            <JobTrendsWidget />
+          </section>
+
+          {/* User Management Bento */}
+          <section className="bento-card employer-postings-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Management</span>
+                <h3>System Users</h3>
+              </div>
+            </div>
+
+            <div className="postings-grid-pro">
               {users.length === 0 ? (
-                <tr>
-                  <td colSpan="3" className="empty-row">No users found.</td>
-                </tr>
+                <div className="market-status-overlay">
+                  <p className="insight-text">No users found.</p>
+                </div>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span className={`chip ${user.role === 'ADMIN' ? 'chip-closed' : user.role === 'EMPLOYER' ? 'chip-draft' : 'chip-open'}`}>
-                        {user.role}
-                      </span>
-                    </td>
-                  </tr>
+                  <div key={user.id} className="posting-card-pro">
+                    <span className={`card-tag ${user.role === 'ADMIN' ? 'closed' : user.role === 'EMPLOYER' ? 'pending' : 'active'}`}>
+                      {user.role}
+                    </span>
+                    <div className="card-body-pro">
+                      <h4>{user.name}</h4>
+                      <span className="loc">{user.email}</span>
+                    </div>
+                    <div className="card-actions-pro">
+                      <button className="edit-btn-glass">Manage</button>
+                      <button className="edit-btn-glass" style={{ color: '#ff6b6b' }}>Deactivate</button>
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          </section>
         </div>
-      </section>
-
-      <section className="card">
-        <h3>Overview</h3>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="stat-label">Total Users</span>
-            <span className="stat-value">{users.length}</span>
-            <span className="stat-trend positive">Active on system</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Employers</span>
-            <span className="stat-value">{users.filter(u => u.role === 'EMPLOYER').length}</span>
-            <span className="stat-trend">Partners</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">Students</span>
-            <span className="stat-value">{users.filter(u => u.role === 'STUDENT').length}</span>
-            <span className="stat-trend positive">Seeking internships</span>
-          </div>
-        </div>
-      </section>
-
-      <JobTrendsWidget />
-
+      </div>
     </DashboardLayout>
   );
 }

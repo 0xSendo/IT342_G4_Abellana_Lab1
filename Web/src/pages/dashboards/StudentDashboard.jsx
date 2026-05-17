@@ -2,8 +2,9 @@ import { useContext, useEffect, useState } from "react";
 import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import JobTrendsWidget from "../../components/JobTrendsWidget"; // ← ADDED
+import JobTrendsWidget from "../../components/JobTrendsWidget"; 
 import "../../styles/dashboard.css";
+import "../../styles/notifications.css";
 
 export default function StudentDashboard() {
   const { currentUser, updateProfile } = useContext(AuthContext);
@@ -11,6 +12,7 @@ export default function StudentDashboard() {
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [applicationSearch, setApplicationSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -160,286 +162,294 @@ export default function StudentDashboard() {
   };
 
   return (
-    <DashboardLayout showProfileCard={false}>
-      {/* Welcome Hero Section */}
-      <section className="dashboard-hero">
-        <div className="hero-content">
-          <h1>Welcome back, {currentUser?.name?.split(" ")[0] || "Student"}! 👋</h1>
-          <p>Your internship journey starts here. Track applications, discover opportunities, and build your career.</p>
-
-          <div className="hero-stats">
-            <div className="hero-stat">
-              <span className="stat-icon">📋</span>
-              <div>
-                <p className="stat-value">{totalApplications}</p>
-                <p className="stat-text">Total Applications</p>
+    <DashboardLayout 
+      showProfileCard={false}
+      onNotificationClick={() => setIsNotificationsModalOpen(true)}
+      notificationCount={notifications.filter(n => !n.read).length}
+    >
+      <div className="student-dashboard-wrapper">
+        {/* Aurora Hero Banner */}
+        <section className="student-hero">
+          <div className="hero-aurora-bg">
+            <div className="blob one"></div>
+            <div className="blob two"></div>
+          </div>
+          <div className="hero-inner">
+            <div className="hero-text">
+              <span className="hero-badge">Student Portal</span>
+              <h1>Welcome back, {currentUser?.name?.split(" ")[0] || "Student"}! 👋</h1>
+              <p>Your internship journey starts here. Track applications, discover opportunities, and build your career.</p>
+            </div>
+            <div className="hero-summary-stats">
+              <div className="summary-stat-glass primary">
+                <span className="val">{totalApplications}</span>
+                <span className="lab">Total Apps</span>
+              </div>
+              <div className="summary-stat-glass">
+                <span className="val">{pendingApplications}</span>
+                <span className="lab">Pending</span>
               </div>
             </div>
-            <div className="hero-stat">
-              <span className="stat-icon">⏳</span>
-              <div>
-                <p className="stat-value">{pendingApplications}</p>
-                <p className="stat-text">Pending Review</p>
-              </div>
-            </div>
-            <div className="hero-stat">
-              <span className="stat-icon">✅</span>
-              <div>
-                <p className="stat-value">{acceptedApplications}</p>
-                <p className="stat-text">Accepted</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Profile Card */}
-      <section className="card profile-card">
-        <div className="section-title-row">
-          <div>
-            <h3>👤 My Profile</h3>
-            <p className="section-subtitle">Complete your profile to increase visibility to employers</p>
-          </div>
-          <button className="action-btn" onClick={openProfileModal}>
-            ✏️ Edit Profile
-          </button>
-        </div>
-
-        <div className="profile-grid">
-          <div className="profile-item">
-            <span className="profile-label">Full Name</span>
-            <p className="profile-value">{currentUser?.name || "Not set"}</p>
-          </div>
-          <div className="profile-item">
-            <span className="profile-label">Email</span>
-            <p className="profile-value">{currentUser?.email || "Not set"}</p>
-          </div>
-          <div className="profile-item">
-            <span className="profile-label">Program</span>
-            <p className="profile-value">{currentUser?.program || "Not set"}</p>
-          </div>
-          <div className="profile-item">
-            <span className="profile-label">Year Level</span>
-            <p className="profile-value">{currentUser?.yearLevel || "Not set"}</p>
-          </div>
-          <div className="profile-item full-width">
-            <span className="profile-label">Skills</span>
-            <p className="profile-value">{currentUser?.skills || "Not set"}</p>
-          </div>
-        </div>
-
-        <div className="completion-row">
-          <div style={{ width: "100%" }}>
-            <div className="completion-info">
-              <span>Profile Completion</span>
-              <strong>{profileCompletion}%</strong>
-            </div>
-            <div className="completion-bar">
-              <div className="completion-fill" style={{ width: `${profileCompletion}%` }} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Application Summary Stats */}
-      <section className="card stats-section">
-        <h3>📊 Application Summary</h3>
-        <div className="stats-grid">
-          <div className="stat-box">
-            <p className="stat-number">{totalApplications}</p>
-            <p className="stat-label">Total Applications</p>
-          </div>
-          <div className="stat-box">
-            <p className="stat-number">{pendingApplications}</p>
-            <p className="stat-label">Pending</p>
-          </div>
-          <div className="stat-box">
-            <p className="stat-number">{acceptedApplications}</p>
-            <p className="stat-label">Accepted</p>
-          </div>
-          <div className="stat-box">
-            <p className="stat-number">{completedApplications}</p>
-            <p className="stat-label">Completed</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ↓↓↓ WORLD BANK JOB TRENDS WIDGET ADDED HERE ↓↓↓ */}
-      <JobTrendsWidget />
-      {/* ↑↑↑ WORLD BANK JOB TRENDS WIDGET ADDED HERE ↑↑↑ */}
-
-      {/* Notifications Section */}
-      {notifications.length > 0 && (
-        <section className="card">
-          <div className="section-title-row">
-            <h3>🔔 Notifications</h3>
-            <button className="action-btn small" onClick={fetchNotifications}>Refresh</button>
-          </div>
-          <div className="student-notification-list">
-            {notifications.map((n) => (
-              <article key={n.id} className={`student-notification-item ${n.read ? "read" : "unread"}`}>
-                <div className="notif-content">
-                  <p className="student-notification-title">{n.title}</p>
-                  <p className="student-notification-message">{n.message}</p>
-                  <span className="feed-muted">{new Date(n.createdAt).toLocaleString()}</span>
-                </div>
-              </article>
-            ))}
           </div>
         </section>
-      )}
 
-      {/* My Applications */}
-      <section className="card applications-card">
-        <div className="section-title-row">
-          <div>
-            <h3>📝 My Applications</h3>
-            <p className="section-subtitle">Track and manage all your internship applications</p>
-          </div>
-          <span className="results-badge">{filteredApplications.length} results</span>
-        </div>
-
-        <div className="filter-row">
-          <input
-            type="text"
-            placeholder="Search internship or company..."
-            value={applicationSearch}
-            onChange={(e) => setApplicationSearch(e.target.value)}
-            className="search-input"
-          />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
-            <option value="ALL">All Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="ACCEPTED">Accepted</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
-          {(applicationSearch || statusFilter !== "ALL") && (
-            <button className="clear-filters-btn" onClick={clearApplicationFilters}>
-              Clear
-            </button>
-          )}
-        </div>
-
-        {filteredApplications.length === 0 ? (
-          <div className="empty-state">
-            <h4>No applications found</h4>
-            <p>Try adjusting your search or filters.</p>
-          </div>
-        ) : (
-          <div className="applications-list">
-            {filteredApplications.map((app) => (
-              <div key={app.id} className="application-card">
-                <div className="application-header">
-                  <div className="app-left">
-                    <h4 className="internship-title" title={app.internship}>{app.internship}</h4>
-                    <p className="company-name">{app.company}</p>
-                  </div>
-                  <span className={`status ${app.status.toLowerCase()}`}>
-                    {app.status}
-                  </span>
+        <div className="student-bento-grid">
+          {/* Profile Bento */}
+          <section className="bento-card profile-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">My Identity</span>
+                <h3>{currentUser?.name || "Student Profile"}</h3>
+              </div>
+              <button className="edit-btn-glass" onClick={openProfileModal}>Edit</button>
+            </div>
+            
+            <div className="profile-details-mini">
+              <div className="profile-meta-row">
+                <div className="mini-item">
+                  <label>Program</label>
+                  <p>{currentUser?.program || "Not set"}</p>
                 </div>
-
-                <div className="application-details">
-                  <div className="detail-item"><strong>Location:</strong> {app.location}</div>
-                  <div className="detail-item"><strong>Setup:</strong> {app.setup}</div>
-                  <div className="detail-item"><strong>Applied:</strong> {new Date(app.dateApplied).toLocaleDateString()}</div>
-                </div>
-
-                {app.studentNote && (
-                  <div className="application-note">
-                    <strong>Note:</strong> {app.studentNote}
-                  </div>
-                )}
-
-                <div className="application-actions">
-                  <button className="action-btn view-btn" onClick={() => openApplicationModal(app)}>
-                    View Details
-                  </button>
-                  {["PENDING", "REJECTED"].includes(app.status) && (
-                    <button className="action-link withdraw-btn" onClick={() => withdrawApplication(app.id)}>
-                      Withdraw
-                    </button>
-                  )}
+                <div className="mini-item">
+                  <label>Year</label>
+                  <p>{currentUser?.yearLevel || "Not set"}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+              <div className="mini-item" style={{ marginTop: '12px' }}>
+                <label>Skills</label>
+                <div className="skills-tags">
+                  {(currentUser?.skills || "").split(",").map(s => s.trim()).filter(s => s).map((skill, i) => (
+                    <span key={i} className="skill-tag">{skill}</span>
+                  ))}
+                  {!(currentUser?.skills) && <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>No skills added</span>}
+                </div>
+              </div>
+            </div>
+
+            <div className="completion-row">
+              <div style={{ width: "100%" }}>
+                <div className="completion-info" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)' }}>Profile Completion</span>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>{profileCompletion}%</strong>
+                </div>
+                <div className="completion-track" style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div className="completion-fill" style={{ width: `${profileCompletion}%`, height: '100%', background: 'var(--primary)' }} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Readiness / Tasks Bento */}
+          <section className="bento-card readiness-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Checklist</span>
+                <h3>Career Readiness</h3>
+              </div>
+            </div>
+            <div className="readiness-list">
+              <div className={`readiness-item ${currentUser?.name ? 'done' : ''}`}>
+                <div className="check-circle">{currentUser?.name ? '✓' : ''}</div>
+                <span className="task-text">Basic Information</span>
+              </div>
+              <div className={`readiness-item ${currentUser?.skills ? 'done' : ''}`}>
+                <div className="check-circle">{currentUser?.skills ? '✓' : ''}</div>
+                <span className="task-text">Add Skills & Expertise</span>
+              </div>
+              <div className={`readiness-item ${totalApplications > 0 ? 'done' : ''}`}>
+                <div className="check-circle">{totalApplications > 0 ? '✓' : ''}</div>
+                <span className="task-text">First Application Sent</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Market Intelligence Bento */}
+          <section className="bento-card trends-bento">
+            <JobTrendsWidget />
+          </section>
+
+          {/* Applications Bento */}
+          <section className="bento-card apps-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Track</span>
+                <h3>My Applications</h3>
+              </div>
+              <div className="app-filters-mini">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={applicationSearch}
+                  onChange={(e) => setApplicationSearch(e.target.value)}
+                />
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="ALL">All</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="ACCEPTED">Accepted</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="bento-apps-grid">
+              {filteredApplications.length === 0 ? (
+                <div className="market-status-overlay">
+                  <p className="insight-text">No applications found.</p>
+                </div>
+              ) : (
+                filteredApplications.map((app) => (
+                  <div key={app.id} className="bento-app-card" onClick={() => openApplicationModal(app)}>
+                    <div className="app-header-mini">
+                      <h4>{app.internship}</h4>
+                      <span className={`status-tag ${app.status.toLowerCase()}`}>{app.status}</span>
+                    </div>
+                    <p className="app-company-mini">{app.company}</p>
+                    <div className="app-footer-mini">
+                      <span>{new Date(app.dateApplied).toLocaleDateString()}</span>
+                      {["PENDING", "REJECTED"].includes(app.status) && (
+                        <button onClick={(e) => { e.stopPropagation(); withdrawApplication(app.id); }}>Withdraw</button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
 
       {/* Profile Modal */}
       {isProfileModalOpen && (
-        <div className="modal-overlay" onClick={closeProfileModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Edit Profile</h3>
-              <button className="modal-close-btn" onClick={closeProfileModal}>✕</button>
-            </div>
-            <form onSubmit={onSave}>
-              <div className="modal-body">
-                <div className="form-grid">
-                  <div>
-                    <label htmlFor="name">Full Name *</label>
-                    <input id="name" name="name" value={form.name} onChange={onChange} required />
+        <div className="modal-overlay">
+          <div className="modal-content profile-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <h3>Edit Your Profile</h3>
+                <button className="close-btn-glass" onClick={closeProfileModal}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                <form className="form-grid-pro" onSubmit={onSave}>
+                  <div className="input-group-pro">
+                    <label>Full Name</label>
+                    <input name="name" value={form.name} onChange={onChange} required />
                   </div>
-                  <div>
-                    <label htmlFor="email">Email *</label>
-                    <input id="email" name="email" type="email" value={form.email} onChange={onChange} required />
+                  <div className="input-group-pro">
+                    <label>Email Address</label>
+                    <input name="email" type="email" value={form.email} onChange={onChange} required />
                   </div>
-                  <div>
-                    <label htmlFor="program">Program</label>
-                    <input id="program" name="program" value={form.program} onChange={onChange} />
+                  <div className="input-group-pro">
+                    <label>Program / Course</label>
+                    <input name="program" value={form.program} onChange={onChange} />
                   </div>
-                  <div>
-                    <label htmlFor="yearLevel">Year Level</label>
-                    <input id="yearLevel" name="yearLevel" value={form.yearLevel} onChange={onChange} />
+                  <div className="input-group-pro">
+                    <label>Year Level</label>
+                    <input name="yearLevel" value={form.yearLevel} onChange={onChange} />
                   </div>
-                  <div className="full-width">
-                    <label htmlFor="skills">Skills</label>
-                    <input
-                      id="skills"
-                      name="skills"
-                      value={form.skills}
-                      onChange={onChange}
-                      placeholder="React, Python, JavaScript, etc."
+                  <div className="input-group-pro full-width">
+                    <label>Skills (comma separated)</label>
+                    <textarea 
+                      name="skills" 
+                      value={form.skills} 
+                      onChange={onChange} 
+                      placeholder="React, Python, Design..."
                     />
                   </div>
-                </div>
+                  <div className="modal-footer-pro full-width">
+                    <button className="btn-secondary-glass" type="button" onClick={closeProfileModal}>Cancel</button>
+                    <button className="btn-primary-pro" type="submit">Save Profile</button>
+                  </div>
+                </form>
               </div>
-              <div className="modal-footer">
-                <button type="button" className="modal-btn-cancel" onClick={closeProfileModal}>Cancel</button>
-                <button type="submit" className="modal-btn-submit">Save Profile</button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Application Modal */}
+      {/* Application Detail Modal */}
       {isApplicationModalOpen && selectedApplication && (
-        <div className="modal-overlay" onClick={closeApplicationModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Application Details</h3>
-              <button className="modal-close-btn" onClick={closeApplicationModal}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="app-details-grid">
-                <div><strong>Internship:</strong> {selectedApplication.internship}</div>
-                <div><strong>Company:</strong> {selectedApplication.company}</div>
-                <div><strong>Location:</strong> {selectedApplication.location}</div>
-                <div><strong>Setup:</strong> {selectedApplication.setup}</div>
-                <div><strong>Date Applied:</strong> {new Date(selectedApplication.dateApplied).toLocaleDateString()}</div>
-                <div><strong>Status:</strong>
-                  <span className={`status ${selectedApplication.status.toLowerCase()}`}>
-                    {selectedApplication.status}
-                  </span>
+        <div className="modal-overlay">
+          <div className="modal-content application-modal-pro">
+            <div className="modal-aurora-glow secondary"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <h3>Application Status</h3>
+                <button className="close-btn-glass" onClick={closeApplicationModal}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                <div className="app-details-grid-pro">
+                  <div className="detail-card-mini">
+                    <span className="label">Internship</span>
+                    <p>{selectedApplication.internship}</p>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Company</span>
+                    <p>{selectedApplication.company}</p>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Current Status</span>
+                    <span className={`status-tag-v2 ${selectedApplication.status.toLowerCase()}`}>{selectedApplication.status}</span>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Applied On</span>
+                    <p>{new Date(selectedApplication.dateApplied).toLocaleDateString()}</p>
+                  </div>
+                  <div className="detail-card-mini full-width">
+                    <span className="label">Applicant Note</span>
+                    <div className="note-box-pro">
+                      {selectedApplication.studentNote || "No additional notes provided."}
+                    </div>
+                  </div>
                 </div>
-                <div><strong>Student Note:</strong> {selectedApplication.studentNote || "No note added"}</div>
+                <div className="modal-footer-pro">
+                  <button className="btn-secondary-glass" onClick={closeApplicationModal}>Dismiss</button>
+                </div>
               </div>
             </div>
-            <div className="modal-footer">
-              <button className="modal-btn-cancel" onClick={closeApplicationModal}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Modal */}
+      {isNotificationsModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <div>
+                  <span className="bento-label">Updates</span>
+                  <h3>Your Notifications</h3>
+                </div>
+                <button className="close-btn-glass" onClick={() => setIsNotificationsModalOpen(false)}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                <div className="notif-modal-list">
+                  {notifications.length === 0 ? (
+                    <div className="notif-empty-state">
+                      <div className="empty-icon">🔔</div>
+                      <p>You're all caught up!</p>
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`}>
+                        <div className="notif-icon-box">
+                          {n.title.toLowerCase().includes("accept") ? "🎉" : 
+                           n.title.toLowerCase().includes("reject") ? "🤝" : "📩"}
+                        </div>
+                        <div className="notif-content-full">
+                          <h4 className="notif-title-full">{n.title}</h4>
+                          <p className="notif-msg-full">{n.message}</p>
+                          <span className="notif-time-full">Just now</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer-pro">
+                <button className="btn-secondary-glass" onClick={() => setIsNotificationsModalOpen(false)}>Close</button>
+                <button className="btn-primary-pro" onClick={fetchNotifications}>Refresh</button>
+              </div>
             </div>
           </div>
         </div>

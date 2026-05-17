@@ -5,7 +5,7 @@ import AuthContext from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import "../styles/dashboard.css";
 
-export default function DashboardLayout({ title, children, showProfileCard = true }) {
+export default function DashboardLayout({ title, children, showProfileCard = true, onNotificationClick, notificationCount }) {
 	const { currentUser, logout } = useContext(AuthContext);
 	const toast = useToast();
 
@@ -33,19 +33,11 @@ export default function DashboardLayout({ title, children, showProfileCard = tru
 
 	return (
 		<div style={{ width: "100%" }}>
-			<Navbar />
+			<Navbar onNotificationClick={onNotificationClick} notificationCount={notificationCount} />
 			<div className="dashboard-container">
 				<Sidebar />
 				<main className="dashboard-main">
-					{title && <h2>{title}</h2>}
-					{showProfileCard && (
-						<section className="card">
-							<h3>Profile</h3>
-							<p>Name: {currentUser?.name || "Guest"}</p>
-							<p>Email: {currentUser?.email || "-"}</p>
-							<p>Role: {currentUser?.role || "STUDENT"}</p>
-						</section>
-					)}
+					{title && <h2 style={{ display: 'none' }}>{title}</h2>}
 					{children}
 				</main>
 			</div>
