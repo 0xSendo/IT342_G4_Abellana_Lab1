@@ -360,370 +360,284 @@ export default function Feed() {
 
   return (
     <DashboardLayout showProfileCard={false}>
-      <section className="card feed-hero">
-        <div className="hero-text">
-          <h3>{isStudentView ? "Student Opportunity Hub" : "Community Feed"}</h3>
-          <p>
-            {role === "EMPLOYER"
-              ? "See which students are active, explore postings, and review talent in one place."
-              : "Get role-matched internships, monitor your progress, and build momentum in one focused student feed."}
-          </p>
-        </div>
-        <div className="feed-role-chip">
-          {role === "EMPLOYER" ? "Employer View" : role === "ADMIN" ? "Admin View" : "Student View"}
-        </div>
-      </section>
-
-      {isStudentView && (
-        <div className="student-dashboard-grid">
-          <section className="card student-notification-card">
-            <div className="student-feed-head">
-              <div>
-                <h3>🔔 Notifications</h3>
-                <p className="feed-muted">Stay updated on deadlines and matches.</p>
+      <div className="student-dashboard-wrapper">
+        <section className="student-hero">
+          <div className="hero-aurora-bg">
+            <div className="blob one"></div>
+            <div className="blob two"></div>
+          </div>
+          <div className="hero-inner">
+            <div className="hero-text">
+              <span className="hero-badge">{isStudentView ? "Student Opportunity Hub" : "Community Feed"}</span>
+              <h1>{isStudentView ? "Find Your Next Career Move" : "Ecosystem Activity"}</h1>
+              <p>
+                {role === "EMPLOYER"
+                  ? "See which students are active, explore postings, and review talent in one place."
+                  : "Get role-matched internships, monitor your progress, and build momentum in one focused student feed."}
+              </p>
+            </div>
+            <div className="hero-summary-stats">
+              <div className="summary-stat-glass primary">
+                <span className="val">{filteredPostings.length}</span>
+                <span className="lab">Jobs</span>
               </div>
-              <div className="student-notification-head-actions">
-                <span className="student-notification-badge">{unreadStudentNotifications} NEW</span>
-                <button type="button" className="action-btn small" onClick={markAllNotificationsRead}>
-                  Mark all read
-                </button>
+              <div className="summary-stat-glass">
+                <span className="val">{filteredActivities.length}</span>
+                <span className="lab">Updates</span>
               </div>
             </div>
+          </div>
+        </section>
 
-            <div className="student-notification-list">
-              {studentNotifications.length === 0 && (
-                <div className="feed-empty-state">No notifications right now.</div>
-              )}
-              {studentNotifications.map((item) => (
-                <article key={item.id} className={`student-notification-item ${item.read ? "read" : "unread"}`}>
-                  <div className="notif-content">
-                    <p className="student-notification-title">{item.title}</p>
-                    <p className="student-notification-message">{item.message}</p>
-                    <span className="feed-muted">{item.type} • {item.time}</span>
+        {isStudentView && (
+          <div className="student-bento-grid" style={{ marginBottom: '24px' }}>
+            <section className="bento-card notifications-bento">
+              <div className="bento-header">
+                <div>
+                  <span className="bento-label">Updates</span>
+                  <h3>Notifications</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <span className="student-notification-badge" style={{ padding: '2px 8px', fontSize: '0.7rem' }}>{unreadStudentNotifications} NEW</span>
+                  <button type="button" className="refresh-btn-glass" onClick={markAllNotificationsRead}>✓</button>
+                </div>
+              </div>
+
+              <div className="notif-scroll-area">
+                {studentNotifications.length === 0 && (
+                  <p className="feed-muted" style={{ textAlign: 'center', padding: '20px' }}>No new updates</p>
+                )}
+                {studentNotifications.slice(0, 4).map((item) => (
+                  <div key={item.id} className={`notif-item-mini ${item.read ? "read" : "unread"}`}>
+                    <div className="notif-indicator"></div>
+                    <div className="notif-info">
+                      <p className="notif-t">{item.title}</p>
+                      <p className="notif-d">{item.message}</p>
+                    </div>
                   </div>
-                  <div className="student-notification-actions">
-                    <button type="button" className="action-btn small" onClick={() => openNotificationContext(item)}>
-                      Open
-                    </button>
-                    {!item.read && (
-                      <button type="button" className="action-btn small" onClick={() => markNotificationRead(item.id)}>
-                        Read
-                      </button>
-                    )}
-                    <button type="button" className="action-btn small danger" onClick={() => dismissNotification(item.id)}>
-                      ✕
-                    </button>
-                  </div>
-                </article>
+                ))}
+              </div>
+            </section>
+
+            <section className="bento-card apps-bento">
+              <div className="bento-header">
+                <div>
+                  <span className="bento-label">Career Planner</span>
+                  <h3>My Momentum</h3>
+                </div>
+              </div>
+
+              <div className="stats-mini-grid">
+                <div className="stat-mini-box">
+                  <span className="v">{appliedPostingIds.length}</span>
+                  <span className="l">Applied</span>
+                </div>
+                <div className="stat-mini-box">
+                  <span className="v">{savedPostingIds.length}</span>
+                  <span className="l">Saved</span>
+                </div>
+                <div className="stat-mini-box">
+                  <span className="v">{studentGoalCompletion}%</span>
+                  <span className="l">Goal Progress</span>
+                </div>
+              </div>
+
+              <div className="skills-tags" style={{ marginTop: '20px', justifyContent: 'center' }}>
+                <button type="button" className={`skill-tag ${studentGoals.resume ? "done" : ""}`} style={{ cursor: 'pointer', background: studentGoals.resume ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: studentGoals.resume ? 'white' : 'var(--muted)' }} onClick={() => toggleStudentGoal("resume")}>
+                  {studentGoals.resume ? "✓ Resume" : "Resume"}
+                </button>
+                <button type="button" className={`skill-tag ${studentGoals.portfolio ? "done" : ""}`} style={{ cursor: 'pointer', background: studentGoals.portfolio ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: studentGoals.portfolio ? 'white' : 'var(--muted)' }} onClick={() => toggleStudentGoal("portfolio")}>
+                  {studentGoals.portfolio ? "✓ Portfolio" : "Portfolio"}
+                </button>
+                <button type="button" className={`skill-tag ${studentGoals.interview ? "done" : ""}`} style={{ cursor: 'pointer', background: studentGoals.interview ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: studentGoals.interview ? 'white' : 'var(--muted)' }} onClick={() => toggleStudentGoal("interview")}>
+                  {studentGoals.interview ? "✓ Interview" : "Interview"}
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        <section className="bento-card" style={{ marginBottom: '24px' }}>
+          <div className="bento-header">
+            <div>
+              <span className="bento-label">Filters</span>
+              <h3>Feed Controls</h3>
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+               <button type="button" className="edit-btn-glass" onClick={toggleTheme}>
+                {isDarkMode ? "☀️ Light" : "🌙 Dark"}
+              </button>
+              <button type="button" className="edit-btn-glass" onClick={resetControls}>
+                Reset
+              </button>
+            </div>
+          </div>
+          <div className="app-filters-mini" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '12px' }}>
+            <input
+              type="text"
+              value={feedSearch}
+              onChange={(e) => setFeedSearch(e.target.value)}
+              placeholder="Search anything..."
+            />
+            <select value={postingFilter} onChange={(e) => setPostingFilter(e.target.value)}>
+              <option value="ALL">All Setup</option>
+              <option value="Remote">Remote</option>
+              <option value="Hybrid">Hybrid</option>
+              <option value="Onsite">Onsite</option>
+            </select>
+            <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
+              {Object.entries(ACTIVITY_FILTERS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
               ))}
-            </div>
-          </section>
+            </select>
+            <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+              <option value="RECENT">Recent</option>
+              <option value="APPLICANTS">Popular</option>
+              <option value="COMPANY">Company</option>
+            </select>
+          </div>
+        </section>
 
-          <section className="card student-feed-hub">
-            <div className="student-feed-head">
+        <div className="feed-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          <section className="bento-card">
+            <div className="bento-header">
               <div>
-                <h3>🚀 Career Planner</h3>
-                <p className="feed-muted">Build your momentum and track progress.</p>
+                <span className="bento-label">Opportunities</span>
+                <h3>Internships</h3>
               </div>
-              <button type="button" className="action-btn small" onClick={() => setHiddenPostingIds([])}>
-                Restore Hidden
-              </button>
+              <span className="hero-badge" style={{ margin: 0 }}>{filteredPostings.length} results</span>
+            </div>
+            
+            <div className="postings-grid-pro" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {(isLoading && backendPostings.length === 0) ? (
+                <div className="market-status-overlay">
+                  <div className="loading-pulse"><div className="pulse-dot"></div>Loading...</div>
+                </div>
+              ) : filteredPostings.length === 0 ? (
+                <p className="feed-muted" style={{ textAlign: 'center', padding: '20px' }}>No matches found</p>
+              ) : (
+                filteredPostings.map((item) => (
+                  <div key={item.id} className="posting-card-pro">
+                    <span className="card-tag active" style={{ background: 'rgba(124, 58, 237, 0.15)', color: '#a78bfa' }}>Internship</span>
+                    <div className="card-body-pro">
+                      <span className="loc" style={{ marginBottom: '4px' }}>{item.company}</span>
+                      <h4>{item.title}</h4>
+                      <div className="card-stats-row" style={{ marginTop: '12px' }}>
+                        <div className="c-stat">📍 {item.location}</div>
+                        <div className="c-stat">🏠 {item.setup}</div>
+                        {isStudentView && <div className="c-stat" style={{ color: 'var(--primary)' }}>{getMatchScore(item)}% Match</div>}
+                      </div>
+                    </div>
+                    <div className="card-actions-pro">
+                      <button type="button" className="edit-btn-glass" onClick={() => toggleSavedPosting(item)}>
+                        {savedPostingIds.includes(item.id) ? "★ Saved" : "☆ Save"}
+                      </button>
+                      <button type="button" className="btn-primary-pro" style={{ padding: '6px' }} onClick={() => handlePrimaryPostingAction(item)}>
+                        {appliedPostingIds.includes(item.id) ? "Applied" : "Apply"}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section className="bento-card">
+             <div className="bento-header">
+              <div>
+                <span className="bento-label">Community</span>
+                <h3>Activity</h3>
+              </div>
+              <span className="hero-badge" style={{ margin: 0 }}>{filteredActivities.length} updates</span>
             </div>
 
-            <div className="student-feed-stats">
-              <div className="student-stat-card">
-                <span className="feed-muted">Applied</span>
-                <strong>{appliedPostingIds.length}</strong>
-              </div>
-              <div className="student-stat-card">
-                <span className="feed-muted">Saved</span>
-                <strong>{savedPostingIds.length}</strong>
-              </div>
-              <div className="student-stat-card">
-                <span className="feed-muted">Goal Progress</span>
-                <strong>{studentGoalCompletion}%</strong>
-              </div>
-            </div>
-
-            <div className="student-feed-actions">
-              <div className="student-tab-row">
-                <button
-                  type="button"
-                  className={`action-btn small ${studentTab === "DISCOVER" ? "student-tab-active" : ""}`}
-                  onClick={() => setStudentTab("DISCOVER")}
-                >
-                  Discover
-                </button>
-                <button
-                  type="button"
-                  className={`action-btn small ${studentTab === "SAVED" ? "student-tab-active" : ""}`}
-                  onClick={() => setStudentTab("SAVED")}
-                >
-                  Saved
-                </button>
-                <button
-                  type="button"
-                  className={`action-btn small ${studentTab === "APPLIED" ? "student-tab-active" : ""}`}
-                  onClick={() => setStudentTab("APPLIED")}
-                >
-                  Applied
-                </button>
-              </div>
-
-              <select value={studentAlertSetup} onChange={(e) => setStudentAlertSetup(e.target.value)} className="action-btn small">
-                <option value="ALL">All Setups</option>
-                <option value="Remote">Remote First</option>
-                <option value="Hybrid">Hybrid Focus</option>
-                <option value="Onsite">Onsite Focus</option>
-              </select>
-            </div>
-
-            <div className="student-goal-grid">
-              <button type="button" className={`student-goal-item ${studentGoals.resume ? "done" : ""}`} onClick={() => toggleStudentGoal("resume")}>
-                {studentGoals.resume ? "✓ Resume" : "Resume"}
-              </button>
-              <button type="button" className={`student-goal-item ${studentGoals.portfolio ? "done" : ""}`} onClick={() => toggleStudentGoal("portfolio")}>
-                {studentGoals.portfolio ? "✓ Portfolio" : "Portfolio"}
-              </button>
-              <button type="button" className={`student-goal-item ${studentGoals.interview ? "done" : ""}`} onClick={() => toggleStudentGoal("interview")}>
-                {studentGoals.interview ? "✓ Interview" : "Interview"}
-              </button>
-              <button type="button" className={`student-goal-item ${studentGoals.networking ? "done" : ""}`} onClick={() => toggleStudentGoal("networking")}>
-                {studentGoals.networking ? "✓ Networking" : "Network"}
-              </button>
+            <div className="postings-grid-pro" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {filteredActivities.length === 0 ? (
+                <p className="feed-muted" style={{ textAlign: 'center', padding: '20px' }}>No recent updates</p>
+              ) : (
+                filteredActivities.map((item) => (
+                  <div key={item.id} className="posting-card-pro">
+                    <span className="card-tag" style={{ background: 'rgba(57, 198, 184, 0.15)', color: '#39c6b8' }}>Activity</span>
+                    <div className="card-body-pro">
+                      <span className="loc" style={{ marginBottom: '4px' }}>{item.student} • {item.program}</span>
+                      <h4>{item.activity}</h4>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '8px' }}>{item.details}</p>
+                    </div>
+                    <div className="card-actions-pro">
+                      {role === "EMPLOYER" ? (
+                        <button type="button" className="btn-primary-pro" style={{ padding: '6px' }} onClick={() => showToast(`Opening ${item.student}'s profile`)}>View Profile</button>
+                      ) : (
+                        <button type="button" className="edit-btn-glass" onClick={() => showToast(`Followed ${item.student}`)}>Follow</button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
         </div>
-      )}
-
-      <section className="card feed-summary-grid">
-        <div className="feed-summary-card">
-          <span className="feed-muted">Visible Postings</span>
-          <strong>{filteredPostings.length}</strong>
-        </div>
-        <div className="feed-summary-card">
-          <span className="feed-muted">Activity Updates</span>
-          <strong>{filteredActivities.length}</strong>
-        </div>
-        <div className="feed-summary-card">
-          <span className="feed-muted">Saved Posts</span>
-          <strong>{savedPostings.length}</strong>
-        </div>
-        <div className="feed-summary-card">
-          <span className="feed-muted">Current Role</span>
-          <strong>{role}</strong>
-        </div>
-      </section>
-
-      <section className="card feed-toolbar-card">
-        <div className="section-title-row">
-          <h3>⚡ Feed Controls</h3>
-          <div className="toolbar-actions">
-            <button type="button" className="action-btn small" onClick={toggleTheme}>
-              {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-            </button>
-            <button type="button" className="action-btn small" onClick={resetControls}>
-              Reset Filters
-            </button>
-          </div>
-        </div>
-        <div className="feed-controls">
-          <input
-            type="text"
-            value={feedSearch}
-            onChange={(e) => setFeedSearch(e.target.value)}
-            placeholder="Search anything..."
-            className="search-input"
-          />
-          <select value={postingFilter} onChange={(e) => setPostingFilter(e.target.value)}>
-            <option value="ALL">Work Setup</option>
-            <option value="Remote">Remote</option>
-            <option value="Hybrid">Hybrid</option>
-            <option value="Onsite">Onsite</option>
-          </select>
-          <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
-            {Object.entries(ACTIVITY_FILTERS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
-            <option value="RECENT">Sort: Recent</option>
-            <option value="APPLICANTS">Most Popular</option>
-            <option value="COMPANY">Company A-Z</option>
-          </select>
-        </div>
-      </section>
-
-      <div className="feed-grid">
-        <section className="card feed-column">
-          <div className="section-title-row">
-            <h3>💼 Job Postings</h3>
-            <span className="results-badge">{filteredPostings.length} results</span>
-          </div>
-          <div className="feed-list">
-            {(isLoading && backendPostings.length === 0) ? (
-              <div style={{ padding: "2rem", textAlign: "center" }}>
-                <p>Loading real-time opportunities...</p>
-              </div>
-            ) : filteredPostings.length === 0 && (
-              <div className="feed-empty-state">No matching internships found.</div>
-            )}
-            {filteredPostings.map((item) => (
-              <article className="feed-card" key={item.id}>
-                <div className="feed-card-head">
-                  <div>
-                    <span className="feed-muted">{item.company}</span>
-                    <h4>{item.title}</h4>
-                  </div>
-                  <span className="feed-pill">Internship</span>
-                </div>
-                <p className="feed-summary">{item.summary}</p>
-                <div className="feed-meta">
-                  <span>📍 {item.location}</span>
-                  <span>🏠 {item.setup}</span>
-                  <span>⏰ {item.time}</span>
-                  {isStudentView && <span className="feed-match-chip">{getMatchScore(item)}% Match</span>}
-                </div>
-                <div className="feed-tags">
-                  {item.tags.map((tag) => (
-                    <span key={tag} className="feed-tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="feed-actions">
-                  <button type="button" className="action-btn small" onClick={() => toggleSavedPosting(item)}>
-                    {savedPostingIds.includes(item.id) ? "★ Saved" : "☆ Save"}
-                  </button>
-                  {role === "EMPLOYER" ? (
-                    <button type="button" className="primary-btn" onClick={() => openPostingDetails(item)}>
-                      Manage
-                    </button>
-                  ) : (
-                    <button type="button" className="primary-btn" onClick={() => handlePrimaryPostingAction(item)}>
-                      {appliedPostingIds.includes(item.id) ? "Applied" : "Apply Now"}
-                    </button>
-                  )}
-                  {isStudentView && (
-                    <button type="button" className="action-btn small" onClick={() => hidePosting(item)}>
-                      Hide
-                    </button>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="card feed-column">
-          <div className="section-title-row">
-            <h3>✨ Community Activity</h3>
-            <span className="results-badge">{filteredActivities.length} updates</span>
-          </div>
-          <div className="feed-list">
-            {filteredActivities.length === 0 && (
-              <div className="feed-empty-state">No recent activity found.</div>
-            )}
-            {filteredActivities.map((item) => (
-              <article className="feed-card" key={item.id}>
-                <div className="feed-card-head">
-                  <div>
-                    <span className="feed-muted">
-                      {item.student} • {item.program}
-                    </span>
-                    <h4>{item.activity}</h4>
-                  </div>
-                  <span className="feed-pill">Activity</span>
-                </div>
-                <p className="feed-summary">{item.details}</p>
-                <div className="feed-meta">
-                  <span>⏰ {item.time}</span>
-                  <span>🏷️ {item.type.replace("_", " ")}</span>
-                </div>
-                <div className="feed-actions">
-                  {role === "EMPLOYER" ? (
-                    <>
-                      <button type="button" className="action-btn small" onClick={() => showToast(`Shortlisted ${item.student}`)}>
-                        Shortlist
-                      </button>
-                      <button type="button" className="primary-btn" onClick={() => showToast(`Opening ${item.student}'s profile`)}>
-                        View Profile
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button type="button" className="action-btn small" onClick={() => showToast(`Followed ${item.student}`)}>
-                        Follow
-                      </button>
-                      <button type="button" className="action-btn small" onClick={() => showToast("Saved activity")}>
-                        Save
-                      </button>
-                    </>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
       </div>
 
       {selectedPosting && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-panel feed-modal-panel">
-            <div className="section-title-row">
-              <h3>Internship Details</h3>
-              <button type="button" className="action-btn small" onClick={closePostingDetails}>
-                ✕
-              </button>
-            </div>
-            <div className="feed-detail-grid">
-              <div>
-                <span className="profile-label">Company</span>
-                <p>{selectedPosting.company}</p>
+        <div className="modal-overlay">
+          <div className="modal-content application-modal-pro">
+            <div className="modal-aurora-glow secondary"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <h3>Internship Details</h3>
+                <button className="close-btn-glass" onClick={closePostingDetails}>✕</button>
               </div>
-              <div>
-                <span className="profile-label">Role</span>
-                <p>{selectedPosting.title}</p>
+              <div className="modal-body-pro">
+                <div className="app-details-grid-pro">
+                  <div className="detail-card-mini">
+                    <span className="label">Company</span>
+                    <p>{selectedPosting.company}</p>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Role</span>
+                    <p>{selectedPosting.title}</p>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Location</span>
+                    <p>{selectedPosting.location}</p>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Setup</span>
+                    <p>{selectedPosting.setup}</p>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Deadline</span>
+                    <p>{selectedPosting.deadline}</p>
+                  </div>
+                  <div className="detail-card-mini">
+                    <span className="label">Applicants</span>
+                    <p>{selectedPosting.applicants}</p>
+                  </div>
+                  <div className="detail-card-mini full-width">
+                    <span className="label">Description</span>
+                    <div className="note-box-pro">
+                      {selectedPosting.summary}
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer-pro full-width">
+                   <button type="button" className="btn-secondary-glass" onClick={() => toggleSavedPosting(selectedPosting)}>
+                    {savedPostingIds.includes(selectedPosting.id) ? "★ Saved" : "☆ Save"}
+                  </button>
+                  {role === "EMPLOYER" ? (
+                    <button type="button" className="btn-primary-pro" onClick={() => showToast("Opening management...")}>Manage</button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      className="btn-primary-pro" 
+                      onClick={() => applyToPosting(selectedPosting)}
+                      disabled={appliedPostingIds.includes(selectedPosting.id)}
+                    >
+                      {appliedPostingIds.includes(selectedPosting.id) ? "Applied" : "Confirm Application"}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div>
-                <span className="profile-label">Location</span>
-                <p>{selectedPosting.location}</p>
-              </div>
-              <div>
-                <span className="profile-label">Setup</span>
-                <p>{selectedPosting.setup}</p>
-              </div>
-              <div>
-                <span className="profile-label">Deadline</span>
-                <p>{selectedPosting.deadline}</p>
-              </div>
-              <div>
-                <span className="profile-label">Applicants</span>
-                <p>{selectedPosting.applicants}</p>
-              </div>
-              <div className="application-note-block">
-                <span className="profile-label">Description</span>
-                <p>{selectedPosting.summary}</p>
-              </div>
-            </div>
-            <div className="feed-detail-actions">
-              <button type="button" className="primary-btn" onClick={() => toggleSavedPosting(selectedPosting)}>
-                {savedPostingIds.includes(selectedPosting.id) ? "Unsave" : "Save for Later"}
-              </button>
-              {role === "EMPLOYER" ? (
-                <button type="button" className="action-btn" onClick={() => showToast("Opening management...")}>Management Dashboard</button>
-              ) : (
-                <button 
-                  type="button" 
-                  className="action-btn" 
-                  onClick={() => applyToPosting(selectedPosting)}
-                  disabled={appliedPostingIds.includes(selectedPosting.id)}
-                >
-                  {appliedPostingIds.includes(selectedPosting.id) ? "Already Applied" : "Confirm Application"}
-                </button>
-              )}
             </div>
           </div>
         </div>

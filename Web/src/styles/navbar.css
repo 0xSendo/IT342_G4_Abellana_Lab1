@@ -68,25 +68,94 @@
 /* user block */
 .nav-user {
 	display: flex;
-	gap: 0.6rem;
+	gap: 1.25rem;
 	align-items: center;
 }
+
+.nav-user-info {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+}
+
 .nav-user-name {
 	color: var(--text);
-	font-weight: 600;
+	font-weight: 700;
+	font-size: 0.9rem;
+	line-height: 1;
 }
-.nav-logout {
-	background: transparent;
-	border: 1px solid rgba(255,255,255,0.06);
+
+.nav-user-role {
+	color: var(--primary);
+	font-size: 0.7rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-top: 4px;
+}
+
+.nav-notif-btn {
+	background: var(--glass);
+	border: 1px solid rgba(255, 255, 255, 0.1);
 	color: var(--text);
-	padding: 0.35rem 0.6rem;
-	border-radius: 8px;
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	cursor: pointer;
-	transition: background 140ms, transform 120ms;
+	position: relative;
+	transition: all 0.2s ease;
 }
 
-.nav-logout:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px);} 
+.nav-notif-btn:hover {
+	background: rgba(255, 255, 255, 0.08);
+	border-color: var(--primary);
+	transform: translateY(-2px);
+}
 
-.nav-logout:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px);} 
+.notif-badge {
+	position: absolute;
+	top: -4px;
+	right: -4px;
+	background: #ff4a4a;
+	color: white;
+	font-size: 0.65rem;
+	font-weight: 900;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid #0b1220;
+}
+
+.nav-logout {
+	background: rgba(255, 74, 74, 0.1);
+	border: 1px solid rgba(255, 74, 74, 0.2);
+	color: #ff4a4a;
+	padding: 0.5rem 1rem;
+	border-radius: 12px;
+	font-weight: 700;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.nav-logout:hover { 
+	background: #ff4a4a; 
+	color: white;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(255, 74, 74, 0.2);
+} 
+
+@media (max-width: 600px) {
+	.nav-user-info { display: none; }
+}
 
 

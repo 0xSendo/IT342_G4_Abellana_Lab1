@@ -3,7 +3,7 @@ import { useContext } from "react";
 import AuthContext from "../context/AuthContext";
 import "../styles/navbar.css";
 
-export default function Navbar() {
+export default function Navbar({ onNotificationClick, notificationCount = 0 }) {
 	const { isAuthenticated, currentUser, logout } = useContext(AuthContext);
 
 	const onLogout = () => {
@@ -22,7 +22,19 @@ export default function Navbar() {
 				{!isAuthenticated && <Link className="nav-btn" to="/register">Get Started</Link>}
 				{isAuthenticated && (
 					<div className="nav-user">
-						<span className="nav-user-name">{currentUser?.name || "User"}</span>
+						<button 
+							className="nav-notif-btn" 
+							type="button" 
+							title="Notifications"
+							onClick={onNotificationClick}
+						>
+							🔔
+							{notificationCount > 0 && <span className="notif-badge">{notificationCount}</span>}
+						</button>
+						<div className="nav-user-info">
+							<span className="nav-user-name">{currentUser?.name || "User"}</span>
+							<span className="nav-user-role">{currentUser?.role || "Student"}</span>
+						</div>
 						<button className="nav-logout" type="button" onClick={onLogout}>
 							Logout
 						</button>

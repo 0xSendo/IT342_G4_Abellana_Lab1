@@ -219,6 +219,26 @@
   width: 100%;
 }
 
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 /* Custom Tooltip Pro Max */
 .custom-tooltip-pro {
   background: rgba(16, 26, 43, 0.9);
