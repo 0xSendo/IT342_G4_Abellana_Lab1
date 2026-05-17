@@ -80,11 +80,16 @@ public class CommunityController {
     }
 
     private CommunityPostDto convertToDto(CommunityPost post) {
+        User student = post.getStudent();
         return CommunityPostDto.builder()
                 .id(post.getId())
-                .studentName(post.getStudent() != null ? post.getStudent().getName() : "Anonymous")
-                .studentProgram(post.getStudent() != null ? post.getStudent().getProgram() : "N/A")
-                .studentEmail(post.getStudent() != null ? post.getStudent().getEmail() : "unknown")
+                .studentName(student != null ? student.getName() : "Anonymous")
+                .studentProgram(student != null ? student.getProgram() : "N/A")
+                .studentEmail(student != null ? student.getEmail() : "unknown")
+                .studentBio(student != null ? student.getBio() : null)
+                .studentSkills(student != null ? student.getSkills() : null)
+                .studentProjects(student != null ? student.getProjects() : null)
+                .studentYearLevel(student != null ? student.getYearLevel() : null)
                 .content(post.getContent())
                 .type(post.getType())
                 .createdAt(post.getCreatedAt() != null ? post.getCreatedAt().toString() : "")

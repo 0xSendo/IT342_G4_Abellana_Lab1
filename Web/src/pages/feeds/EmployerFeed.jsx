@@ -19,6 +19,8 @@ export default function EmployerFeed() {
   const [filter, setFilter] = useState("ALL"); // ALL, MINE, OTHERS
   const [notifications, setNotifications] = useState([]);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
@@ -119,6 +121,11 @@ export default function EmployerFeed() {
   const openNotifications = () => {
     setIsNotificationsModalOpen(true);
     markNotificationsAsRead();
+  };
+
+  const openStudentProfile = (student) => {
+    setSelectedStudent(student);
+    setIsProfileModalOpen(true);
   };
 
   return (
@@ -291,7 +298,7 @@ export default function EmployerFeed() {
                       {item.type === 'PROFILE_SHARE' && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
                           <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800 }}>🚀 STUDENT PROFILE SHARED</span>
-                          <button className="edit-btn-glass" style={{ fontSize: '0.7rem', padding: '4px 10px' }} onClick={() => toast.show(`Viewing ${item.studentName}'s full profile`)}>View Profile</button>
+                          <button className="edit-btn-glass" style={{ fontSize: '0.7rem', padding: '4px 10px' }} onClick={() => openStudentProfile(item)}>View Profile</button>
                         </div>
                       )}
                     </div>
@@ -302,6 +309,69 @@ export default function EmployerFeed() {
           </div>
         </div>
       </div>
+
+      {/* Student Profile Modal (Read Only for Employer) */}
+      {isProfileModalOpen && selectedStudent && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <div>
+                  <span className="bento-label">Talent Profile</span>
+                  <h3>{selectedStudent.studentName}</h3>
+                </div>
+                <button className="close-btn-glass" onClick={() => setIsProfileModalOpen(false)}>✕</button>
+              </div>
+              <div className="modal-body-pro" style={{ padding: '20px 40px' }}>
+                <div className="profile-details-mini">
+                  <div className="profile-meta-row" style={{ display: 'flex', gap: '30px', marginBottom: '20px' }}>
+                    <div className="mini-item">
+                      <label>Program</label>
+                      <p style={{ fontSize: '1.1rem' }}>{selectedStudent.studentProgram}</p>
+                    </div>
+                    <div className="mini-item">
+                      <label>Year Level</label>
+                      <p style={{ fontSize: '1.1rem' }}>{selectedStudent.studentYearLevel || "Not specified"}</p>
+                    </div>
+                  </div>
+
+                  <div className="mini-item" style={{ marginTop: '20px' }}>
+                    <label>Professional Bio</label>
+                    <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text)', opacity: 0.9 }}>
+                      {selectedStudent.studentBio || "This student hasn't written a bio yet."}
+                    </p>
+                  </div>
+
+                  <div className="mini-item" style={{ marginTop: '20px' }}>
+                    <label>Skills & Expertise</label>
+                    <div className="skills-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                      {(selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).length > 0 ? (
+                        (selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).map((skill, i) => (
+                          <span key={i} className="skill-tag" style={{ background: 'rgba(255,107,74,0.1)', color: 'var(--primary)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700 }}>{skill}</span>
+                        ))
+                      ) : (
+                        <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>No specific skills listed.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mini-item" style={{ marginTop: '20px' }}>
+                    <label>Featured Projects</label>
+                    <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text)', opacity: 0.9 }}>
+                      {selectedStudent.studentProjects || "No projects listed yet."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer-pro">
+                <button className="btn-secondary-glass" onClick={() => setIsProfileModalOpen(false)}>Close Profile</button>
+                <button className="btn-primary-pro" onClick={() => toast.show(`Contacting ${selectedStudent.studentName}...`)}>Contact Student</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notifications Modal */}
       {isNotificationsModalOpen && (
