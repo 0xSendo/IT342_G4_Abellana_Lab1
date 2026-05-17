@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -13,10 +14,18 @@ public class CommunityPostService {
     private final CommunityPostRepository repository;
 
     public CommunityPost createPost(CommunityPost post) {
-        // Automatically clean up any existing posts for this student before saving new one
-        repository.deleteByStudentId(post.getStudent().getId());
-        repository.flush(); // Force immediate deletion
+        // Strictly Enforce 1 post per student limit
+        if (repository.findByStudentId(post.getStudent().getId()).isPresent()) {
+            throw new RuntimeException("LIMIT_REACHED");
+        }
         return repository.save(post);
+    }
+
+    @jakarta.annotation.PostConstruct
+    public void hardResetOnStartup() {
+        // Clearing all posts to reset the environment as requested
+        repository.deleteAll();
+        repository.flush();
     }
 
     public void deleteAllPosts() {

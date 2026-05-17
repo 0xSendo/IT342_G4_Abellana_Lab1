@@ -37,5 +37,6 @@ public class CreateInternshipRequest {
     @NotNull(message = "End date is required")
     private LocalDate endDate;
     
+    @Builder.Default
     private InternshipStatus status = InternshipStatus.DRAFT;
 }

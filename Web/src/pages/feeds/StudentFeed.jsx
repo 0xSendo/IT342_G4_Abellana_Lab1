@@ -36,6 +36,10 @@ export default function StudentFeed() {
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState(null);
 
+  const hasExistingPost = useMemo(() => {
+    return communityPosts.some(p => p.studentEmail === currentUser?.email);
+  }, [communityPosts, currentUser]);
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
   const [editingPostId, setEditingPostId] = useState(null);
@@ -89,7 +93,7 @@ export default function StudentFeed() {
     // Frontend pre-check: Check if student already has a post in the current list
     const hasExisting = communityPosts.some(p => p.studentEmail === currentUser?.email);
     if (hasExisting) {
-      toast.show("Limit reached: You can only have one active community post at a time. Please edit or delete your current post.", "error");
+      toast.show("Action Denied: You can only have one active community post. Please edit or delete your current post.", "error");
       return;
     }
 
@@ -108,8 +112,12 @@ export default function StudentFeed() {
       await fetchCommunityPosts();
     } catch (err) {
       console.error("Failed to post", err);
-      const msg = err.response?.data?.message || err.response?.data || "Failed to share update";
-      toast.show(msg, "error");
+      const isLimitError = err.response?.data === "LIMIT_REACHED" || err.response?.data?.message === "LIMIT_REACHED";
+      if (isLimitError) {
+        toast.show("Action Denied: One post limit per student. Please manage your existing post.", "error");
+      } else {
+        toast.show("Failed to share update", "error");
+      }
     } finally {
       setIsPosting(false);
     }
@@ -161,10 +169,10 @@ export default function StudentFeed() {
       return;
     }
 
-    // Frontend pre-check: Block if a post already exists for this student
-    const hasExisting = communityPosts.some(p => p.studentEmail === currentUser?.email);
-    if (hasExisting) {
-      toast.show("Action Denied: You already have an active presence on the community feed. Please delete your current post to reshare your profile.", "error");
+    // Explicit Pre-check to prevent race conditions
+    const existing = communityPosts.find(p => p.studentEmail === currentUser?.email);
+    if (existing) {
+      toast.show("Action Denied: You already have an active profile presence. Please edit or delete your existing post to share a new one.", "error");
       return;
     }
 
@@ -187,8 +195,12 @@ export default function StudentFeed() {
       await fetchCommunityPosts();
     } catch (err) {
       console.error("Failed to share profile", err);
-      const msg = err.response?.data?.message || "Failed to share profile";
-      toast.show(msg, "error");
+      const isLimitError = err.response?.data === "LIMIT_REACHED" || err.response?.data?.message === "LIMIT_REACHED";
+      if (isLimitError) {
+        toast.show("Action Denied: One post limit per student. Please manage your existing post.", "error");
+      } else {
+        toast.show("Failed to share profile. Please try again.", "error");
+      }
     }
   };
 
@@ -351,17 +363,39 @@ export default function StudentFeed() {
                 <span className="bento-label">Community</span>
                 <h3>Share an Update</h3>
               </div>
-              <button className="btn-secondary-glass" style={{ fontSize: '0.75rem' }} onClick={shareProfileToCommunity}>
-                Share My Profile 🚀
+              <button 
+                className="btn-secondary-glass" 
+                style={{ fontSize: '0.75rem' }} 
+                onClick={shareProfileToCommunity}
+                disabled={hasExistingPost}
+              >
+                {hasExistingPost ? "Profile Shared ✓" : "Share My Profile 🚀"}
               </button>
             </div>
+            {hasExistingPost && (
+              <div style={{ 
+                background: 'rgba(57, 198, 184, 0.1)', 
+                border: '1px solid rgba(57, 198, 184, 0.2)', 
+                borderRadius: '8px', 
+                padding: '8px 12px', 
+                marginTop: '1rem',
+                fontSize: '0.8rem',
+                color: '#39c6b8',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span>ℹ️ You have an active community post. You can edit or delete it below.</span>
+              </div>
+            )}
             <form onSubmit={handleCreatePost} style={{ marginTop: '1.25rem' }}>
               <div className="post-input-wrapper" style={{ position: 'relative' }}>
                 <textarea
                   value={newPostContent}
                   onChange={(e) => setNewPostContent(e.target.value)}
-                  placeholder="What's happening? Share your progress or ask a question..."
+                  placeholder={hasExistingPost ? "You already have an active post." : "What's happening? Share your progress or ask a question..."}
                   rows={3}
+                  disabled={hasExistingPost}
                   style={{ 
                     width: '100%', 
                     background: 'var(--glass)', 
@@ -369,13 +403,14 @@ export default function StudentFeed() {
                     borderRadius: '14px', 
                     padding: '1rem',
                     color: 'var(--text)',
-                    resize: 'none'
+                    resize: 'none',
+                    opacity: hasExistingPost ? 0.6 : 1
                   }}
                 />
                 <button 
                   type="submit" 
                   className="btn-primary-pro" 
-                  disabled={isPosting || !newPostContent.trim()}
+                  disabled={isPosting || !newPostContent.trim() || hasExistingPost}
                   style={{ position: 'absolute', bottom: '12px', right: '12px', padding: '6px 16px', fontSize: '0.85rem' }}
                 >
                   {isPosting ? "Posting..." : "Post"}
@@ -517,9 +552,41 @@ export default function StudentFeed() {
                               {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                             {isOwnPost && !isEditing && (
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button onClick={() => startEditing(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}>✏️</button>
-                                <button onClick={() => handleDeletePost(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}>🗑️</button>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button 
+                                  onClick={() => startEditing(item)} 
+                                  style={{ 
+                                    background: 'rgba(255,255,255,0.05)', 
+                                    border: '1px solid rgba(255,255,255,0.1)', 
+                                    borderRadius: '6px',
+                                    cursor: 'pointer', 
+                                    fontSize: '0.75rem', 
+                                    padding: '4px 8px',
+                                    color: 'var(--text)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  <span>Edit</span>
+                                </button>
+                                <button 
+                                  onClick={() => handleDeletePost(item.id)} 
+                                  style={{ 
+                                    background: 'rgba(255,107,74,0.1)', 
+                                    border: '1px solid rgba(255,107,74,0.2)', 
+                                    borderRadius: '6px',
+                                    cursor: 'pointer', 
+                                    fontSize: '0.75rem', 
+                                    padding: '4px 8px',
+                                    color: 'var(--primary)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  <span>Delete</span>
+                                </button>
                               </div>
                             )}
                           </div>

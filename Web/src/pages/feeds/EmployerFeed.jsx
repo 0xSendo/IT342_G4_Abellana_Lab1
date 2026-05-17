@@ -3,6 +3,7 @@ import axios from "axios";
 import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import JobTrendsWidget from "../../components/JobTrendsWidget";
 import "../../styles/common/feed-base.css";
 import "../../styles/employer/employer-feed.css";
 
@@ -188,7 +189,7 @@ export default function EmployerFeed() {
         </section>
 
         {/* Feed Content */}
-        <div className="feed-grid-pro-v2" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '2rem' }}>
+        <div className="feed-grid-pro-v2" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '2.5rem', alignItems: 'start' }}>
           {/* Postings Grid */}
           <section className="bento-card ecosystem-grid-bento">
             <div className="bento-header">
@@ -252,47 +253,53 @@ export default function EmployerFeed() {
             </div>
           </section>
 
-          {/* Community Activity Bento (Live) */}
-          <section className="bento-card community-activity-bento">
-            <div className="bento-header">
-              <div>
-                <span className="bento-label">Active Talent</span>
-                <h3>Community Activity</h3>
-              </div>
-              <button className="btn-refresh-glass" style={{ padding: '4px' }} onClick={fetchCommunityPosts}>🔄</button>
-            </div>
-            
-            <div className="activity-list-pro" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
-              {isActivityLoading ? (
-                <div className="loading-pulse" style={{ textAlign: 'center', padding: '2rem' }}>Analyzing community...</div>
-              ) : communityPosts.length === 0 ? (
-                <div className="empty-state-pro" style={{ textAlign: 'center', padding: '2rem' }}>
-                  <p className="insight-text">No community activity yet.</p>
+          {/* Intelligence & Community Column */}
+          <div className="feed-side-col" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+            <section className="bento-card trends-bento">
+              <JobTrendsWidget />
+            </section>
+
+            <section className="bento-card community-activity-bento">
+              <div className="bento-header">
+                <div>
+                  <span className="bento-label">Active Talent</span>
+                  <h3>Community Activity</h3>
                 </div>
-              ) : (
-                communityPosts.map((item) => (
-                  <div key={item.id} className="posting-card-pro" style={{ padding: '1rem', borderLeft: item.type === 'PROFILE_SHARE' ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)' }}>
-                    <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span className="loc" style={{ fontSize: '0.8rem', fontWeight: 700 }}>{item.studentName}</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
-                      </div>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>
-                        {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text)', margin: '8px 0 0', lineHeight: 1.4 }}>{item.content}</p>
-                    {item.type === 'PROFILE_SHARE' && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 800 }}>🚀 STUDENT PROFILE SHARED</span>
-                        <button className="edit-btn-glass" style={{ fontSize: '0.65rem', padding: '2px 8px' }} onClick={() => toast.show(`Viewing ${item.studentName}'s full profile`)}>View Profile</button>
-                      </div>
-                    )}
+                <button className="btn-refresh-glass" style={{ padding: '4px' }} onClick={fetchCommunityPosts}>🔄</button>
+              </div>
+              
+              <div className="activity-list-pro" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+                {isActivityLoading ? (
+                  <div className="loading-pulse" style={{ textAlign: 'center', padding: '2rem' }}>Analyzing community...</div>
+                ) : communityPosts.length === 0 ? (
+                  <div className="empty-state-pro" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p className="insight-text">No community activity yet.</p>
                   </div>
-                ))
-              )}
-            </div>
-          </section>
+                ) : (
+                  communityPosts.map((item) => (
+                    <div key={item.id} className="posting-card-pro" style={{ padding: '1.25rem', borderLeft: item.type === 'PROFILE_SHARE' ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)' }}>
+                      <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span className="loc" style={{ fontSize: '0.85rem', fontWeight: 700 }}>{item.studentName}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
+                        </div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
+                          {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text)', margin: '10px 0 0', lineHeight: 1.5 }}>{item.content}</p>
+                      {item.type === 'PROFILE_SHARE' && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800 }}>🚀 STUDENT PROFILE SHARED</span>
+                          <button className="edit-btn-glass" style={{ fontSize: '0.7rem', padding: '4px 10px' }} onClick={() => toast.show(`Viewing ${item.studentName}'s full profile`)}>View Profile</button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          </div>
         </div>
       </div>
 
