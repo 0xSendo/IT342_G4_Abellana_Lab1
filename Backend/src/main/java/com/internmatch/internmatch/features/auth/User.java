@@ -43,6 +43,15 @@ public class User implements UserDetails {
     @Column(length = 1000)
     private String skills;
 
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    @Column(columnDefinition = "TEXT")
+    private String projects;
+
+    @Column
+    private String resumeUrl;
+
     @Column
     private String companyName;
 

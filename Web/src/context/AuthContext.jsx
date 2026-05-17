@@ -5,24 +5,43 @@ const AuthContext = createContext(null);
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
+  const [currentUser, setCurrentUser] = useState(() => {
     try {
       const stored = localStorage.getItem("internmatch_currentUser");
-      if (stored) setCurrentUser(JSON.parse(stored));
+      return stored ? JSON.parse(stored) : null;
     } catch (e) {
       console.warn("Failed to read currentUser", e);
+      return null;
     }
+  });
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const user = await res.json();
+          localStorage.setItem("internmatch_currentUser", JSON.stringify(user));
+          setCurrentUser(user);
+        }
+      } catch (err) {
+        console.error("Failed to fetch fresh user profile", err);
+      }
+    };
+    fetchMe();
   }, []);
 
-  const loginWithOAuth = ({ token, email, name, role }) => {
+  const loginWithOAuth = ({ token, email, name, role, ...rest }) => {
     const normalizedEmail = email?.toLowerCase?.();
     const normalizedRole = role || "STUDENT";
     if (!token || !normalizedEmail) {
       return { ok: false, message: "Missing OAuth login details." };
     }
-    const user = { email: normalizedEmail, name: name || normalizedEmail, role: normalizedRole };
+    const user = { email: normalizedEmail, name: name || normalizedEmail, role: normalizedRole, ...rest };
     localStorage.setItem("internmatch_token", token);
     localStorage.setItem("internmatch_currentUser", JSON.stringify(user));
     setCurrentUser(user);
@@ -55,9 +74,8 @@ export function AuthProvider({ children }) {
         const msg = await res.text();
         return { ok: false, message: msg || "Invalid email or password." };
       }
-      const data = await res.json();
-      const user = { email: data.email, name: data.name, role: data.role };
-      localStorage.setItem("internmatch_token", data.token);
+      const user = await res.json();
+      localStorage.setItem("internmatch_token", user.token);
       localStorage.setItem("internmatch_currentUser", JSON.stringify(user));
       setCurrentUser(user);
       return { ok: true, user };
@@ -67,25 +85,35 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-
-    localStorage.removeItem("internmatch_currentUser");   
-
     localStorage.removeItem("internmatch_currentUser");
-
     localStorage.removeItem("internmatch_token");
     setCurrentUser(null);
   };
 
   const updateProfile = async (formData) => {
-    // In a real app, this would be a PATCH/PUT request to the backend
-    // For now, we update local state and storage
     try {
-      const updatedUser = { ...currentUser, ...formData };
-      localStorage.setItem("internmatch_currentUser", JSON.stringify(updatedUser));
-      setCurrentUser(updatedUser);
-      return { ok: true };
+      const token = localStorage.getItem("internmatch_token");
+      const res = await fetch(`${API_BASE}/api/auth/profile`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        localStorage.setItem("internmatch_currentUser", JSON.stringify(updatedUser));
+        setCurrentUser(updatedUser);
+        return { ok: true };
+      } else {
+        const msg = await res.text();
+        return { ok: false, message: msg || "Failed to update profile on server." };
+      }
     } catch (e) {
-      return { ok: false, message: "Failed to update profile locally." };
+      console.error("Profile update error", e);
+      return { ok: false, message: "Could not connect to server to update profile." };
     }
   };
 

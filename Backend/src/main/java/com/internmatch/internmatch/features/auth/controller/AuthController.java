@@ -60,7 +60,37 @@ public class AuthController {
                 .email(user.getEmail())
                 .name(user.getName())
                 .role(user.getRole().name())
+                .program(user.getProgram())
+                .yearLevel(user.getYearLevel())
+                .skills(user.getSkills())
+                .bio(user.getBio())
+                .projects(user.getProjects())
+                .companyName(user.getCompanyName())
                 .build());
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(org.springframework.security.core.Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user);
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(org.springframework.security.core.Authentication authentication, @RequestBody User profileData) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        user.setName(profileData.getName());
+        user.setProgram(profileData.getProgram());
+        user.setYearLevel(profileData.getYearLevel());
+        user.setSkills(profileData.getSkills());
+        user.setBio(profileData.getBio());
+        user.setProjects(profileData.getProjects());
+        user.setCompanyName(profileData.getCompanyName());
+        
+        userRepository.save(user);
+        return ResponseEntity.ok(user);
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/users")

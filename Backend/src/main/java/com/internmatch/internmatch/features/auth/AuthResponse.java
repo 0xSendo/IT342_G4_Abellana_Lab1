@@ -14,4 +14,10 @@ public class AuthResponse {
     private String email;
     private String name;
     private String role;
+    private String program;
+    private String yearLevel;
+    private String skills;
+    private String bio;
+    private String projects;
+    private String companyName;
 }

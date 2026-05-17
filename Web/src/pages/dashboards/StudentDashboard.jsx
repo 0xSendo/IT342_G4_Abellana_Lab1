@@ -12,6 +12,7 @@ export default function StudentDashboard() {
   const toast = useToast();
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileTab, setProfileTab] = useState("essentials"); // "essentials" or "portfolio"
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -27,6 +28,8 @@ export default function StudentDashboard() {
     program: currentUser?.program || "",
     yearLevel: currentUser?.yearLevel || "",
     skills: currentUser?.skills || "",
+    bio: currentUser?.bio || "",
+    projects: currentUser?.projects || "",
   });
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
@@ -105,17 +108,18 @@ export default function StudentDashboard() {
 
   const totalApplications = applications.length;
   const pendingApplications = applications.filter((app) => app.status === "PENDING").length;
-
-  const profileFields = [
-    currentUser?.name,
-    currentUser?.email,
-    currentUser?.program,
-    currentUser?.yearLevel,
-    currentUser?.skills,
-  ];
-  const profileCompletion = Math.round(
-    (profileFields.filter((field) => !!String(field || "").trim()).length / profileFields.length) * 100
-  );
+const profileFields = [
+  currentUser?.name,
+  currentUser?.email,
+  currentUser?.program,
+  currentUser?.yearLevel,
+  currentUser?.skills,
+  currentUser?.bio,
+  currentUser?.projects,
+];
+const profileCompletion = Math.round(
+  (profileFields.filter((field) => !!String(field || "").trim()).length / profileFields.length) * 100
+);
 
   const markNotificationsAsRead = async () => {
     try {
@@ -230,8 +234,16 @@ export default function StudentDashboard() {
                   <p>{currentUser?.yearLevel || "Not set"}</p>
                 </div>
               </div>
+
+              {currentUser?.bio && (
+                <div className="mini-item" style={{ marginTop: '12px' }}>
+                  <label>Bio</label>
+                  <p style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8, lineHeight: 1.4 }}>{currentUser.bio}</p>
+                </div>
+              )}
+
               <div className="mini-item" style={{ marginTop: '12px' }}>
-                <label>Skills</label>
+                <label>Skills & Expertise</label>
                 <div className="skills-tags">
                   {(currentUser?.skills || "").split(",").map(s => s.trim()).filter(s => s).map((skill, i) => (
                     <span key={i} className="skill-tag">{skill}</span>
@@ -239,6 +251,27 @@ export default function StudentDashboard() {
                   {!(currentUser?.skills) && <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>No skills added</span>}
                 </div>
               </div>
+
+              {currentUser?.projects && (
+                <div className="mini-item" style={{ marginTop: '12px' }}>
+                  <label>Featured Projects</label>
+                  <p style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8, lineHeight: 1.4 }}>{currentUser.projects}</p>
+                </div>
+              )}
+
+              {currentUser?.resumeUrl && (
+                <div className="mini-item" style={{ marginTop: '12px' }}>
+                  <a 
+                    href={currentUser.resumeUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="skill-tag"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', background: 'rgba(57, 198, 184, 0.1)', color: '#39c6b8', border: '1px solid rgba(57, 198, 184, 0.2)' }}
+                  >
+                    📄 View Professional Resume
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="completion-row">
@@ -334,38 +367,83 @@ export default function StudentDashboard() {
             <div className="modal-inner-content">
               <div className="modal-header-pro">
                 <h3>Edit Your Profile</h3>
+                <div className="modal-tabs-pro">
+                  <button 
+                    className={`modal-tab-btn ${profileTab === 'essentials' ? 'active' : ''}`}
+                    onClick={() => setProfileTab('essentials')}
+                  >
+                    <span>🔑 Essentials</span>
+                  </button>
+                  <button 
+                    className={`modal-tab-btn ${profileTab === 'portfolio' ? 'active' : ''}`}
+                    onClick={() => setProfileTab('portfolio')}
+                  >
+                    <span>🚀 Portfolio</span>
+                  </button>
+                </div>
                 <button className="close-btn-glass" onClick={closeProfileModal}>✕</button>
               </div>
               <div className="modal-body-pro">
                 <form className="form-grid-pro" onSubmit={onSave}>
-                  <div className="input-group-pro">
-                    <label>Full Name</label>
-                    <input name="name" value={form.name} onChange={onChange} required />
-                  </div>
-                  <div className="input-group-pro">
-                    <label>Email Address</label>
-                    <input name="email" type="email" value={form.email} onChange={onChange} required />
-                  </div>
-                  <div className="input-group-pro">
-                    <label>Program / Course</label>
-                    <input name="program" value={form.program} onChange={onChange} />
-                  </div>
-                  <div className="input-group-pro">
-                    <label>Year Level</label>
-                    <input name="yearLevel" value={form.yearLevel} onChange={onChange} />
-                  </div>
-                  <div className="input-group-pro full-width">
-                    <label>Skills (comma separated)</label>
-                    <textarea 
-                      name="skills" 
-                      value={form.skills} 
-                      onChange={onChange} 
-                      placeholder="React, Python, Design..."
-                    />
-                  </div>
+                  {profileTab === 'essentials' && (
+                    <>
+                      <div className="input-group-pro">
+                        <label>Full Name</label>
+                        <input name="name" value={form.name} onChange={onChange} required />
+                      </div>
+                      <div className="input-group-pro">
+                        <label>Email Address</label>
+                        <input name="email" type="email" value={form.email} onChange={onChange} required />
+                      </div>
+                      <div className="input-group-pro">
+                        <label>Program / Course</label>
+                        <input name="program" value={form.program} onChange={onChange} />
+                      </div>
+                      <div className="input-group-pro">
+                        <label>Year Level</label>
+                        <input name="yearLevel" value={form.yearLevel} onChange={onChange} />
+                      </div>
+                      <div className="input-group-pro full-width">
+                        <label>Skills (comma separated)</label>
+                        <textarea 
+                          name="skills" 
+                          value={form.skills} 
+                          onChange={onChange} 
+                          placeholder="React, Python, Design..."
+                          rows={3}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {profileTab === 'portfolio' && (
+                    <>
+                      <div className="input-group-pro full-width">
+                        <label>Professional Bio <span style={{ opacity: 0.5, fontSize: '0.7rem' }}>(Optional)</span></label>
+                        <textarea 
+                          name="bio" 
+                          value={form.bio} 
+                          onChange={onChange} 
+                          placeholder="Briefly describe yourself and your career goals..."
+                          rows={5}
+                        />
+                      </div>
+                      <div className="input-group-pro full-width">
+                        <label>Projects & Portfolios <span style={{ opacity: 0.5, fontSize: '0.7rem' }}>(Optional)</span></label>
+                        <textarea 
+                          name="projects" 
+                          value={form.projects} 
+                          onChange={onChange} 
+                          placeholder="Describe key projects you've worked on..."
+                          rows={5}
+                        />
+                      </div>
+                    </>
+                  )}
+
                   <div className="modal-footer-pro full-width">
                     <button className="btn-secondary-glass" type="button" onClick={closeProfileModal}>Cancel</button>
-                    <button className="btn-primary-pro" type="submit">Save Profile</button>
+                    <button className="btn-primary-pro" type="submit">Save Changes</button>
                   </div>
                 </form>
               </div>
