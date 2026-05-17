@@ -2,7 +2,9 @@ import { useContext, useEffect, useState } from "react";
 import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import JobTrendsWidget from "../../components/JobTrendsWidget";
-import "../../styles/dashboard.css";
+import "../../styles/common/bento.css";
+import "../../styles/student/student-dashboard.css";
+import "../../styles/admin/admin-dashboard.css";
 
 export default function AdminDashboard() {
   const { currentUser, updateProfile, getUsers } = useContext(AuthContext);

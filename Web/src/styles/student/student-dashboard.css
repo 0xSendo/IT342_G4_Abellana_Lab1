@@ -1,0 +1,319 @@
+/* ==================== STUDENT DASHBOARD SPECIFIC STYLES ==================== */
+
+.student-dashboard-wrapper {
+  animation: fadeUp 0.6s ease-out;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Aurora Hero Banner */
+.student-hero {
+  position: relative;
+  border-radius: 32px;
+  overflow: hidden;
+  padding: 40px;
+  margin-bottom: 30px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hero-aurora-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  filter: blur(60px);
+  opacity: 0.4;
+  z-index: 0;
+}
+
+.hero-aurora-bg .blob {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+}
+
+.hero-aurora-bg .blob.one {
+  top: -100px;
+  right: -50px;
+  background: var(--primary);
+  animation: float 15s infinite alternate;
+}
+
+.hero-aurora-bg .blob.two {
+  bottom: -100px;
+  left: -50px;
+  background: #39c6b8;
+  animation: float 18s infinite alternate-reverse;
+}
+
+@keyframes float {
+  from { transform: translate(0, 0); }
+  to { transform: translate(40px, 40px); }
+}
+
+.student-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: auto;
+  gap: 20px;
+}
+
+/* Student Specific Bento Spans */
+.readiness-bento { grid-column: span 6; }
+.notifications-bento { grid-column: span 4; }
+.apps-bento { grid-column: span 8; }
+
+/* Profile Details Compact */
+.profile-details-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.profile-meta-row {
+  display: flex;
+  gap: 20px;
+}
+
+.mini-item label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.mini-item p {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.skill-tag {
+  background: rgba(255, 107, 74, 0.1);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 107, 74, 0.1);
+}
+
+/* Readiness Checklist */
+.readiness-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.readiness-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.readiness-item.done {
+  background: rgba(57, 198, 184, 0.05);
+  border-color: rgba(57, 198, 184, 0.1);
+}
+
+.check-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.readiness-item.done .check-circle {
+  background: #39c6b8;
+  border-color: #39c6b8;
+  color: #0b1220;
+}
+
+.task-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Applications Tracker */
+.app-filters-mini {
+  display: flex;
+  gap: 12px;
+}
+
+.app-filters-mini input, .app-filters-mini select {
+  padding: 8px 16px;
+  background: var(--glass);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.bento-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.bento-app-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bento-app-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--primary);
+  transform: translateY(-4px);
+}
+
+.status-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* Enhanced Modal Dimensions & Styles */
+.profile-modal-pro, .application-modal-pro {
+  width: 100%;
+  max-width: 650px; /* Increased size */
+  background: rgba(11, 18, 32, 0.95);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-inner-content {
+  padding: 40px; /* More breathing room */
+  position: relative;
+  z-index: 2;
+}
+
+.modal-aurora-glow {
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 107, 74, 0.15) 0%, transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.modal-aurora-glow.secondary {
+  background: radial-gradient(circle, rgba(57, 198, 184, 0.15) 0%, transparent 70%);
+  top: auto;
+  bottom: -100px;
+  left: auto;
+  right: -100px;
+}
+
+/* Profile Modal Form Styles */
+.form-grid-pro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.input-group-pro label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.input-group-pro input, .input-group-pro textarea {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 18px;
+  border-radius: 16px;
+  color: var(--text);
+  font-size: 1rem;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.input-group-pro input:focus {
+  border-color: var(--primary);
+  background: rgba(255, 107, 74, 0.05);
+  box-shadow: 0 0 0 4px rgba(255, 107, 74, 0.1);
+}
+
+/* Application Detail Grid */
+.app-details-grid-pro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.detail-card-mini {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.detail-card-mini.full-width { grid-column: span 2; }
+
+.detail-card-mini .label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.detail-card-mini p {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.status-tag-v2 {
+  display: inline-flex;
+  padding: 6px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .form-grid-pro, .app-details-grid-pro { grid-template-columns: 1fr; }
+  .input-group-pro.full-width { grid-column: span 1; }
+}

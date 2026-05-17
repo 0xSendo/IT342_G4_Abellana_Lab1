@@ -1,0 +1,6 @@
+/* ==================== ADMIN DASHBOARD SPECIFIC STYLES ==================== */
+/* For now, Admin uses the same layout primitives as Student/Employer but with some tweaks */
+
+.admin-dashboard-wrapper {
+  animation: fadeUp 0.6s ease-out;
+}
