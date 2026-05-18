@@ -826,52 +826,103 @@ export default function EmployerDashboard() {
       {isPostingModalOpen && selectedPosting && (
         <div className="modal-overlay">
           <div className="modal-content application-modal-pro">
+            <div className="modal-aurora-glow"></div>
             <div className="modal-aurora-glow secondary"></div>
             <div className="modal-inner-content">
               <div className="modal-header-pro">
-                <h3>{isPostingEditMode ? "Edit Posting" : "Posting Details"}</h3>
+                <div>
+                  <span className="bento-label">Internship Management</span>
+                  <h3>{isPostingEditMode ? "Update Opportunity" : "Opportunity Intelligence"}</h3>
+                </div>
                 <button className="close-btn-glass" onClick={closePostingModal}>✕</button>
               </div>
               <div className="modal-body-pro">
                 {!isPostingEditMode ? (
                   <div className="app-details-grid-pro">
                     <div className="detail-card-mini">
-                      <span className="label">Role</span>
+                      <span className="label">Posting Title</span>
                       <p>{selectedPosting.title}</p>
                     </div>
                     <div className="detail-card-mini">
-                      <span className="label">Location</span>
+                      <span className="label">Work Environment</span>
+                      <p>
+                        <span className={`status-tag-v2 ${selectedPosting.setup.toLowerCase()}`} style={{ 
+                          background: selectedPosting.setup === 'Remote' ? 'rgba(57, 198, 184, 0.1)' : 'rgba(255, 107, 74, 0.1)',
+                          color: selectedPosting.setup === 'Remote' ? '#39c6b8' : 'var(--primary)',
+                          padding: '4px 12px',
+                          borderRadius: '8px',
+                          fontSize: '0.8rem'
+                        }}>
+                          {selectedPosting.setup}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="detail-card-mini">
+                      <span className="label">Primary Location</span>
                       <p>{selectedPosting.location}</p>
                     </div>
                     <div className="detail-card-mini">
-                      <span className="label">Setup</span>
-                      <p>{selectedPosting.setup}</p>
-                    </div>
-                    <div className="detail-card-mini">
-                      <span className="label">Status</span>
-                      <p>{selectedPosting.status}</p>
+                      <span className="label">Current Status</span>
+                      <p>
+                        <span className={`status-tag-v2 ${selectedPosting.status.toLowerCase()}`} style={{ 
+                          background: selectedPosting.status === 'ACTIVE' ? 'rgba(57, 198, 184, 0.1)' : 'rgba(255, 107, 74, 0.1)',
+                          color: selectedPosting.status === 'ACTIVE' ? '#39c6b8' : 'var(--primary)',
+                          padding: '4px 12px',
+                          borderRadius: '8px',
+                          fontSize: '0.8rem'
+                        }}>
+                          {selectedPosting.status}
+                        </span>
+                      </p>
                     </div>
                     <div className="detail-card-mini full-width">
-                      <span className="label">Description</span>
-                      <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--muted)' }}>{selectedPosting.description}</p>
+                      <span className="label">Role Description & Requirements</span>
+                      <div style={{ 
+                        background: 'rgba(255,255,255,0.02)', 
+                        padding: '20px', 
+                        borderRadius: '16px', 
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        marginTop: '10px'
+                      }}>
+                        <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--text)', opacity: 0.9 }}>
+                          {selectedPosting.description}
+                        </p>
+                      </div>
                     </div>
                     <div className="modal-footer-pro full-width">
-                      <button className="btn-primary-pro" onClick={openPostingEditMode}>Edit Posting</button>
+                      <button className="btn-secondary-glass" onClick={() => removePosting(selectedPosting.id)} style={{ color: '#ff6b6b' }}>Delete Posting</button>
+                      <button className="btn-primary-pro" onClick={openPostingEditMode}>Edit Details</button>
                     </div>
                   </div>
                 ) : (
                   <form className="form-grid-pro" onSubmit={savePostingEdits}>
                     <div className="input-group-pro">
                       <label>Internship Title</label>
-                      <input name="title" value={postingEditForm.title} onChange={onPostingEditFormChange} required />
+                      <input 
+                        name="title" 
+                        value={postingEditForm.title} 
+                        onChange={onPostingEditFormChange} 
+                        placeholder="e.g. Senior Frontend Intern"
+                        required 
+                      />
                     </div>
                     <div className="input-group-pro">
                       <label>Location</label>
-                      <input name="location" value={postingEditForm.location} onChange={onPostingEditFormChange} required />
+                      <input 
+                        name="location" 
+                        value={postingEditForm.location} 
+                        onChange={onPostingEditFormChange} 
+                        placeholder="e.g. Manila, Philippines"
+                        required 
+                      />
                     </div>
                     <div className="input-group-pro">
                       <label>Work Setup</label>
-                      <select name="setup" value={postingEditForm.setup} onChange={onPostingEditFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                      <select 
+                        name="setup" 
+                        value={postingEditForm.setup} 
+                        onChange={onPostingEditFormChange} 
+                      >
                         <option value="Onsite">Onsite</option>
                         <option value="Hybrid">Hybrid</option>
                         <option value="Remote">Remote</option>
@@ -879,19 +930,30 @@ export default function EmployerDashboard() {
                     </div>
                     <div className="input-group-pro">
                       <label>Status</label>
-                      <select name="status" value={postingEditForm.status} onChange={onPostingEditFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                      <select 
+                        name="status" 
+                        value={postingEditForm.status} 
+                        onChange={onPostingEditFormChange} 
+                      >
                         <option value="ACTIVE">Active</option>
                         <option value="CLOSED">Closed</option>
                         <option value="DRAFT">Draft</option>
                       </select>
                     </div>
                     <div className="input-group-pro full-width">
-                      <label>Description</label>
-                      <textarea name="description" value={postingEditForm.description} onChange={onPostingEditFormChange} rows={4} required />
+                      <label>Detailed Description</label>
+                      <textarea 
+                        name="description" 
+                        value={postingEditForm.description} 
+                        onChange={onPostingEditFormChange} 
+                        placeholder="Detail the responsibilities, required skills, and what the student will learn..."
+                        rows={5} 
+                        required 
+                      />
                     </div>
                     <div className="modal-footer-pro full-width">
-                      <button className="btn-secondary-glass" type="button" onClick={() => setIsPostingEditMode(false)}>Cancel</button>
-                      <button className="btn-primary-pro" type="submit">Save Changes</button>
+                      <button className="btn-secondary-glass" type="button" onClick={() => setIsPostingEditMode(false)}>Discard Changes</button>
+                      <button className="btn-primary-pro" type="submit">Update Posting</button>
                     </div>
                   </form>
                 )}
@@ -907,10 +969,26 @@ export default function EmployerDashboard() {
             <div className="modal-aurora-glow"></div>
             <div className="modal-inner-content">
               <div className="modal-header-pro">
-                <h3>Post New Internship</h3>
+                <div>
+                  <span className="bento-label">New Opportunity</span>
+                  <h3>Broadcast Internship</h3>
+                </div>
                 <button className="close-btn-glass" onClick={closeCreatePostingModal}>✕</button>
               </div>
               <div className="modal-body-pro">
+                {createPostingError && (
+                  <div style={{ 
+                    background: 'rgba(255, 107, 74, 0.1)', 
+                    color: 'var(--primary)', 
+                    padding: '12px 20px', 
+                    borderRadius: '12px', 
+                    marginBottom: '20px',
+                    fontSize: '0.9rem',
+                    border: '1px solid rgba(255, 107, 74, 0.2)'
+                  }}>
+                    ⚠️ {createPostingError}
+                  </div>
+                )}
                 <form className="form-grid-pro" onSubmit={submitNewPosting}>
                   <div className="input-group-pro">
                     <label>Internship Title</label>
@@ -922,26 +1000,41 @@ export default function EmployerDashboard() {
                   </div>
                   <div className="input-group-pro">
                     <label>Work Setup</label>
-                    <select name="setup" value={postingForm.setup} onChange={onPostingFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                    <select 
+                      name="setup" 
+                      value={postingForm.setup} 
+                      onChange={onPostingFormChange} 
+                    >
                       <option value="Onsite">Onsite</option>
                       <option value="Hybrid">Hybrid</option>
                       <option value="Remote">Remote</option>
                     </select>
                   </div>
                   <div className="input-group-pro">
-                    <label>Posting Status</label>
-                    <select name="status" value={postingForm.status} onChange={onPostingFormChange} className="edit-btn-glass" style={{ width: '100%', textAlign: 'left' }}>
+                    <label>Initial Status</label>
+                    <select 
+                      name="status" 
+                      value={postingForm.status} 
+                      onChange={onPostingFormChange} 
+                    >
                       <option value="ACTIVE">Active</option>
                       <option value="DRAFT">Draft</option>
                     </select>
                   </div>
                   <div className="input-group-pro full-width">
-                    <label>Description</label>
-                    <textarea name="description" value={postingForm.description} onChange={onPostingFormChange} rows={4} placeholder="Briefly describe responsibilities and requirements" required />
+                    <label>Detailed Description</label>
+                    <textarea 
+                      name="description" 
+                      value={postingForm.description} 
+                      onChange={onPostingFormChange} 
+                      rows={5} 
+                      placeholder="Clearly define the role, expectations, and necessary technical stack..." 
+                      required 
+                    />
                   </div>
                   <div className="modal-footer-pro full-width">
                     <button className="btn-secondary-glass" type="button" onClick={closeCreatePostingModal}>Cancel</button>
-                    <button className="btn-primary-pro" type="submit">Post Internship</button>
+                    <button className="btn-primary-pro" type="submit">Publish Opportunity</button>
                   </div>
                 </form>
               </div>

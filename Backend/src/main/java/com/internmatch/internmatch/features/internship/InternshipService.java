@@ -159,6 +159,9 @@ public class InternshipService {
             throw new IllegalArgumentException("You are not authorized to delete this internship");
         }
         
+        // Delete all applications associated with this internship first
+        applicationRepository.deleteByInternshipId(id);
+        
         internshipRepository.deleteById(id);
     }
     
