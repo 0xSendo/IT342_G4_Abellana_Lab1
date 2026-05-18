@@ -35,4 +35,17 @@ public class NotificationController {
         notificationService.markAllAsRead(user.getId());
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
+        notificationService.deleteNotification(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAllNotifications(Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        notificationService.deleteAllNotifications(user.getId());
+        return ResponseEntity.ok().build();
+    }
 }
