@@ -24,7 +24,23 @@ export default function EmployerFeed() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("NONE");
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString();
+  };
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "N/A" : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "N/A" : d.toLocaleString();
+  };
 
   const fetchConnectionStatus = async (studentId) => {
     try {
@@ -39,6 +55,10 @@ export default function EmployerFeed() {
   };
 
   const sendConnectionRequest = async (studentId) => {
+    if (!studentId) {
+      toast.show("Error: Invalid Student ID", "error");
+      return;
+    }
     try {
       const token = localStorage.getItem("internmatch_token");
       await axios.post(`/api/connections/request/${studentId}`, {}, {
@@ -48,7 +68,8 @@ export default function EmployerFeed() {
       setConnectionStatus("PENDING_SENT");
     } catch (err) {
       console.error("Failed to send connection request", err);
-      toast.show(err.response?.data || "Failed to send request", "error");
+      const errorMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : null) || "Failed to send request";
+      toast.show(errorMsg, "error");
     }
   };
 
@@ -143,6 +164,35 @@ export default function EmployerFeed() {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (err) {
       console.error("Failed to mark notifications as read", err);
+    }
+  };
+
+  const deleteNotification = async (notifId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.delete(`/api/notifications/${notifId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.filter(n => n.id !== notifId));
+      toast.show("Notification deleted");
+    } catch (err) {
+      console.error("Failed to delete notification", err);
+      toast.show("Failed to delete notification", "error");
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    if (!window.confirm("Are you sure you want to clear all notifications?")) return;
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.delete("/api/notifications/all", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications([]);
+      toast.show("All notifications cleared");
+    } catch (err) {
+      console.error("Failed to clear notifications", err);
+      toast.show("Failed to clear notifications", "error");
     }
   };
 
@@ -277,7 +327,7 @@ export default function EmployerFeed() {
                       </div>
 
                       <div className="card-footer-pro">
-                        <span className="post-date">Posted on {new Date(posting.startDate).toLocaleDateString()}</span>
+                        <span className="post-date">Posted on {formatDate(posting.startDate)}</span>
                         <button 
                           className={`btn-action-pro ${isMine ? "primary" : "secondary"}`}
                           onClick={() => toast.show(isMine ? "Navigate to Dashboard to edit" : "Competitive viewing enabled")}
@@ -323,7 +373,7 @@ export default function EmployerFeed() {
                           <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
                         </div>
                         <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
-                          {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatTime(item.createdAt)}
                         </span>
                       </div>
                       <p style={{ fontSize: '0.9rem', color: 'var(--text)', margin: '10px 0 0', lineHeight: 1.5 }}>{item.content}</p>
@@ -469,6 +519,15 @@ export default function EmployerFeed() {
                   <span className="bento-label">Updates</span>
                   <h3>Company Notifications</h3>
                 </div>
+                {notifications.length > 0 && (
+                  <button 
+                    className="btn-secondary-glass" 
+                    style={{ marginLeft: 'auto', marginRight: '1rem', color: '#ff6b6b', borderColor: 'rgba(255,107,74,0.2)' }}
+                    onClick={clearAllNotifications}
+                  >
+                    Clear All
+                  </button>
+                )}
                 <button className="close-btn-glass" onClick={() => setIsNotificationsModalOpen(false)}>✕</button>
               </div>
               <div className="modal-body-pro">
@@ -480,15 +539,32 @@ export default function EmployerFeed() {
                     </div>
                   ) : (
                     notifications.map((n) => (
-                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`}>
+                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`} style={{ position: 'relative' }}>
                         <div className="notif-icon-box">
                           {n.type === "APPLICATION" ? "📩" : "🔔"}
                         </div>
                         <div className="notif-content-full">
-                          <h4 className="notif-title-full">{n.title}</h4>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <h4 className="notif-title-full">{n.title}</h4>
+                            <button 
+                              onClick={() => deleteNotification(n.id)}
+                              style={{ 
+                                background: 'none', 
+                                border: 'none', 
+                                color: 'var(--muted)', 
+                                cursor: 'pointer',
+                                padding: '4px',
+                                fontSize: '1rem',
+                                opacity: 0.6
+                              }}
+                              title="Delete notification"
+                            >
+                              ✕
+                            </button>
+                          </div>
                           <p className="notif-msg-full">{n.message}</p>
                           <span className="notif-time-full">
-                            {new Date(n.createdAt).toLocaleString()}
+                            {formatDateTime(n.createdAt)}
                           </span>
                         </div>
                       </div>

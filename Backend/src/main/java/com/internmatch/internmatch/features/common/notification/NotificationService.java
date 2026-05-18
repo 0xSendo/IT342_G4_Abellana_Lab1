@@ -39,4 +39,14 @@ public class NotificationService {
     public void markAllAsRead(Long userId) {
         notificationRepository.findByUserIdOrderByCreatedAtDesc(userId).forEach(n -> n.setRead(true));
     }
+
+    @Transactional
+    public void deleteNotification(Long notificationId) {
+        notificationRepository.deleteById(notificationId);
+    }
+
+    @Transactional
+    public void deleteAllNotifications(Long userId) {
+        notificationRepository.deleteByUserId(userId);
+    }
 }

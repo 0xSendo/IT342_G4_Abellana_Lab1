@@ -48,6 +48,24 @@ export default function EmployerDashboard() {
   const [status, setStatus] = useState("");
   const [createPostingError, setCreatePostingError] = useState("");
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString();
+  };
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "N/A" : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "N/A" : d.toLocaleString();
+  };
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
   const fetchConnectionsData = async () => {
@@ -103,6 +121,35 @@ export default function EmployerDashboard() {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (err) {
       console.error("Failed to mark notifications as read", err);
+    }
+  };
+
+  const deleteNotification = async (notifId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.delete(`/api/notifications/${notifId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.filter(n => n.id !== notifId));
+      toast.show("Notification deleted");
+    } catch (err) {
+      console.error("Failed to delete notification", err);
+      toast.show("Failed to delete notification", "error");
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    if (!window.confirm("Are you sure you want to clear all notifications?")) return;
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.delete("/api/notifications/all", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications([]);
+      toast.show("All notifications cleared");
+    } catch (err) {
+      console.error("Failed to clear notifications", err);
+      toast.show("Failed to clear notifications", "error");
     }
   };
 
@@ -957,6 +1004,15 @@ export default function EmployerDashboard() {
                   <span className="bento-label">Updates</span>
                   <h3>Company Notifications</h3>
                 </div>
+                {notifications.length > 0 && (
+                  <button 
+                    className="btn-secondary-glass" 
+                    style={{ marginLeft: 'auto', marginRight: '1rem', color: '#ff6b6b', borderColor: 'rgba(255,107,74,0.2)' }}
+                    onClick={clearAllNotifications}
+                  >
+                    Clear All
+                  </button>
+                )}
                 <button className="close-btn-glass" onClick={() => setIsNotificationsModalOpen(false)}>✕</button>
               </div>
               <div className="modal-body-pro">
@@ -968,15 +1024,50 @@ export default function EmployerDashboard() {
                     </div>
                   ) : (
                     notifications.map((n) => (
-                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`}>
+                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`} style={{ position: 'relative' }}>
                         <div className="notif-icon-box">
                           {n.type === "APPLICATION" ? "📩" : "🔔"}
                         </div>
                         <div className="notif-content-full">
-                          <h4 className="notif-title-full">{n.title}</h4>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <h4 className="notif-title-full">{n.title}</h4>
+                            <button 
+                              onClick={() => deleteNotification(n.id)}
+                              style={{ 
+                                background: 'none', 
+                                border: 'none', 
+                                color: 'var(--muted)', 
+                                cursor: 'pointer',
+                                padding: '4px',
+                                fontSize: '1rem',
+                                opacity: 0.6
+                              }}
+                              title="Delete notification"
+                            >
+                              ✕
+                            </button>
+                          </div>
                           <p className="notif-msg-full">{n.message}</p>
+                          {n.type === "CONNECTION_REQUEST" && !n.read && (
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                              <button 
+                                className="btn-primary-pro" 
+                                style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                                onClick={() => respondToRequest(n.relatedId, 'ACCEPTED')}
+                              >
+                                Accept
+                              </button>
+                              <button 
+                                className="btn-secondary-glass" 
+                                style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                                onClick={() => respondToRequest(n.relatedId, 'DECLINED')}
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          )}
                           <span className="notif-time-full">
-                            {new Date(n.createdAt).toLocaleString()}
+                            {formatDateTime(n.createdAt)}
                           </span>
                         </div>
                       </div>
