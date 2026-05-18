@@ -357,7 +357,8 @@
 }
 
 .input-group-pro input, 
-.input-group-pro textarea {
+.input-group-pro textarea,
+.input-group-pro select {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 16px 20px;
@@ -367,6 +368,29 @@
   width: 100%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-group-pro select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(255,107,74,0.8)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
+  background-size: 18px;
+  padding-right: 50px;
+  cursor: pointer;
+}
+
+.input-group-pro select:focus {
+  border-color: var(--primary);
+  background: rgba(255, 107, 74, 0.05);
+  box-shadow: 0 0 0 4px rgba(255, 107, 74, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  outline: none;
+}
+
+.input-group-pro select option {
+  background: #0b1220;
+  color: white;
+  padding: 15px;
 }
 
 .input-group-pro input:focus, 
