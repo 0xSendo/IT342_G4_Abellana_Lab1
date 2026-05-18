@@ -83,6 +83,7 @@ public class CommunityController {
         User student = post.getStudent();
         return CommunityPostDto.builder()
                 .id(post.getId())
+                .studentId(student != null ? student.getId() : null)
                 .studentName(student != null ? student.getName() : "Anonymous")
                 .studentProgram(student != null ? student.getProgram() : "N/A")
                 .studentEmail(student != null ? student.getEmail() : "unknown")

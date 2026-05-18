@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommunityPostDto {
     private Long id;
+    private Long studentId;
     private String studentName;
     private String studentProgram;
     private String studentEmail;
