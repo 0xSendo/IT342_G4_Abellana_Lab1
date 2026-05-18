@@ -63,9 +63,38 @@
 }
 
 /* Student Specific Bento Spans */
-.readiness-bento { grid-column: span 6; }
-.notifications-bento { grid-column: span 4; }
-.apps-bento { grid-column: span 8; }
+.profile-bento { grid-column: span 7; }
+.readiness-bento { grid-column: span 5; }
+.trends-bento { grid-column: span 12; }
+.connections-bento { grid-column: span 5; }
+.apps-bento { grid-column: span 7; }
+
+/* Connections Specific Styles */
+.request-card-mini {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.request-card-mini:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.friend-avatar-circle {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.friend-avatar-circle:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.3);
+}
 
 /* Profile Details Compact */
 .profile-details-mini {

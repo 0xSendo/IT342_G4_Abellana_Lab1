@@ -34,6 +34,9 @@ export default function EmployerDashboard() {
   const [applicants, setApplicants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
   const [postingForm, setPostingForm] = useState(INITIAL_POSTING_FORM);
   const [form, setForm] = useState({
     name: currentUser?.name || "",
@@ -46,6 +49,36 @@ export default function EmployerDashboard() {
   const [createPostingError, setCreatePostingError] = useState("");
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+
+  const fetchConnectionsData = async () => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (!token) return;
+      
+      const [pendingRes, friendsRes] = await Promise.all([
+        axios.get("/api/connections/pending", { headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get("/api/connections/friends", { headers: { "Authorization": `Bearer ${token}` } })
+      ]);
+
+      setPendingRequests(pendingRes.data);
+      setFriends(friendsRes.data);
+    } catch (err) {
+      console.error("Failed to fetch connections", err);
+    }
+  };
+
+  const respondToRequest = async (connectionId, status) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.put(`/api/connections/respond/${connectionId}?status=${status}`, {}, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      toast.show(`Request ${status === 'ACCEPTED' ? 'accepted' : 'declined'}`);
+      fetchConnectionsData();
+    } catch (err) {
+      console.error("Failed to respond to request", err);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -125,7 +158,11 @@ export default function EmployerDashboard() {
   useEffect(() => {
     fetchMyPostings();
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    fetchConnectionsData();
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetchConnectionsData();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -538,6 +575,52 @@ export default function EmployerDashboard() {
             <JobTrendsWidget />
           </section>
 
+          {/* Connections Bento */}
+          <section className="bento-card connections-bento">
+            <div className="bento-header">
+              <div>
+                <span className="bento-label">Networking</span>
+                <h3>Talent Network</h3>
+              </div>
+              <button className="edit-btn-glass" onClick={() => setIsFriendsModalOpen(true)}>View All ({friends.length})</button>
+            </div>
+            
+            <div className="pending-requests-section" style={{ marginTop: '1rem' }}>
+              {pendingRequests.length > 0 && (
+                <div className="pending-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '1px' }}>PENDING REQUESTS</span>
+                  {pendingRequests.map(req => (
+                    <div key={req.id} className="request-card-mini" style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <div>
+                        <p style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0 }}>{req.requesterName}</p>
+                        <p style={{ fontSize: '0.7rem', color: 'var(--muted)', margin: 0 }}>{req.requesterRole}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => respondToRequest(req.id, 'ACCEPTED')} style={{ background: 'var(--primary)', border: 'none', color: 'white', borderRadius: '6px', padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}>Accept</button>
+                        <button onClick={() => respondToRequest(req.id, 'DECLINED')} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--muted)', borderRadius: '6px', padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}>Decline</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <div className="friends-preview" style={{ marginTop: pendingRequests.length > 0 ? '1.5rem' : '0' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--muted)', letterSpacing: '1px' }}>KEY CONNECTIONS</span>
+                <div className="friends-avatars" style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                  {friends.length === 0 ? (
+                    <p style={{ fontSize: '0.8rem', color: 'var(--muted)', fontStyle: 'italic' }}>No connections yet. Connect with students in the ecosystem!</p>
+                  ) : (
+                    friends.slice(0, 5).map(friend => (
+                      <div key={friend.id} className="friend-avatar-circle" title={friend.name} style={{ width: '40px', height: '40px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'white', border: '2px solid rgba(255,255,255,0.1)' }}>
+                        {friend.name.charAt(0)}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Postings Bento */}
           <section className="bento-card employer-postings-bento">
             <div className="bento-header">
@@ -814,6 +897,49 @@ export default function EmployerDashboard() {
                     <button className="btn-primary-pro" type="submit">Post Internship</button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Friends Modal */}
+      {isFriendsModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <div>
+                  <span className="bento-label">Network</span>
+                  <h3>Talent Connections</h3>
+                </div>
+                <button className="close-btn-glass" onClick={() => setIsFriendsModalOpen(false)}>✕</button>
+              </div>
+              <div className="modal-body-pro">
+                <div className="friends-list-full" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                  {friends.length === 0 ? (
+                    <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem' }}>
+                      <p style={{ color: 'var(--muted)' }}>No connections found.</p>
+                    </div>
+                  ) : (
+                    friends.map(friend => (
+                      <div key={friend.id} className="friend-card-pro" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ width: '50px', height: '50px', background: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>
+                          {friend.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '1rem' }}>{friend.name}</h4>
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>{friend.role}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>{friend.companyName || friend.program}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer-pro">
+                <button className="btn-secondary-glass" onClick={() => setIsFriendsModalOpen(false)}>Close</button>
               </div>
             </div>
           </div>

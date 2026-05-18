@@ -22,8 +22,35 @@ export default function EmployerFeed() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentProfileTab, setStudentProfileTab] = useState("essentials");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState("NONE");
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+
+  const fetchConnectionStatus = async (studentId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.get(`/api/connections/status/${studentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConnectionStatus(res.data.status);
+    } catch (err) {
+      console.error("Failed to fetch connection status", err);
+    }
+  };
+
+  const sendConnectionRequest = async (studentId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.post(`/api/connections/request/${studentId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.show("Connection request sent!");
+      setConnectionStatus("PENDING_SENT");
+    } catch (err) {
+      console.error("Failed to send connection request", err);
+      toast.show(err.response?.data || "Failed to send request", "error");
+    }
+  };
 
   const fetchAllPostings = async () => {
     try {
@@ -128,6 +155,9 @@ export default function EmployerFeed() {
     setSelectedStudent(student);
     setStudentProfileTab("essentials");
     setIsProfileModalOpen(true);
+    if (student.studentId) {
+      fetchConnectionStatus(student.studentId);
+    }
   };
 
   return (
@@ -400,8 +430,27 @@ export default function EmployerFeed() {
               <div className="modal-footer-pro" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 40px' }}>
                 <button className="btn-secondary-glass" onClick={() => setIsProfileModalOpen(false)}>Back to Feed</button>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                  {connectionStatus === "NONE" && (
+                    <button className="btn-primary-pro" style={{ background: 'var(--primary)', color: 'white' }} onClick={() => sendConnectionRequest(selectedStudent.studentId)}>
+                      ➕ Connect with Student
+                    </button>
+                  )}
+                  {connectionStatus === "PENDING_SENT" && (
+                    <button className="btn-secondary-glass" disabled style={{ opacity: 0.6 }}>
+                      ⏳ Request Sent
+                    </button>
+                  )}
+                  {connectionStatus === "PENDING_RECEIVED" && (
+                    <button className="btn-primary-pro" style={{ background: '#39c6b8' }} onClick={() => toast.show("Please respond to request in your dashboard!")}>
+                      📩 Review Request
+                    </button>
+                  )}
+                  {connectionStatus === "ACCEPTED" && (
+                    <button className="btn-secondary-glass" disabled style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}>
+                      🤝 Connected
+                    </button>
+                  )}
                   <button className="btn-secondary-glass" style={{ borderColor: 'rgba(57, 198, 184, 0.3)', color: '#39c6b8' }} onClick={() => toast.show("Bookmark feature coming soon!")}>🔖 Save Profile</button>
-                  <button className="btn-primary-pro" onClick={() => toast.show(`Inquiry request sent to ${selectedStudent.studentName}!`)}>Contact Student</button>
                 </div>
               </div>
             </div>
