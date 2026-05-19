@@ -9,7 +9,8 @@ import {
   orderBy,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  updateDoc
 } from "firebase/firestore";
 import { signInAnonymously } from "firebase/auth";
 import { db, auth } from "../firebase";
@@ -19,13 +20,29 @@ const ChatContext = createContext(null);
 
 export function ChatProvider({ children }) {
   const { currentUser } = useContext(AuthContext);
-  const [openChats, setOpenChats] = useState([]); 
-  const [activeChat, setActiveChat] = useState(null); 
+  const [openChats, setOpenChats] = useState(() => {
+    const saved = localStorage.getItem("internmatch_openChats");
+    return saved ? JSON.parse(saved) : [];
+  }); 
+  const [activeChat, setActiveChat] = useState(() => {
+    const saved = localStorage.getItem("internmatch_activeChat");
+    return saved ? JSON.parse(saved) : null;
+  }); 
   const [recentChats, setRecentChats] = useState([]); 
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState({}); // { otherUserEmail: count }
 
-  // Update unread counts based on recentChats
+  // Persist open chats
+  useEffect(() => {
+    localStorage.setItem("internmatch_openChats", JSON.stringify(openChats));
+  }, [openChats]);
+
+  useEffect(() => {
+    localStorage.setItem("internmatch_activeChat", JSON.stringify(activeChat));
+  }, [activeChat]);
+
+  // Authenticate with Firebase anonymously to allow Firestore access
+
   useEffect(() => {
     if (!currentUser?.email) return;
     const counts = {};
@@ -53,11 +70,14 @@ export function ChatProvider({ children }) {
   useEffect(() => {
     if (!currentUser?.email) return;
 
+    const normalizedEmail = currentUser.email.toLowerCase();
+    console.log("ChatContext: Fetching recent chats for:", normalizedEmail);
+
     // Note: This query may require a composite index in Firestore.
     // Check browser console for a Firebase link to create it if it fails.
     const q = query(
       collection(db, "chats"),
-      where("participants", "array-contains", currentUser.email),
+      where("participants", "array-contains", normalizedEmail),
       orderBy("lastMessageTimestamp", "desc")
     );
 
@@ -105,11 +125,10 @@ export function ChatProvider({ children }) {
     
     try {
       const chatRef = doc(db, "chats", chatId);
-      await setDoc(chatRef, {
-        unreadCount: {
-          [myEmail]: 0
-        }
-      }, { merge: true });
+      // Use dot notation to ONLY update my unread count without touching the other person's
+      await updateDoc(chatRef, {
+        [`unreadCount.${myEmail}`]: 0
+      });
     } catch (err) {
       console.error("Chat: Error marking as read:", err);
     }
@@ -153,14 +172,18 @@ export function ChatProvider({ children }) {
         },
         lastMessage: text,
         lastMessageSender: myEmail,
-        lastMessageTimestamp: serverTimestamp(),
-        unreadCount: {
-          [theirEmail]: currentUnread + 1
-        }
+        lastMessageTimestamp: serverTimestamp()
       };
       
       console.log("Chat: Updating chat document at:", chatRef.path);
+      // Create document if it doesn't exist
       await setDoc(chatRef, chatData, { merge: true });
+      
+      // Increment ONLY the recipient's unread count using dot notation
+      await updateDoc(chatRef, {
+        [`unreadCount.${theirEmail}`]: currentUnread + 1
+      });
+
       console.log("Chat: Chat document updated successfully.");
 
       // Add message to history
