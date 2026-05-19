@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
+import { useChat } from "../../context/ChatContext";
 import { useToast } from "../../context/ToastContext";
 import JobTrendsWidget from "../../components/JobTrendsWidget";
 import "../../styles/common/bento.css";
@@ -18,6 +19,7 @@ const INITIAL_POSTING_FORM = {
 
 export default function EmployerDashboard() {
   const { currentUser, updateProfile } = useContext(AuthContext);
+  const { openChatWith } = useChat();
   const toast = useToast();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPostingModalOpen, setIsPostingModalOpen] = useState(false);
@@ -1068,11 +1070,21 @@ export default function EmployerDashboard() {
                         <div style={{ width: '50px', height: '50px', background: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>
                           {friend.name.charAt(0)}
                         </div>
-                        <div>
+                        <div style={{ flex: 1 }}>
                           <h4 style={{ margin: 0, fontSize: '1rem' }}>{friend.name}</h4>
                           <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>{friend.role}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>{friend.companyName || friend.program}</p>
                         </div>
+                        <button 
+                          className="btn-primary-pro" 
+                          style={{ padding: '8px 12px', fontSize: '0.75rem' }}
+                          onClick={() => {
+                            openChatWith(friend);
+                            setIsFriendsModalOpen(false);
+                          }}
+                        >
+                          Chat
+                        </button>
                       </div>
                     ))
                   )}

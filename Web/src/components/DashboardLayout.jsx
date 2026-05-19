@@ -1,6 +1,7 @@
 import { useContext, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import FloatingChatButton from "./FloatingChatButton";
 import AuthContext from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import "../styles/common/bento.css";
@@ -41,6 +42,7 @@ export default function DashboardLayout({ title, children, showProfileCard = tru
 					{children}
 				</main>
 			</div>
+			<FloatingChatButton />
 		</div>
 	);
 }
