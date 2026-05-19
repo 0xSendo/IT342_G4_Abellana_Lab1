@@ -167,3 +167,113 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ==================== ENHANCED FILTER BAR STYLES ==================== */
+
+.filter-bento {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.filter-grid-enhanced {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 1.5rem;
+  align-items: center;
+}
+
+/* Custom Input Group */
+.filter-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-input-group .search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--primary);
+  font-size: 1.1rem;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.filter-input-group input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px 16px 14px 48px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-input-group input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(255, 107, 74, 0.1);
+}
+
+.filter-input-group input::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* Custom Select Wrapper */
+.filter-select-wrapper {
+  position: relative;
+}
+
+.filter-select-wrapper::after {
+  content: '▾';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 0.8rem;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.filter-select-wrapper:hover::after {
+  color: var(--primary);
+}
+
+.filter-select-wrapper select {
+  width: 100%;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px 40px 14px 16px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-select-wrapper select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.filter-select-wrapper select option {
+  background: #101a2b; /* Matches var(--surface) */
+  color: var(--text);
+  padding: 12px;
+}
+
+@media (max-width: 768px) {
+  .filter-grid-enhanced {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

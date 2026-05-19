@@ -89,13 +89,39 @@ body {
   z-index: 10001; /* Higher than chat z-index */
 }
 .toast {
-  background: linear-gradient(90deg, var(--primary), var(--primary-600));
+  background: rgba(15, 23, 36, 0.95);
+  backdrop-filter: blur(8px);
   color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  padding: 0.8rem 1.4rem;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   font-weight: 700;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
   animation: toastFadeIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.toast.error {
+  border-left: 4px solid #ff4b4b;
+  background: linear-gradient(90deg, rgba(255, 75, 75, 0.15), rgba(15, 23, 36, 0.95));
+}
+
+.toast.success {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(15, 23, 36, 0.95));
+}
+
+.toast.warning {
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 36, 0.95));
+}
+
+.toast.info {
+  border-left: 4px solid var(--primary);
+  background: linear-gradient(90deg, rgba(255, 107, 74, 0.15), rgba(15, 23, 36, 0.95));
 }
 
 @keyframes toastFadeIn {

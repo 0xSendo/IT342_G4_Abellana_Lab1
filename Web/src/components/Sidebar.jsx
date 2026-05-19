@@ -12,9 +12,14 @@ export default function Sidebar() {
 			<div className="sidebar-group">
 				<h3 className="sidebar-label">Main Navigation</h3>
 				{role === "STUDENT" && (
-					<NavLink to="/dashboard/student" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-						Dashboard
-					</NavLink>
+					<>
+						<NavLink to="/dashboard/student" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+							Dashboard
+						</NavLink>
+						<NavLink to="/prep-lab" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+							Prep Lab
+						</NavLink>
+					</>
 				)}
 				{role === "EMPLOYER" && (
 					<NavLink to="/dashboard/employer" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>

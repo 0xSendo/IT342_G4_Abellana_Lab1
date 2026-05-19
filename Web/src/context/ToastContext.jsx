@@ -7,7 +7,9 @@ export function ToastProvider({ children }) {
 
   const show = useCallback((message, opts = {}) => {
     const id = Date.now() + Math.random();
-    const toast = { id, message, ...opts };
+    // Support passing a string as the second argument (legacy/shorthand for type)
+    const options = typeof opts === "string" ? { type: opts } : opts;
+    const toast = { id, message, type: "info", ...options };
     setToasts((t) => [...t, toast]);
     const duration = opts.duration ?? 3000;
     setTimeout(() => {
@@ -28,7 +30,7 @@ export function ToastProvider({ children }) {
 
       <div className="toast-viewport" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className="toast">
+          <div key={t.id} className={`toast ${t.type || "info"}`}>
             {t.message}
           </div>
         ))}

@@ -7,6 +7,7 @@ import Feed from "./pages/Feed";
 import StudentDashboard from "./pages/dashboards/StudentDashboard";
 import EmployerDashboard from "./pages/dashboards/EmployerDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
+import PrepLab from "./pages/student/PrepLab";
 import RequireAuth from "./components/RequireAuth";
 import AuthContext from "./context/AuthContext";
 
@@ -78,6 +79,14 @@ function App() {
         element={
           <RequireAuth>
             <AdminDashboard />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/prep-lab"
+        element={
+          <RequireAuth>
+            <PrepLab />
           </RequireAuth>
         }
       />

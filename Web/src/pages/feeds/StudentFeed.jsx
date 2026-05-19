@@ -503,24 +503,31 @@ export default function StudentFeed() {
               </div>
               <button type="button" className="edit-btn-glass" onClick={resetControls}>Reset</button>
             </div>
-            <div className="app-filters-mini" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '12px', marginTop: '1rem' }}>
-              <input
-                type="text"
-                value={feedSearch}
-                onChange={(e) => setFeedSearch(e.target.value)}
-                placeholder="Search by role, company, or skills..."
-              />
-              <select value={postingFilter} onChange={(e) => setPostingFilter(e.target.value)}>
-                <option value="ALL">All Setups</option>
-                <option value="Remote">Remote</option>
-                <option value="Hybrid">Hybrid</option>
-                <option value="Onsite">Onsite</option>
-              </select>
-              <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
-                <option value="RECENT">Newest First</option>
-                <option value="APPLICANTS">Most Popular</option>
-                <option value="COMPANY">A-Z Company</option>
-              </select>
+            <div className="filter-grid-enhanced">
+              <div className="filter-input-group">
+                <span className="search-icon">🔍</span>
+                <input
+                  type="text"
+                  value={feedSearch}
+                  onChange={(e) => setFeedSearch(e.target.value)}
+                  placeholder="Search by role, company, or skills..."
+                />
+              </div>
+              <div className="filter-select-wrapper">
+                <select value={postingFilter} onChange={(e) => setPostingFilter(e.target.value)}>
+                  <option value="ALL">All Setups</option>
+                  <option value="Remote">Remote</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Onsite">Onsite</option>
+                </select>
+              </div>
+              <div className="filter-select-wrapper">
+                <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+                  <option value="RECENT">Newest First</option>
+                  <option value="APPLICANTS">Most Popular</option>
+                  <option value="COMPANY">A-Z Company</option>
+                </select>
+              </div>
             </div>
         </section>
 
