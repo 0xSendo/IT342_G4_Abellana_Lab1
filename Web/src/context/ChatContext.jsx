@@ -15,11 +15,13 @@ import {
 import { signInAnonymously } from "firebase/auth";
 import { db, auth } from "../firebase";
 import AuthContext from "./AuthContext";
+import { useToast } from "./ToastContext";
 
 const ChatContext = createContext(null);
 
 export function ChatProvider({ children }) {
   const { currentUser } = useContext(AuthContext);
+  const toast = useToast();
   const [openChats, setOpenChats] = useState(() => {
     const saved = localStorage.getItem("internmatch_openChats");
     return saved ? JSON.parse(saved) : [];
@@ -176,6 +178,14 @@ export function ChatProvider({ children }) {
 
   const sendMessage = async (otherUser, text) => {
     if (!text.trim() || !currentUser?.email || !otherUser?.email) return;
+
+    // Link Censorship Logic
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9.-]+\.[a-z]{2,}(\/[^\s]*)?)/i;
+    if (urlRegex.test(text)) {
+      toast.show("Links are prohibited", { type: "error" });
+      console.warn("Chat: Message blocked - contains a link");
+      return;
+    }
 
     try {
       const myEmail = currentUser.email.toLowerCase();
