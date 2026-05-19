@@ -33,6 +33,7 @@ export function ChatProvider({ children }) {
   const [recentChats, setRecentChats] = useState([]); 
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState({}); // { otherUserEmail: count }
+  const [lastMessages, setLastMessages] = useState([]); // Array of timestamps for rate limiting
 
   // Clear chat state on logout
   useEffect(() => {
@@ -179,11 +180,57 @@ export function ChatProvider({ children }) {
   const sendMessage = async (otherUser, text) => {
     if (!text.trim() || !currentUser?.email || !otherUser?.email) return;
 
-    // Link Censorship Logic
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9.-]+\.[a-z]{2,}(\/[^\s]*)?)/i;
-    if (urlRegex.test(text)) {
+    // --- Anti-Spam Logic ---
+    const now = Date.now();
+    const SPAM_THRESHOLD_MS = 10000; // 10 seconds
+    const MAX_MESSAGES = 5;
+
+    // Filter out messages older than the threshold
+    const recentMessageTimestamps = lastMessages.filter(ts => now - ts < SPAM_THRESHOLD_MS);
+    
+    if (recentMessageTimestamps.length >= MAX_MESSAGES) {
+      toast.show("Slow down! You are sending messages too fast.", { type: "warning" });
+      console.warn("Chat: Message blocked - Rate limit exceeded");
+      return;
+    }
+
+    // Duplicate Check
+    const lastMsgRef = localStorage.getItem(`last_msg_${otherUser.email.toLowerCase()}`);
+    if (lastMsgRef === text.trim()) {
+      toast.show("Duplicate message detected.", { type: "warning" });
+      return;
+    }
+
+    // Update rate limiting state
+    setLastMessages([...recentMessageTimestamps, now]);
+    localStorage.setItem(`last_msg_${otherUser.email.toLowerCase()}`, text.trim());
+    // --- End Anti-Spam Logic ---
+
+    // Advanced Link Censorship Logic
+    // 1. Detect direct links
+    const directUrlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9.-]+\.[a-z]{2,}(\/[^\s]*)?)/i;
+    
+    // 2. Detect highly obfuscated links (e.g., "u (tube) dat come", "google [dot] com")
+    // Normalize phonetically and visually
+    const normalizedText = text.toLowerCase()
+      // Replace phonetic dots/separators
+      .replace(/\s*(?:\[dot\]|\(dot\)|<dot>|\{dot\}|\.dot\.|dot|d0t|period|dat|at)\s*/g, ".")
+      // Replace phonetic TLDs
+      .replace(/\s*(?:come|c0m|cm)\b/g, "com")
+      .replace(/\s*(?:n3t|net)\b/g, "net")
+      .replace(/\s*(?:0rg|org)\b/g, "org")
+      // Remove all remaining whitespace and noise
+      .replace(/\s+/g, "")
+      .replace(/[\[\]\(\)\{\}<>]/g, "");
+
+    // Check for pattern: something.commonTld
+    const commonTlds = ["com", "net", "org", "io", "gov", "edu", "ph", "link", "me", "xyz"];
+    const tldPattern = commonTlds.join("|");
+    const obfuscatedUrlRegex = new RegExp(`[a-z0-9-]+\\.(?:${tldPattern})`, "i");
+
+    if (directUrlRegex.test(text) || obfuscatedUrlRegex.test(normalizedText)) {
       toast.show("Links are prohibited", { type: "error" });
-      console.warn("Chat: Message blocked - contains a link");
+      console.warn("Chat: Message blocked - contains a potential link (Fuzzy Match)");
       return;
     }
 

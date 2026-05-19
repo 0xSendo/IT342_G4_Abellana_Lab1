@@ -79,22 +79,28 @@ body {
 /* Toast styles */
 .toast-viewport {
   position: fixed;
-  right: 16px;
-  bottom: 20px;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
-  z-index: 2000;
+  z-index: 10001; /* Higher than chat z-index */
 }
 .toast {
   background: linear-gradient(90deg, var(--primary), var(--primary-600));
   color: white;
-  padding: 0.6rem 0.9rem;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(2,6,23,0.4);
-  font-weight: 600;
-  transform-origin: right bottom;
-  animation: fadeUp 240ms ease both;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  font-weight: 700;
+  animation: toastFadeIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes toastFadeIn {
+  from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 
