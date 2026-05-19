@@ -266,13 +266,14 @@
 }
 
 .message-status {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: white;
-  text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 1px 4px;
-  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: lowercase;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 1px 6px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
 }
 
 /* Badges & Unread State */

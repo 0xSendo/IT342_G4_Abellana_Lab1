@@ -87,6 +87,8 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("internmatch_currentUser");
     localStorage.removeItem("internmatch_token");
+    localStorage.removeItem("internmatch_openChats");
+    localStorage.removeItem("internmatch_activeChat");
     setCurrentUser(null);
   };
 

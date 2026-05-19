@@ -6,7 +6,7 @@ import { useChat } from "../context/ChatContext";
 
 export default function ChatWindow({ otherUser, onClose }) {
   const { currentUser } = useContext(AuthContext);
-  const { sendMessage, markAsRead, recentChats } = useChat();
+  const { sendMessage, markAsRead, recentChats, activeChat } = useChat();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef(null);
@@ -15,18 +15,18 @@ export default function ChatWindow({ otherUser, onClose }) {
   const myEmail = currentUser?.email?.toLowerCase();
   const theirEmail = otherUser?.email?.toLowerCase();
   const participants = [myEmail, theirEmail].filter(Boolean).sort();
-  const chatId = participants.length === 2 ? participants.join("_").replace(/\./g, ",") : null;
+  const chatId = participants.join("_").replace(/\./g, ",");
 
   // Find this specific chat in recentChats to get unread stats
   const currentChatData = recentChats.find(c => c.id === chatId);
   const isOtherUserRead = currentChatData?.unreadCount?.[theirEmail] === 0;
 
-  // Mark as read when opening or when new messages arrive
+  // Mark as read only if THIS window is the active one
   useEffect(() => {
-    if (theirEmail) {
+    if (theirEmail && activeChat?.email === theirEmail) {
       markAsRead(theirEmail);
     }
-  }, [theirEmail, messages.length]);
+  }, [theirEmail, messages.length, activeChat]);
 
   useEffect(() => {
     if (!chatId) return;
