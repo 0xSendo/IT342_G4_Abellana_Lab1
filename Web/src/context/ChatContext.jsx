@@ -32,24 +32,43 @@ export function ChatProvider({ children }) {
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState({}); // { otherUserEmail: count }
 
+  // Clear chat state on logout
+  useEffect(() => {
+    if (!currentUser) {
+      setOpenChats([]);
+      setActiveChat(null);
+      setRecentChats([]);
+      localStorage.removeItem("internmatch_openChats");
+      localStorage.removeItem("internmatch_activeChat");
+    }
+  }, [currentUser]);
+
   // Persist open chats
   useEffect(() => {
-    localStorage.setItem("internmatch_openChats", JSON.stringify(openChats));
-  }, [openChats]);
+    if (currentUser) {
+      localStorage.setItem("internmatch_openChats", JSON.stringify(openChats));
+    }
+  }, [openChats, currentUser]);
 
   useEffect(() => {
-    localStorage.setItem("internmatch_activeChat", JSON.stringify(activeChat));
-  }, [activeChat]);
+    if (currentUser) {
+      localStorage.setItem("internmatch_activeChat", JSON.stringify(activeChat));
+    }
+  }, [activeChat, currentUser]);
 
-  // Authenticate with Firebase anonymously to allow Firestore access
-
+  // Update unread counts based on recentChats
   useEffect(() => {
     if (!currentUser?.email) return;
+    const myEmail = currentUser.email.toLowerCase();
     const counts = {};
+    
     recentChats.forEach(chat => {
-      const otherEmail = chat.participants.find(p => p !== currentUser.email);
-      // If there's an unread count stored for the current user in this chat
-      const unread = chat.unreadCount?.[currentUser.email] || 0;
+      // Find the other participant's email (normalized)
+      const otherEmail = chat.participants.find(p => p !== myEmail);
+      if (!otherEmail) return;
+
+      // Get unread count for the current user in this chat
+      const unread = chat.unreadCount?.[myEmail] || 0;
       if (unread > 0) {
         counts[otherEmail] = unread;
       }
@@ -73,8 +92,6 @@ export function ChatProvider({ children }) {
     const normalizedEmail = currentUser.email.toLowerCase();
     console.log("ChatContext: Fetching recent chats for:", normalizedEmail);
 
-    // Note: This query may require a composite index in Firestore.
-    // Check browser console for a Firebase link to create it if it fails.
     const q = query(
       collection(db, "chats"),
       where("participants", "array-contains", normalizedEmail),
@@ -89,7 +106,6 @@ export function ChatProvider({ children }) {
       setRecentChats(chats);
     }, (err) => {
       console.error("Firestore Recent Chats Error:", err);
-      // If index is missing, we might need a simpler query or tell user
     });
 
     return () => unsubscribe();
@@ -101,17 +117,22 @@ export function ChatProvider({ children }) {
       return;
     }
     
+    const otherEmail = otherUser.email.toLowerCase();
     setOpenChats(prev => {
-      if (prev.find(c => c.email === otherUser.email)) return prev;
+      if (prev.find(c => c.email.toLowerCase() === otherEmail)) return prev;
       return [...prev, otherUser].slice(-3);
     });
     setActiveChat(otherUser);
     setIsChatListOpen(false);
+    
+    // Immediately mark as read when opening
+    markAsRead(otherEmail);
   };
 
   const closeChat = (email) => {
-    setOpenChats(prev => prev.filter(c => c.email !== email));
-    if (activeChat?.email === email) {
+    const targetEmail = email.toLowerCase();
+    setOpenChats(prev => prev.filter(c => c.email.toLowerCase() !== targetEmail));
+    if (activeChat?.email?.toLowerCase() === targetEmail) {
       setActiveChat(null);
     }
   };
@@ -121,44 +142,55 @@ export function ChatProvider({ children }) {
     
     const myEmail = currentUser.email.toLowerCase();
     const theirEmail = otherUserEmail.toLowerCase();
-    const chatId = [myEmail, theirEmail].sort().join("_").replace(/\./g, ",");
+    const participants = [myEmail, theirEmail].sort();
+    const chatId = participants.join("_").replace(/\./g, ",");
     
     try {
       const chatRef = doc(db, "chats", chatId);
-      // Use dot notation to ONLY update my unread count without touching the other person's
-      await updateDoc(chatRef, {
-        [`unreadCount.${myEmail}`]: 0
-      });
+      const chatSnap = await getDoc(chatRef);
+      
+      if (chatSnap.exists()) {
+        const data = chatSnap.data();
+        const currentUnreadForMe = data.unreadCount?.[myEmail] || 0;
+        
+        if (currentUnreadForMe > 0) {
+          // Update Firestore
+          await updateDoc(chatRef, {
+            [`unreadCount.${myEmail}`]: 0
+          });
+          
+          // Optimistically update local state to provide immediate feedback
+          setUnreadCounts(prev => {
+            const newCounts = { ...prev };
+            delete newCounts[theirEmail];
+            return newCounts;
+          });
+          
+          console.log(`Chat: Marked as read for ${myEmail}`);
+        }
+      }
     } catch (err) {
       console.error("Chat: Error marking as read:", err);
     }
   };
 
   const sendMessage = async (otherUser, text) => {
-    console.log("Chat: Attempting to send message to", otherUser?.email);
-    if (!text.trim() || !currentUser?.email || !otherUser?.email) {
-      console.warn("Chat: Send failed - Missing data", { 
-        text: !!text.trim(), 
-        currentUser: !!currentUser?.email, 
-        otherUser: !!otherUser?.email 
-      });
-      return;
-    }
+    if (!text.trim() || !currentUser?.email || !otherUser?.email) return;
 
     try {
-      // Normalize emails to lowercase
       const myEmail = currentUser.email.toLowerCase();
       const theirEmail = otherUser.email.toLowerCase();
       
       const participants = [myEmail, theirEmail].sort();
       const chatId = participants.join("_").replace(/\./g, ",");
-      console.log("Chat: Using Chat ID:", chatId);
       
       const chatRef = doc(db, "chats", chatId);
-      
-      // Get current unread count for recipient
       const chatSnap = await getDoc(chatRef);
-      const currentUnread = chatSnap.exists() ? (chatSnap.data().unreadCount?.[theirEmail] || 0) : 0;
+      
+      // Get current unread counts to preserve them
+      const existingData = chatSnap.exists() ? chatSnap.data() : {};
+      const currentUnreadCounts = existingData.unreadCount || {};
+      const recipientUnread = currentUnreadCounts[theirEmail] || 0;
 
       const chatData = {
         participants,
@@ -172,35 +204,28 @@ export function ChatProvider({ children }) {
         },
         lastMessage: text,
         lastMessageSender: myEmail,
-        lastMessageTimestamp: serverTimestamp()
+        lastMessageTimestamp: serverTimestamp(),
+        unreadCount: {
+          ...currentUnreadCounts,
+          [theirEmail]: recipientUnread + 1,
+          [myEmail]: 0 // Sender always has 0 unread for their own sent message
+        }
       };
       
-      console.log("Chat: Updating chat document at:", chatRef.path);
-      // Create document if it doesn't exist
+      // Atomic update of the chat document
       await setDoc(chatRef, chatData, { merge: true });
-      
-      // Increment ONLY the recipient's unread count using dot notation
-      await updateDoc(chatRef, {
-        [`unreadCount.${theirEmail}`]: currentUnread + 1
-      });
 
-      console.log("Chat: Chat document updated successfully.");
-
-      // Add message to history
+      // Add message to history sub-collection
       const messagesCollectionRef = collection(chatRef, "messages");
-      console.log("Chat: Saving message to path:", messagesCollectionRef.path);
-
-      const msgRef = await addDoc(messagesCollectionRef, {
+      await addDoc(messagesCollectionRef, {
         text,
         sender: myEmail,
-        timestamp: serverTimestamp(),
-        read: false
+        timestamp: serverTimestamp()
       });
 
-      console.log("Chat: Message saved successfully. ID:", msgRef.id);
+      console.log("Chat: Message sent and unread count updated.");
     } catch (err) {
-      console.error("%cChat: ERROR IN sendMessage!", "background: red; color: white; padding: 5px;");
-      console.error("Chat: Error details:", err);
+      console.error("Chat: Error in sendMessage:", err);
     }
   };
 
