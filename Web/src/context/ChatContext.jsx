@@ -23,6 +23,22 @@ export function ChatProvider({ children }) {
   const [activeChat, setActiveChat] = useState(null); 
   const [recentChats, setRecentChats] = useState([]); 
   const [isChatListOpen, setIsChatListOpen] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState({}); // { otherUserEmail: count }
+
+  // Update unread counts based on recentChats
+  useEffect(() => {
+    if (!currentUser?.email) return;
+    const counts = {};
+    recentChats.forEach(chat => {
+      const otherEmail = chat.participants.find(p => p !== currentUser.email);
+      // If there's an unread count stored for the current user in this chat
+      const unread = chat.unreadCount?.[currentUser.email] || 0;
+      if (unread > 0) {
+        counts[otherEmail] = unread;
+      }
+    });
+    setUnreadCounts(counts);
+  }, [recentChats, currentUser]);
 
   // Authenticate with Firebase anonymously to allow Firestore access
   useEffect(() => {
@@ -80,6 +96,25 @@ export function ChatProvider({ children }) {
     }
   };
 
+  const markAsRead = async (otherUserEmail) => {
+    if (!currentUser?.email || !otherUserEmail) return;
+    
+    const myEmail = currentUser.email.toLowerCase();
+    const theirEmail = otherUserEmail.toLowerCase();
+    const chatId = [myEmail, theirEmail].sort().join("_").replace(/\./g, ",");
+    
+    try {
+      const chatRef = doc(db, "chats", chatId);
+      await setDoc(chatRef, {
+        unreadCount: {
+          [myEmail]: 0
+        }
+      }, { merge: true });
+    } catch (err) {
+      console.error("Chat: Error marking as read:", err);
+    }
+  };
+
   const sendMessage = async (otherUser, text) => {
     console.log("Chat: Attempting to send message to", otherUser?.email);
     if (!text.trim() || !currentUser?.email || !otherUser?.email) {
@@ -102,6 +137,10 @@ export function ChatProvider({ children }) {
       
       const chatRef = doc(db, "chats", chatId);
       
+      // Get current unread count for recipient
+      const chatSnap = await getDoc(chatRef);
+      const currentUnread = chatSnap.exists() ? (chatSnap.data().unreadCount?.[theirEmail] || 0) : 0;
+
       const chatData = {
         participants,
         participantNames: {
@@ -114,20 +153,31 @@ export function ChatProvider({ children }) {
         },
         lastMessage: text,
         lastMessageSender: myEmail,
-        lastMessageTimestamp: serverTimestamp()
+        lastMessageTimestamp: serverTimestamp(),
+        unreadCount: {
+          [theirEmail]: currentUnread + 1
+        }
       };
       
+      console.log("Chat: Updating chat document at:", chatRef.path);
       await setDoc(chatRef, chatData, { merge: true });
+      console.log("Chat: Chat document updated successfully.");
 
-      await addDoc(collection(chatRef, "messages"), {
+      // Add message to history
+      const messagesCollectionRef = collection(chatRef, "messages");
+      console.log("Chat: Saving message to path:", messagesCollectionRef.path);
+
+      const msgRef = await addDoc(messagesCollectionRef, {
         text,
         sender: myEmail,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        read: false
       });
-      
-      console.log("Chat: Message recorded successfully");
+
+      console.log("Chat: Message saved successfully. ID:", msgRef.id);
     } catch (err) {
-      console.error("Chat: Error in sendMessage:", err);
+      console.error("%cChat: ERROR IN sendMessage!", "background: red; color: white; padding: 5px;");
+      console.error("Chat: Error details:", err);
     }
   };
 
@@ -136,11 +186,13 @@ export function ChatProvider({ children }) {
     activeChat,
     recentChats,
     isChatListOpen,
+    unreadCounts,
     setIsChatListOpen,
     openChatWith,
     closeChat,
     setActiveChat,
-    sendMessage
+    sendMessage,
+    markAsRead
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

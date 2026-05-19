@@ -12,10 +12,19 @@ export default function FloatingChatButton() {
     recentChats, 
     isChatListOpen, 
     setIsChatListOpen, 
-    openChatWith 
+    openChatWith,
+    unreadCounts,
+    markAsRead
   } = useChat();
 
   if (!currentUser) return null;
+
+  const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+
+  const handleOpenChat = (user) => {
+    openChatWith(user);
+    markAsRead(user.email);
+  };
 
   return (
     <div className="chat-global-container">
@@ -45,15 +54,23 @@ export default function FloatingChatButton() {
                 const otherEmail = chat.participants.find(p => p !== currentUser.email);
                 const otherName = chat.participantNames[otherEmail] || otherEmail;
                 
+                const unreadCount = unreadCounts[otherEmail] || 0;
+                
                 return (
                   <div 
                     key={chat.id} 
-                    className="recent-chat-item"
-                    onClick={() => openChatWith({ email: otherEmail, name: otherName })}
+                    className={`recent-chat-item ${unreadCount > 0 ? 'unread' : ''}`}
+                    onClick={() => handleOpenChat({ email: otherEmail, name: otherName })}
                   >
-                    <div className="recent-chat-avatar">{otherName.charAt(0)}</div>
+                    <div className="recent-chat-avatar">
+                      {otherName.charAt(0)}
+                      {unreadCount > 0 && <span className="unread-dot"></span>}
+                    </div>
                     <div className="recent-chat-info">
-                      <div className="recent-chat-name">{otherName}</div>
+                      <div className="recent-chat-name">
+                        {otherName}
+                        {unreadCount > 0 && <span className="unread-count-pill">{unreadCount}</span>}
+                      </div>
                       <div className="recent-chat-last">{chat.lastMessage}</div>
                     </div>
                     <div className="recent-chat-time">
@@ -75,7 +92,7 @@ export default function FloatingChatButton() {
         title="Messages"
       >
         <span className="chat-icon">💬</span>
-        {/* You could add a count here if you track unread messages */}
+        {totalUnread > 0 && <span className="notification-badge">{totalUnread}</span>}
       </button>
     </div>
   );

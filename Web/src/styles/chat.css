@@ -217,41 +217,120 @@
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .message-bubble {
   max-width: 80%;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  padding: 0.8rem 1rem;
+  border-radius: 18px;
+  font-size: 0.9rem;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .message-bubble.sent {
   align-self: flex-end;
-  background: var(--primary);
+  background: #39c6b8; /* var(--primary) */
   color: white;
-  border-bottom-right-radius: 2px;
+  border-bottom-right-radius: 4px;
 }
 
 .message-bubble.received {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.08);
+  background: #2a2a2a;
   color: white;
-  border-bottom-left-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 4px;
 }
 
 .message-text {
   word-break: break-word;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .message-time {
-  font-size: 0.6rem;
-  opacity: 0.6;
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.message-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
   margin-top: 4px;
-  text-align: right;
+}
+
+.message-status {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+/* Badges & Unread State */
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff6b4a;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  border: 2px solid #121212;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.recent-chat-avatar {
+  position: relative;
+}
+
+.unread-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  background: #ff6b4a;
+  border-radius: 50%;
+  border: 2px solid #121212;
+}
+
+.unread-count-pill {
+  background: #ff6b4a;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+
+.recent-chat-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.recent-chat-item.unread {
+  background: rgba(57, 198, 184, 0.08);
+}
+
+.recent-chat-item.unread .recent-chat-last {
+  color: white;
+  font-weight: 600;
 }
 
 .chat-input-area {
