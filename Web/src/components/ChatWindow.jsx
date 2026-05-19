@@ -19,14 +19,19 @@ export default function ChatWindow({ otherUser, onClose }) {
 
   // Find this specific chat in recentChats to get unread stats
   const currentChatData = recentChats.find(c => c.id === chatId);
-  const isOtherUserRead = currentChatData?.unreadCount?.[theirEmail] === 0;
+  
+  // A message is "seen" by the other user if THEIR unread count for this chat is 0
+  // and the last message in the chat was sent by the current user.
+  const isOtherUserRead = currentChatData?.unreadCount && 
+                         currentChatData.unreadCount[theirEmail] === 0 &&
+                         currentChatData.lastMessageSender === myEmail;
 
-  // Mark as read only if THIS window is the active one
+  // Mark as read when the window is active and messages change
   useEffect(() => {
-    if (theirEmail && activeChat?.email === theirEmail) {
+    if (theirEmail && activeChat?.email?.toLowerCase() === theirEmail) {
       markAsRead(theirEmail);
     }
-  }, [theirEmail, messages.length, activeChat]);
+  }, [theirEmail, messages.length, activeChat, markAsRead]);
 
   useEffect(() => {
     if (!chatId) return;

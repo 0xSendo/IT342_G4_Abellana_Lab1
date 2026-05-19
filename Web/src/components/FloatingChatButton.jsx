@@ -23,7 +23,7 @@ export default function FloatingChatButton() {
 
   const handleOpenChat = (user) => {
     openChatWith(user);
-    markAsRead(user.email);
+    // unread decrement is now handled inside openChatWith for consistency
   };
 
   return (
