@@ -37,7 +37,7 @@ public class ApplicationService {
         Application application = Application.builder()
                 .student(student)
                 .internship(internship)
-                .resumePath("default_resume.pdf") // Placeholder
+                .resumePath(student.getResumeUrl() != null ? student.getResumeUrl() : "No resume uploaded")
                 .status(ApplicationStatus.PENDING)
                 .build();
 
@@ -105,10 +105,16 @@ public class ApplicationService {
     }
 
     private ApplicationResponse mapToResponse(Application application) {
+        User student = application.getStudent();
         return ApplicationResponse.builder()
                 .id(application.getId())
-                .studentId(application.getStudent().getId())
-                .studentName(application.getStudent().getName())
+                .studentId(student.getId())
+                .studentName(student.getName())
+                .studentProgram(student.getProgram())
+                .studentYearLevel(student.getYearLevel())
+                .studentBio(student.getBio())
+                .studentSkills(student.getSkills())
+                .studentProjects(student.getProjects())
                 .internshipId(application.getInternship().getId())
                 .internshipTitle(application.getInternship().getTitle())
                 .company(application.getInternship().getCompany())

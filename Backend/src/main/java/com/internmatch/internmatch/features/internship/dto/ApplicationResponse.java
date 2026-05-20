@@ -15,6 +15,11 @@ public class ApplicationResponse {
     private String internshipTitle;
     private String company;
     private String resumePath;
+    private String studentProgram;
+    private String studentYearLevel;
+    private String studentBio;
+    private String studentSkills;
+    private String studentProjects;
     private ApplicationStatus status;
     private LocalDateTime appliedAt;
 }

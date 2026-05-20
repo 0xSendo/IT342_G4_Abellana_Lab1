@@ -8,56 +8,26 @@ import StudentDashboard from "./pages/dashboards/StudentDashboard";
 import EmployerDashboard from "./pages/dashboards/EmployerDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import PrepLab from "./pages/student/PrepLab";
+import ProfileBuilder from "./pages/student/ProfileBuilder";
 import RequireAuth from "./components/RequireAuth";
 import AuthContext from "./context/AuthContext";
 
-function OAuthCallback() {
-  const navigate = useNavigate();
-  const { loginWithOAuth } = useContext(AuthContext);
-
-  useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    if (!hash) return;
-
-    const params = new URLSearchParams(hash);
-    const token = params.get("token");
-    const email = params.get("email");
-    const name = params.get("name");
-    const role = params.get("role");
-
-    if (token && email) {
-      const result = loginWithOAuth({
-        token,
-        email,
-        name: name || email,
-        role: role || "STUDENT",
-      });
-
-      if (result.ok) {
-        window.location.hash = "";
-        const targetDashboard = role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/student";
-        navigate(targetDashboard, { replace: true });
-      }
-    } else {
-      navigate("/", { replace: true });
-    }
-  }, [loginWithOAuth, navigate]);
-
-  return <div>Processing login...</div>;
-}
-
 function App() {
+  const { currentUser } = useContext(AuthContext);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Simple role-based redirect for "/" if logged in
+  useEffect(() => {
+    if (currentUser && location.pathname === "/") {
+      if (currentUser.role === "EMPLOYER") navigate("/dashboard/employer");
+      else if (currentUser.role === "ADMIN") navigate("/dashboard/admin");
+      else navigate("/dashboard/student");
+    }
+  }, [currentUser, location, navigate]);
+
   return (
     <Routes>
-      <Route path="/oauth-callback" element={<OAuthCallback />} />
-      <Route
-        path="/feed"
-        element={
-          <RequireAuth>
-            <Feed />
-          </RequireAuth>
-        }
-      />
       <Route
         path="/dashboard/student"
         element={
@@ -83,10 +53,26 @@ function App() {
         }
       />
       <Route
+        path="/feed"
+        element={
+          <RequireAuth>
+            <Feed />
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/prep-lab"
         element={
           <RequireAuth>
             <PrepLab />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile/build"
+        element={
+          <RequireAuth>
+            <ProfileBuilder />
           </RequireAuth>
         }
       />

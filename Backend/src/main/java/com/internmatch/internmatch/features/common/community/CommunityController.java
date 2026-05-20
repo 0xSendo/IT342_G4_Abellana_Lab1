@@ -91,6 +91,7 @@ public class CommunityController {
                 .studentSkills(student != null ? student.getSkills() : null)
                 .studentProjects(student != null ? student.getProjects() : null)
                 .studentYearLevel(student != null ? student.getYearLevel() : null)
+                .studentResumeUrl(student != null ? student.getResumeUrl() : null)
                 .content(post.getContent())
                 .type(post.getType())
                 .createdAt(post.getCreatedAt() != null ? post.getCreatedAt().toString() : "")

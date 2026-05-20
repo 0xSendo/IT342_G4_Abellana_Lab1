@@ -439,6 +439,33 @@ export default function EmployerFeed() {
                       <p style={{ fontSize: '0.95rem', opacity: 0.8 }}>Available for internship inquiries</p>
                     </div>
 
+                    {selectedStudent.studentResumeUrl && (
+                      <div className="mini-item" style={{ marginTop: '24px' }}>
+                        <label>Professional Resume</label>
+                        <a 
+                          href={selectedStudent.studentResumeUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="skill-tag"
+                          style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '8px', 
+                            textDecoration: 'none', 
+                            background: 'rgba(57, 198, 184, 0.1)', 
+                            color: '#39c6b8', 
+                            border: '1px solid rgba(57, 198, 184, 0.2)',
+                            padding: '10px 20px',
+                            borderRadius: '12px',
+                            fontWeight: 700,
+                            marginTop: '10px'
+                          }}
+                        >
+                          📄 View Student Resume (PDF)
+                        </a>
+                      </div>
+                    )}
+
                     <div className="mini-item" style={{ marginTop: '24px' }}>
                       <label>Technical Skills & Expertise</label>
                       <div className="skills-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>

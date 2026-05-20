@@ -16,6 +16,9 @@ export default function Sidebar() {
 						<NavLink to="/dashboard/student" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
 							Dashboard
 						</NavLink>
+						<NavLink to="/profile/build" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+							Profile Builder
+						</NavLink>
 						<NavLink to="/prep-lab" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
 							Prep Lab
 						</NavLink>

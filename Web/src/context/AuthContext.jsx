@@ -132,6 +132,32 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const uploadResume = async (file) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${API_BASE}/api/files/upload`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        return await res.json();
+      } else {
+        const msg = await res.text();
+        return { ok: false, message: msg || "Upload failed." };
+      }
+    } catch (e) {
+      console.error("Upload error", e);
+      return { ok: false, message: "Could not connect to server." };
+    }
+  };
+
   const value = {
     currentUser,
     isAuthenticated: !!currentUser,
@@ -140,6 +166,7 @@ export function AuthProvider({ children }) {
     loginWithOAuth,
     logout,
     updateProfile,
+    uploadResume,
     getUsers,
   };
 

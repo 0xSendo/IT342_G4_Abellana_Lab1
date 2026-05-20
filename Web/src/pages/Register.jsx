@@ -37,6 +37,7 @@ export default function Register() {
     }
     const res = await register({ name, email, password, role });
     if (!res.ok) {
+      toast.show(res.message, "error");
       setError(res.message);
       return;
     }
@@ -49,7 +50,7 @@ export default function Register() {
     }
 
     setSuccess("Account created! Redirecting to login...");
-    toast.show("Registration successful. Please log in.");
+    toast.show("Registration successful. Please log in.", "success");
     setTimeout(() => navigate("/login", { replace: true, state: { from } }), 1000);
   };
 

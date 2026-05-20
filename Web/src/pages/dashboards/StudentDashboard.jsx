@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
@@ -10,6 +11,7 @@ import "../../styles/notifications.css";
 
 export default function StudentDashboard() {
   const { currentUser, updateProfile } = useContext(AuthContext);
+  const navigate = useNavigate();
   const { openChatWith } = useChat();
   const toast = useToast();
 
@@ -26,6 +28,10 @@ export default function StudentDashboard() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
+
+  const openProfileBuilder = () => {
+    navigate("/profile/build");
+  };
 
   const [form, setForm] = useState({
     name: currentUser?.name || "",
@@ -310,10 +316,10 @@ const profileCompletion = Math.round(
           <section className="bento-card profile-bento">
             <div className="bento-header">
               <div>
-                <span className="bento-label">My Identity</span>
-                <h3>{currentUser?.name || "Student Profile"}</h3>
+                <span className="bento-label">Your Identity</span>
+                <h3>{currentUser?.name}</h3>
               </div>
-              <button className="edit-btn-glass" onClick={openProfileModal}>Edit</button>
+              <button className="edit-btn-glass" onClick={openProfileBuilder}>Edit</button>
             </div>
             
             <div className="profile-details-mini">

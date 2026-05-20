@@ -39,6 +39,10 @@ export default function EmployerDashboard() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentProfileTab, setStudentProfileTab] = useState("essentials");
+  const [isStudentProfileModalOpen, setIsStudentProfileModalOpen] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState("NONE");
   const [postingForm, setPostingForm] = useState(INITIAL_POSTING_FORM);
   const [form, setForm] = useState({
     name: currentUser?.name || "",
@@ -160,6 +164,55 @@ export default function EmployerDashboard() {
     markNotificationsAsRead();
   };
 
+  const fetchConnectionStatus = async (studentId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.get(`/api/connections/status/${studentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConnectionStatus(res.data.status);
+    } catch (err) {
+      console.error("Failed to fetch connection status", err);
+    }
+  };
+
+  const openStudentProfile = (applicant) => {
+    // Map applicant fields to selectedStudent format used in the modal
+    setSelectedStudent({
+      studentId: applicant.studentId,
+      studentName: applicant.name,
+      studentProgram: applicant.studentProgram,
+      studentYearLevel: applicant.studentYearLevel,
+      studentBio: applicant.studentBio,
+      studentSkills: applicant.studentSkills,
+      studentProjects: applicant.studentProjects,
+      studentResumeUrl: applicant.studentResumeUrl
+    });
+    setStudentProfileTab("essentials");
+    setIsStudentProfileModalOpen(true);
+    if (applicant.studentId) {
+      fetchConnectionStatus(applicant.studentId);
+    }
+  };
+
+  const sendConnectionRequest = async (studentId) => {
+    if (!studentId) {
+      toast.show("Error: Invalid Student ID", "error");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      await axios.post(`/api/connections/request/${studentId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.show("Connection request sent!");
+      setConnectionStatus("PENDING_SENT");
+    } catch (err) {
+      console.error("Failed to send connection request", err);
+      toast.show("Failed to send request", "error");
+    }
+  };
+
   const fetchMyPostings = async () => {
     try {
       setIsLoading(true);
@@ -192,7 +245,14 @@ export default function EmployerDashboard() {
           internship: app.internshipTitle,
           dateApplied: new Date(app.appliedAt).toISOString().split('T')[0],
           status: app.status,
-          note: "New application received via portal."
+          note: "New application received via portal.",
+          studentId: app.studentId,
+          studentBio: app.studentBio,
+          studentSkills: app.studentSkills,
+          studentProjects: app.studentProjects,
+          studentProgram: app.studentProgram,
+          studentYearLevel: app.studentYearLevel,
+          studentResumeUrl: app.resumePath,
         }))
       );
 
@@ -763,6 +823,7 @@ export default function EmployerDashboard() {
                       <div className="c-stat" style={{ marginBottom: '12px' }}>Applied: {applicant.dateApplied}</div>
                     </div>
                     <div className="card-actions-pro">
+                      <button className="edit-btn-glass" onClick={() => openStudentProfile(applicant)}>View Profile</button>
                       {applicant.status === "PENDING" && (
                         <>
                           <button className="btn-primary-pro" style={{ padding: '6px' }} onClick={() => updateApplicantStatus(applicant.id, "SHORTLISTED")}>Shortlist</button>
@@ -1092,6 +1153,144 @@ export default function EmployerDashboard() {
               </div>
               <div className="modal-footer-pro">
                 <button className="btn-secondary-glass" onClick={() => setIsFriendsModalOpen(false)}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Profile Modal */}
+      {isStudentProfileModalOpen && selectedStudent && (
+        <div className="modal-overlay">
+          <div className="modal-content profile-modal-pro">
+            <div className="modal-aurora-glow"></div>
+            <div className="modal-inner-content">
+              <div className="modal-header-pro">
+                <div>
+                  <span className="bento-label">Applicant Profile</span>
+                  <h3>{selectedStudent.studentName}</h3>
+                </div>
+                <div className="modal-tabs-pro" style={{ width: 'auto', flex: 'none', marginLeft: 'auto', marginRight: '2rem' }}>
+                  <button 
+                    className={`modal-tab-btn ${studentProfileTab === 'essentials' ? 'active' : ''}`}
+                    onClick={() => setStudentProfileTab('essentials')}
+                  >
+                    <span>🔑 Info</span>
+                  </button>
+                  <button 
+                    className={`modal-tab-btn ${studentProfileTab === 'portfolio' ? 'active' : ''}`}
+                    onClick={() => setStudentProfileTab('portfolio')}
+                  >
+                    <span>🚀 Portfolio</span>
+                  </button>
+                </div>
+                <button className="close-btn-glass" onClick={() => setIsStudentProfileModalOpen(false)}>✕</button>
+              </div>
+              
+              <div className="modal-body-pro" style={{ minHeight: '300px' }}>
+                {studentProfileTab === 'essentials' && (
+                  <div className="profile-details-mini" style={{ animation: 'fadeUp 0.4s ease-out' }}>
+                    <div className="profile-meta-row" style={{ display: 'flex', gap: '30px', marginBottom: '24px' }}>
+                      <div className="mini-item">
+                        <label>Program / Course</label>
+                        <p style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{selectedStudent.studentProgram || "N/A"}</p>
+                      </div>
+                      <div className="mini-item">
+                        <label>Year Level</label>
+                        <p style={{ fontSize: '1.2rem' }}>{selectedStudent.studentYearLevel || "Not specified"}</p>
+                      </div>
+                    </div>
+
+                    {selectedStudent.studentResumeUrl && (
+                      <div className="mini-item" style={{ marginBottom: '24px' }}>
+                        <label>Professional Resume</label>
+                        <a 
+                          href={selectedStudent.studentResumeUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="skill-tag"
+                          style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '8px', 
+                            textDecoration: 'none', 
+                            background: 'rgba(57, 198, 184, 0.1)', 
+                            color: '#39c6b8', 
+                            border: '1px solid rgba(57, 198, 184, 0.2)',
+                            padding: '10px 20px',
+                            borderRadius: '12px',
+                            fontWeight: 700,
+                            marginTop: '10px'
+                          }}
+                        >
+                          📄 View Candidate Resume (PDF)
+                        </a>
+                      </div>
+                    )}
+
+                    <div className="mini-item">
+                      <label>Technical Skills & Expertise</label>
+                      <div className="skills-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                        {(selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).length > 0 ? (
+                          (selectedStudent.studentSkills || "").split(",").map(s => s.trim()).filter(s => s).map((skill, i) => (
+                            <span key={i} className="skill-tag" style={{ background: 'rgba(255,107,74,0.1)', color: 'var(--primary)', padding: '8px 14px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, border: '1px solid rgba(255,107,74,0.2)' }}>{skill}</span>
+                          ))
+                        ) : (
+                          <p style={{ fontSize: '0.85rem', color: 'var(--muted)', fontStyle: 'italic' }}>No specific skills listed yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {studentProfileTab === 'portfolio' && (
+                  <div className="profile-details-mini" style={{ animation: 'fadeUp 0.4s ease-out' }}>
+                    <div className="mini-item">
+                      <label>Professional Bio</label>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', marginTop: '10px' }}>
+                        <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--text)', opacity: 0.9, margin: 0 }}>
+                          {selectedStudent.studentBio || "This student hasn't added a professional bio yet."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mini-item" style={{ marginTop: '24px' }}>
+                      <label>Featured Projects & Accomplishments</label>
+                      <div style={{ background: 'rgba(57, 198, 184, 0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(57, 198, 184, 0.1)', marginTop: '10px' }}>
+                        <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--text)', opacity: 0.9, margin: 0 }}>
+                          {selectedStudent.studentProjects || "No featured projects documented at this time."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer-pro" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 40px' }}>
+                <button className="btn-secondary-glass" onClick={() => setIsStudentProfileModalOpen(false)}>Close Profile</button>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                  {connectionStatus === "NONE" && (
+                    <button className="btn-primary-pro" style={{ background: 'var(--primary)', color: 'white' }} onClick={() => sendConnectionRequest(selectedStudent.studentId)}>
+                      ➕ Connect with Student
+                    </button>
+                  )}
+                  {connectionStatus === "PENDING_SENT" && (
+                    <button className="btn-secondary-glass" disabled style={{ opacity: 0.6 }}>
+                      ⏳ Request Sent
+                    </button>
+                  )}
+                  {connectionStatus === "PENDING_RECEIVED" && (
+                    <button className="btn-primary-pro" style={{ background: '#39c6b8' }} onClick={() => toast.show("Check your talent network requests!")}>
+                      📩 Review Request
+                    </button>
+                  )}
+                  {connectionStatus === "ACCEPTED" && (
+                    <button className="btn-secondary-glass" disabled style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}>
+                      🤝 Connected
+                    </button>
+                  )}
+                  <button className="btn-secondary-glass" style={{ borderColor: 'rgba(57, 198, 184, 0.3)', color: '#39c6b8' }} onClick={() => openChatWith(selectedStudent)}>💬 Message Student</button>
+                </div>
               </div>
             </div>
           </div>

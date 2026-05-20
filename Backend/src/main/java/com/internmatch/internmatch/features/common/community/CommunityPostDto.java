@@ -19,6 +19,7 @@ public class CommunityPostDto {
     private String studentSkills;
     private String studentProjects;
     private String studentYearLevel;
+    private String studentResumeUrl;
     private String content;
     private String type;
     private String createdAt;
