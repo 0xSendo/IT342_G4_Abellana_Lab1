@@ -67,32 +67,50 @@ export default function Register() {
         <Link className="auth-back" to="/">← Back to home</Link>
 
         <form onSubmit={onSubmit}>
-          <input
-            type="text"
-            placeholder="Full Name"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <input
-            type="email"
-            placeholder="Email address"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <select value={role} onChange={(e) => setRole(e.target.value)} required>
-            <option value="STUDENT">Student</option>
-            <option value="EMPLOYER">Employer</option>
-          </select>
-          <button type="submit" className="primary-btn">Register</button>
+          <div className="form-group">
+            <label>Full Name</label>
+            <input
+              type="text"
+              placeholder="Enter your full name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="name@company.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>I am a...</label>
+              <select value={role} onChange={(e) => setRole(e.target.value)} required>
+                <option value="STUDENT">Student</option>
+                <option value="EMPLOYER">Employer</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" className="primary-btn">Create Account</button>
         </form>
 
         {error && <div className="auth-feedback auth-feedback--error">{error}</div>}

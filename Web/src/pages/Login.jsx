@@ -65,27 +65,35 @@ export default function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Welcome Back </h2>
-        <p>Login to your InternMatch account</p>
+        <h2>Welcome Back 👋</h2>
+        <p>Login to continue your journey</p>
 
-        <Link className="auth-back" to="/"> Back to home</Link>
+        <Link className="auth-back" to="/">← Back to home</Link>
 
         <form onSubmit={onSubmit}>
-          <input
-            type="email"
-            placeholder="Email address"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button type="submit" className="primary-btn">Login</button>
+          <div className="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button type="submit" className="primary-btn">Sign In</button>
         </form>
 
         {error && <div className="auth-feedback auth-feedback--error">{error}</div>}
@@ -101,11 +109,11 @@ export default function Login() {
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             <path fill="none" d="M0 0h48v48H0z"/>
           </svg>
-          Sign in with Google
+          Continue with Google
         </button>
 
         <span className="auth-footer">
-          Don't have an account? <Link to="/register">Register</Link>
+          Don't have an account? <Link to="/register">Create one</Link>
         </span>
       </div>
     </div>
