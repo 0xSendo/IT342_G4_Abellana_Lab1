@@ -95,27 +95,71 @@ export function AuthProvider({ children }) {
   const updateProfile = async (formData) => {
     try {
       const token = localStorage.getItem("internmatch_token");
+      
+      // Combine current user data with new form data
+      const rawData = { ...currentUser, ...formData };
+      
+      const cleanData = {
+        name: rawData.name,
+        program: rawData.program,
+        yearLevel: rawData.yearLevel,
+        skills: rawData.skills,
+        bio: rawData.bio,
+        projects: rawData.projects,
+        resumeUrl: rawData.resumeUrl,
+        linkedin: rawData.linkedin,
+        website: rawData.website,
+        companyName: rawData.companyName,
+        companyLocation: rawData.companyLocation,
+        companyWebsite: rawData.companyWebsite,
+        department: rawData.department,
+        phone: rawData.phone
+      };
+      
+      console.log("Saving Profile Data:", cleanData);
+
       const res = await fetch(`${API_BASE}/api/auth/profile`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(cleanData),
       });
 
       if (res.ok) {
         const updatedUser = await res.json();
-        localStorage.setItem("internmatch_currentUser", JSON.stringify(updatedUser));
-        setCurrentUser(updatedUser);
+        console.log("Server Response (Updated User):", updatedUser);
+        
+        // Priority 1: The direct response from the PUT request
+        // Priority 2: The previous state (to keep the token)
+        const mergedUser = { ...currentUser, ...updatedUser };
+        
+        // Final Verification: Fetch fresh from /me to ensure DB persistence
+        const freshRes = await fetch(`${API_BASE}/api/auth/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (freshRes.ok) {
+          const freshUser = await freshRes.ok ? await freshRes.json() : updatedUser;
+          console.log("Fresh Sync from /me:", freshUser);
+          
+          const finalUser = { ...mergedUser, ...freshUser };
+          localStorage.setItem("internmatch_currentUser", JSON.stringify(finalUser));
+          setCurrentUser(finalUser);
+          return { ok: true };
+        }
+
+        localStorage.setItem("internmatch_currentUser", JSON.stringify(mergedUser));
+        setCurrentUser(mergedUser);
         return { ok: true };
       } else {
         const msg = await res.text();
-        return { ok: false, message: msg || "Failed to update profile on server." };
+        return { ok: false, message: msg || "Server error occurred while saving." };
       }
     } catch (e) {
       console.error("Profile update error", e);
-      return { ok: false, message: "Could not connect to server to update profile." };
+      return { ok: false, message: "Network error: Could not reach server." };
     }
   };
 

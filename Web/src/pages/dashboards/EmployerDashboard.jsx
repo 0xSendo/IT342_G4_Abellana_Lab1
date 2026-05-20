@@ -1296,6 +1296,47 @@ export default function EmployerDashboard() {
                         </p>
                       </div>
                     </div>
+
+                    {selectedStudent.studentResumeUrl && (
+                      <div className="mini-item" style={{ marginTop: '24px' }}>
+                        <label>Professional Resume</label>
+                        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', marginTop: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text)', opacity: 0.8 }}>Resume Document</span>
+                            <a 
+                              href={selectedStudent.studentResumeUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="skill-tag"
+                              style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '8px', 
+                                textDecoration: 'none', 
+                                background: 'rgba(57, 198, 184, 0.1)', 
+                                color: '#39c6b8', 
+                                border: '1px solid rgba(57, 198, 184, 0.2)',
+                                padding: '6px 14px',
+                                borderRadius: '10px',
+                                fontSize: '0.8rem',
+                                fontWeight: 700
+                              }}
+                            >
+                              📂 Open Full View
+                            </a>
+                          </div>
+                          <div style={{ height: '400px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <iframe 
+                              src={`${selectedStudent.studentResumeUrl}#toolbar=0`} 
+                              width="100%" 
+                              height="100%" 
+                              style={{ border: 'none' }}
+                              title="Resume Preview"
+                            ></iframe>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

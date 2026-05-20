@@ -12,19 +12,21 @@ export default function ProfileBuilder() {
   const [isUploading, setIsUploading] = useState(false);
   
   const [form, setForm] = useState({
-    name: currentUser?.name || "",
-    program: currentUser?.program || "",
-    yearLevel: currentUser?.yearLevel || "",
-    skills: currentUser?.skills || "",
-    bio: currentUser?.bio || "",
-    projects: currentUser?.projects || "",
-    resumeUrl: currentUser?.resumeUrl || "",
-    linkedin: currentUser?.linkedin || "",
-    website: currentUser?.website || "",
+    name: "",
+    program: "",
+    yearLevel: "",
+    skills: "",
+    bio: "",
+    projects: "",
+    resumeUrl: "",
+    linkedin: "",
+    website: "",
   });
 
+  // Load initial data only once or when currentUser is first available
+  const [isInitialized, setIsInitialized] = useState(false);
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && !isInitialized) {
       setForm({
         name: currentUser.name || "",
         program: currentUser.program || "",
@@ -36,8 +38,9 @@ export default function ProfileBuilder() {
         linkedin: currentUser.linkedin || "",
         website: currentUser.website || "",
       });
+      setIsInitialized(true);
     }
-  }, [currentUser]);
+  }, [currentUser, isInitialized]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,7 +62,7 @@ export default function ProfileBuilder() {
 
     if (result.fileDownloadUri) {
       setForm(prev => ({ ...prev, resumeUrl: result.fileDownloadUri }));
-      toast.show("Resume uploaded successfully!", "success");
+      toast.show("Resume uploaded successfully! Please click Save Changes to finalize.", "success");
     } else {
       toast.show(result.message || "Upload failed.", "error");
     }
@@ -214,7 +217,14 @@ export default function ProfileBuilder() {
             )}
 
             <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-              <button type="submit" className="btn-primary-pro" style={{ padding: '12px 30px' }}>Save Changes</button>
+              <button 
+                type="submit" 
+                className="btn-primary-pro" 
+                style={{ padding: '12px 30px' }}
+                disabled={isUploading}
+              >
+                {isUploading ? "Uploading..." : "Save Changes"}
+              </button>
             </div>
           </form>
         </div>

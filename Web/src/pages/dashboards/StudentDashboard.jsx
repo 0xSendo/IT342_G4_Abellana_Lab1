@@ -41,6 +41,9 @@ export default function StudentDashboard() {
     skills: currentUser?.skills || "",
     bio: currentUser?.bio || "",
     projects: currentUser?.projects || "",
+    resumeUrl: currentUser?.resumeUrl || "",
+    linkedin: currentUser?.linkedin || "",
+    website: currentUser?.website || "",
   });
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
@@ -151,17 +154,25 @@ export default function StudentDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Load initial data only once
+  const [isInitialized, setIsInitialized] = useState(false);
   useEffect(() => {
-    setForm({
-      name: currentUser?.name || "",
-      email: currentUser?.email || "",
-      program: currentUser?.program || "",
-      yearLevel: currentUser?.yearLevel || "",
-      skills: currentUser?.skills || "",
-      bio: currentUser?.bio || "",
-      projects: currentUser?.projects || "",
-    });
-  }, [currentUser]);
+    if (currentUser && !isInitialized) {
+      setForm({
+        name: currentUser.name || "",
+        email: currentUser.email || "",
+        program: currentUser.program || "",
+        yearLevel: currentUser.yearLevel || "",
+        skills: currentUser.skills || "",
+        bio: currentUser.bio || "",
+        projects: currentUser.projects || "",
+        resumeUrl: currentUser.resumeUrl || "",
+        linkedin: currentUser.linkedin || "",
+        website: currentUser.website || "",
+      });
+      setIsInitialized(true);
+    }
+  }, [currentUser, isInitialized]);
 
   const normalizedSearch = applicationSearch.trim().toLowerCase();
 

@@ -19,5 +19,12 @@ public class AuthResponse {
     private String skills;
     private String bio;
     private String projects;
+    private String resumeUrl;
+    private String linkedin;
+    private String website;
     private String companyName;
+    private String companyLocation;
+    private String companyWebsite;
+    private String department;
+    private String phone;
 }

@@ -15,6 +15,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements UserDetails {
 
     @Id
@@ -49,8 +50,17 @@ public class User implements UserDetails {
     @Column(columnDefinition = "TEXT")
     private String projects;
 
-    @Column
+    @Column(length = 2000)
+    @com.fasterxml.jackson.annotation.JsonProperty("resumeUrl")
     private String resumeUrl;
+
+    @Column(length = 2000)
+    @com.fasterxml.jackson.annotation.JsonProperty("linkedin")
+    private String linkedin;
+
+    @Column(length = 2000)
+    @com.fasterxml.jackson.annotation.JsonProperty("website")
+    private String website;
 
     @Column
     private String companyName;

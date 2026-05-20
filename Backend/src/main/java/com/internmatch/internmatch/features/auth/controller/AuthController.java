@@ -62,7 +62,14 @@ public class AuthController {
                 .skills(user.getSkills())
                 .bio(user.getBio())
                 .projects(user.getProjects())
+                .resumeUrl(user.getResumeUrl())
+                .linkedin(user.getLinkedin())
+                .website(user.getWebsite())
                 .companyName(user.getCompanyName())
+                .companyLocation(user.getCompanyLocation())
+                .companyWebsite(user.getCompanyWebsite())
+                .department(user.getDepartment())
+                .phone(user.getPhone())
                 .build());
     }
 
@@ -74,17 +81,24 @@ public class AuthController {
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(org.springframework.security.core.Authentication authentication, @RequestBody User profileData) {
+    public ResponseEntity<?> updateProfile(org.springframework.security.core.Authentication authentication, @RequestBody java.util.Map<String, Object> profileData) {
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        user.setName(profileData.getName());
-        user.setProgram(profileData.getProgram());
-        user.setYearLevel(profileData.getYearLevel());
-        user.setSkills(profileData.getSkills());
-        user.setBio(profileData.getBio());
-        user.setProjects(profileData.getProjects());
-        user.setCompanyName(profileData.getCompanyName());
+        if (profileData.containsKey("name")) user.setName((String) profileData.get("name"));
+        if (profileData.containsKey("program")) user.setProgram((String) profileData.get("program"));
+        if (profileData.containsKey("yearLevel")) user.setYearLevel((String) profileData.get("yearLevel"));
+        if (profileData.containsKey("skills")) user.setSkills((String) profileData.get("skills"));
+        if (profileData.containsKey("bio")) user.setBio((String) profileData.get("bio"));
+        if (profileData.containsKey("projects")) user.setProjects((String) profileData.get("projects"));
+        if (profileData.containsKey("resumeUrl")) user.setResumeUrl((String) profileData.get("resumeUrl"));
+        if (profileData.containsKey("linkedin")) user.setLinkedin((String) profileData.get("linkedin"));
+        if (profileData.containsKey("website")) user.setWebsite((String) profileData.get("website"));
+        if (profileData.containsKey("companyName")) user.setCompanyName((String) profileData.get("companyName"));
+        if (profileData.containsKey("companyLocation")) user.setCompanyLocation((String) profileData.get("companyLocation"));
+        if (profileData.containsKey("companyWebsite")) user.setCompanyWebsite((String) profileData.get("companyWebsite"));
+        if (profileData.containsKey("department")) user.setDepartment((String) profileData.get("department"));
+        if (profileData.containsKey("phone")) user.setPhone((String) profileData.get("phone"));
         
         userRepository.save(user);
         return ResponseEntity.ok(user);

@@ -30,9 +30,9 @@ export default function AdminDashboard() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const onSave = (e) => {
+  const onSave = async (e) => {
     e.preventDefault();
-    const res = updateProfile({
+    const res = await updateProfile({
       name: form.name,
       email: form.email,
       department: form.department,
