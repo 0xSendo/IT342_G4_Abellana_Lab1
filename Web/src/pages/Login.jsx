@@ -21,6 +21,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
   const googleOauth2Url = import.meta.env.VITE_GOOGLE_OAUTH2_URL || "/oauth2/authorization/google";
@@ -40,30 +41,51 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setIsLoading(true);
+
+    // Realistic delay for a better UX
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     const res = await login({ email, password });
     if (!res.ok) {
       setError(res.message);
+      setIsLoading(false);
       return;
     }
     
     toast.show("Successfully logged in!");
     setSuccess("Login successful! Redirecting...");
+    
     const role = res.user.role || "STUDENT";
     const roleDashboard = getRoleDashboard(role);
+    
     if (from && from.startsWith(roleDashboard)) {
       navigate(from, { replace: true });
-      return;
+    } else {
+      navigate(roleDashboard, { replace: true });
     }
-    navigate(roleDashboard, { replace: true });
+    // Note: setIsLoading(false) is not needed here as we are navigating away
   };
 
   const handleGoogleLogin = () => {
+    setIsLoading(true);
     const base = apiBaseUrl.replace(/\/$/, "");
     window.location.href = `${base}${googleOauth2Url}`;
   };
 
   return (
     <div className="auth-container">
+      {isLoading && (
+        <div className="auth-loading-overlay">
+          <div className="loader-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div className="auth-loading-text">Authenticating...</div>
+        </div>
+      )}
+      
       <div className="auth-card">
         <h2>Welcome Back 👋</h2>
         <p>Login to continue your journey</p>

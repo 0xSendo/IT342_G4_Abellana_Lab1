@@ -212,3 +212,63 @@
   .form-row { grid-template-columns: 1fr; gap: 0; }
   .auth-card h2 { font-size: 1.5rem; }
 }
+
+/* Loading Experience */
+.auth-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(2, 8, 23, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.loader-pulse {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 0 rgba(255, 107, 74, 0.4);
+  animation: pulse-primary 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader-pulse svg {
+  color: white;
+  width: 30px;
+  height: 30px;
+}
+
+@keyframes pulse-primary {
+  to {
+    box-shadow: 0 0 0 45px rgba(255, 107, 74, 0);
+  }
+}
+
+.auth-loading-text {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 1px;
+  animation: fadePulse 1.5s infinite ease-in-out;
+}
+
+@keyframes fadePulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
