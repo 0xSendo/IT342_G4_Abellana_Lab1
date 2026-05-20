@@ -195,34 +195,87 @@ export default function PrepLab() {
 
     setIsEvaluating(true);
     
-    // Improved AI evaluation logic
+    // Enhanced Logic-Based Evaluation
     setTimeout(() => {
       const lowerAnswer = trimmedAnswer.toLowerCase();
+      const words = lowerAnswer.split(/\s+/).filter(w => w.length > 0);
+      const uniqueWords = new Set(words);
+      
       let score = 0;
-      let strengths = "";
-      let improvement = "";
+      let strengths = [];
+      let improvements = [];
 
-      // Check for low-effort or negative-intent answers
-      if (lowerAnswer.includes("don't know") || lowerAnswer.includes("dont know") || lowerAnswer.includes("unemployed") || lowerAnswer.includes("nothing")) {
-        score = Math.floor(Math.random() * 15) + 5; // 5-20 range for poor answers
-        strengths = "Honesty, perhaps?";
-        improvement = "This response lacks professional intent. An interviewer looks for motivation, curiosity, and a desire to contribute. Try to focus on what you want to learn or achieve.";
+      // 1. GIBBERISH DETECTION (Density & Commonality)
+      const commonEnglishWords = ["the", "and", "a", "to", "in", "is", "it", "you", "that", "he", "was", "for", "on", "are", "with", "as", "i", "his", "they", "be", "at", "one", "have", "this", "from", "or", "had", "by", "hot", "word", "but", "some", "what", "we", "can", "out", "other", "were", "all", "there", "when", "up", "use", "your", "how", "said", "an", "each", "she"];
+      const commonWordCount = words.filter(w => commonEnglishWords.includes(w)).length;
+      const commonWordDensity = commonWordCount / words.length;
+      const varietyRatio = uniqueWords.size / words.length;
+
+      // If very low common word density or extremely repetitive, flag as potential gibberish
+      const isPotentialGibberish = commonWordDensity < 0.1 || (varietyRatio < 0.2 && words.length > 30);
+
+      // 2. RELEVANCE CHECK (Keywords based on category)
+      const categoryKeywords = {
+        "Behavioral": ["action", "result", "situation", "task", "learned", "managed", "problem", "resolved", "team", "worked", "achieved", "impact"],
+        "Technical": ["system", "data", "logic", "code", "architecture", "tool", "framework", "performance", "scalable", "efficient", "management", "state", "api"],
+        "Problem Solving": ["priority", "deadline", "organized", "impact", "solution", "identified", "urgency", "decision", "approach", "analyzed"]
+      };
+
+      const relevantKeywords = categoryKeywords[currentQuestion.category] || [];
+      const matchedKeywords = relevantKeywords.filter(kw => lowerAnswer.includes(kw));
+      const relevanceScore = (matchedKeywords.length / Math.min(relevantKeywords.length, 5)) * 100;
+
+      // 3. STRUCTURE CHECK (STAR Method etc)
+      const hasStructure = (lowerAnswer.includes("situation") || lowerAnswer.includes("time when")) && 
+                           (lowerAnswer.includes("result") || lowerAnswer.includes("outcome") || lowerAnswer.includes("finally") || lowerAnswer.includes("ended up"));
+
+      // SCORING CALCULATION
+      if (isPotentialGibberish || words.length < 10) {
+        score = Math.floor(Math.random() * 10) + 5; // 5-15%
+        strengths.push("Length is present.");
+        improvements.push("This response appears to be low-quality or gibberish. Use real words and meaningful sentences.");
+        improvements.push("An interviewer expects a structured, professional story.");
       } else {
-        // Regular evaluation for serious attempts
-        score = Math.floor(Math.random() * 20) + 75; // 75-95 range
-        strengths = trimmedAnswer.length > 100 ? "Great detail and context." : "Clear and concise explanation.";
-        improvement = (lowerAnswer.includes("result") || lowerAnswer.includes("outcome") || lowerAnswer.includes("learned"))
-          ? "Good focus on results. Try adding more specific metrics or data points." 
-          : "Try to emphasize the 'Result' part of your story (what happened in the end?).";
+        // Base score on length (max 30 pts)
+        const lengthPoints = Math.min(trimmedAnswer.length / 20, 30);
+        // Points for relevance (max 40 pts)
+        const relevancePoints = Math.min(relevanceScore * 0.4, 40);
+        // Points for structure (max 30 pts)
+        const structurePoints = hasStructure ? 30 : 10;
+
+        score = Math.round(lengthPoints + relevancePoints + structurePoints);
+        
+        // Final sanity cap for non-structured answers
+        if (!hasStructure && score > 70) score = 70;
+        
+        // Caps and floors
+        score = Math.min(Math.max(score, 20), 98);
+
+        // Feedback generation
+        if (trimmedAnswer.length > 200) strengths.push("Excellent depth and detail.");
+        else if (trimmedAnswer.length > 100) strengths.push("Good descriptive effort.");
+        
+        if (relevanceScore > 50) strengths.push(`Strong use of ${currentQuestion.category.toLowerCase()} terminology.`);
+        if (hasStructure) strengths.push("Followed a clear logical structure (STAR-like).");
+
+        if (relevanceScore < 30) improvements.push(`Try to use more keywords related to ${currentQuestion.category} concepts.`);
+        if (!hasStructure) improvements.push("Try to explicitly state the 'Result' or 'Outcome' of your story.");
+        if (words.length < 30) improvements.push("Try expanding your answer to provide more context for the interviewer.");
       }
 
-      setFeedback({ score, strengths, improvement });
+      setFeedback({ 
+        score, 
+        strengths: strengths.length > 0 ? strengths.join(" ") : "None identified.", 
+        improvement: improvements.length > 0 ? improvements.join(" ") : "Keep practicing to refine your delivery!" 
+      });
       setIsEvaluating(false);
       
-      if (score < 30) {
+      if (score < 40) {
         toast.show("Evaluation complete. This response needs significant work.", "warning");
+      } else if (score < 70) {
+        toast.show("Good effort! Focus on structure to improve your score.", "info");
       } else {
-        toast.show("Evaluation complete!", "success");
+        toast.show("Excellent practice response!", "success");
       }
     }, 1500);
   };
