@@ -176,6 +176,39 @@ export default function EmployerDashboard() {
     }
   };
 
+  const fetchSavedStatus = async (studentId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.get(`${API_BASE}/api/saved-profiles/check/${studentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsSaved(res.data);
+    } catch (err) {
+      console.error("Failed to fetch saved status", err);
+    }
+  };
+
+  const toggleSaveProfile = async (studentId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (isSaved) {
+        await axios.delete(`${API_BASE}/api/saved-profiles/${studentId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.show("Profile removed from saved list.");
+      } else {
+        await axios.post(`${API_BASE}/api/saved-profiles/${studentId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.show("Profile saved!");
+      }
+      setIsSaved(!isSaved);
+    } catch (err) {
+      console.error("Toggle save error", err);
+      toast.show("Failed to update saved status", "error");
+    }
+  };
+
   const openStudentProfile = (applicant) => {
     // Map applicant fields to selectedStudent format used in the modal
     setSelectedStudent({
@@ -192,6 +225,7 @@ export default function EmployerDashboard() {
     setIsStudentProfileModalOpen(true);
     if (applicant.studentId) {
       fetchConnectionStatus(applicant.studentId);
+      fetchSavedStatus(applicant.studentId);
     }
   };
 
@@ -1269,6 +1303,13 @@ export default function EmployerDashboard() {
               <div className="modal-footer-pro" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 40px' }}>
                 <button className="btn-secondary-glass" onClick={() => setIsStudentProfileModalOpen(false)}>Close Profile</button>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                  <button 
+                    className="btn-secondary-glass" 
+                    style={{ borderColor: isSaved ? 'var(--primary)' : 'rgba(255,255,255,0.1)', color: isSaved ? 'var(--primary)' : 'inherit' }} 
+                    onClick={() => toggleSaveProfile(selectedStudent.studentId)}
+                  >
+                    {isSaved ? "⭐ Saved" : "📁 Save Profile"}
+                  </button>
                   {connectionStatus === "NONE" && (
                     <button className="btn-primary-pro" style={{ background: 'var(--primary)', color: 'white' }} onClick={() => sendConnectionRequest(selectedStudent.studentId)}>
                       ➕ Connect with Student

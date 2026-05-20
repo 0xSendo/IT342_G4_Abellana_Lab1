@@ -23,6 +23,7 @@ export default function EmployerFeed() {
   const [studentProfileTab, setStudentProfileTab] = useState("essentials");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("NONE");
+  const [isSaved, setIsSaved] = useState(false);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
@@ -42,15 +43,50 @@ export default function EmployerFeed() {
     return isNaN(d.getTime()) ? "N/A" : d.toLocaleString();
   };
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+
   const fetchConnectionStatus = async (studentId) => {
     try {
       const token = localStorage.getItem("internmatch_token");
-      const res = await axios.get(`/api/connections/status/${studentId}`, {
+      const res = await axios.get(`${API_BASE}/api/connections/status/${studentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConnectionStatus(res.data.status);
     } catch (err) {
       console.error("Failed to fetch connection status", err);
+    }
+  };
+
+  const fetchSavedStatus = async (studentId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      const res = await axios.get(`${API_BASE}/api/saved-profiles/check/${studentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsSaved(res.data);
+    } catch (err) {
+      console.error("Failed to fetch saved status", err);
+    }
+  };
+
+  const toggleSaveProfile = async (studentId) => {
+    try {
+      const token = localStorage.getItem("internmatch_token");
+      if (isSaved) {
+        await axios.delete(`${API_BASE}/api/saved-profiles/${studentId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.show("Profile removed from saved list.");
+      } else {
+        await axios.post(`${API_BASE}/api/saved-profiles/${studentId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.show("Profile saved!");
+      }
+      setIsSaved(!isSaved);
+    } catch (err) {
+      console.error("Toggle save error", err);
+      toast.show("Failed to update saved status", "error");
     }
   };
 
@@ -92,9 +128,7 @@ export default function EmployerFeed() {
   const fetchCommunityPosts = async () => {
     try {
       setIsActivityLoading(true);
-      console.log("Employer fetching community posts...");
       const res = await axios.get("/api/community/all");
-      console.log("Employer fetched posts:", res.data);
       setCommunityPosts(res.data || []);
     } catch (err) {
       console.error("Failed to fetch community posts", err);
@@ -207,6 +241,7 @@ export default function EmployerFeed() {
     setIsProfileModalOpen(true);
     if (student.studentId) {
       fetchConnectionStatus(student.studentId);
+      fetchSavedStatus(student.studentId);
     }
   };
 
@@ -392,7 +427,7 @@ export default function EmployerFeed() {
         </div>
       </div>
 
-      {/* Student Profile Modal (Read Only for Employer) */}
+      {/* Student Profile Modal */}
       {isProfileModalOpen && selectedStudent && (
         <div className="modal-overlay">
           <div className="modal-content profile-modal-pro">
@@ -505,8 +540,15 @@ export default function EmployerFeed() {
               </div>
 
               <div className="modal-footer-pro" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 40px' }}>
-                <button className="btn-secondary-glass" onClick={() => setIsProfileModalOpen(false)}>Back to Feed</button>
+                <button className="btn-secondary-glass" onClick={() => setIsProfileModalOpen(false)}>Close Profile</button>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                  <button 
+                    className="btn-secondary-glass" 
+                    style={{ borderColor: isSaved ? 'var(--primary)' : 'rgba(255,255,255,0.1)', color: isSaved ? 'var(--primary)' : 'inherit' }} 
+                    onClick={() => toggleSaveProfile(selectedStudent.studentId)}
+                  >
+                    {isSaved ? "⭐ Saved" : "📁 Save Profile"}
+                  </button>
                   {connectionStatus === "NONE" && (
                     <button className="btn-primary-pro" style={{ background: 'var(--primary)', color: 'white' }} onClick={() => sendConnectionRequest(selectedStudent.studentId)}>
                       ➕ Connect with Student
@@ -527,7 +569,6 @@ export default function EmployerFeed() {
                       🤝 Connected
                     </button>
                   )}
-                  <button className="btn-secondary-glass" style={{ borderColor: 'rgba(57, 198, 184, 0.3)', color: '#39c6b8' }} onClick={() => toast.show("Bookmark feature coming soon!")}>🔖 Save Profile</button>
                 </div>
               </div>
             </div>

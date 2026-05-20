@@ -25,9 +25,14 @@ export default function Sidebar() {
 					</>
 				)}
 				{role === "EMPLOYER" && (
-					<NavLink to="/dashboard/employer" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-						Dashboard
-					</NavLink>
+					<>
+						<NavLink to="/dashboard/employer" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+							Dashboard
+						</NavLink>
+						<NavLink to="/saved-profiles" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+							Saved Talent
+						</NavLink>
+					</>
 				)}
 				{role === "ADMIN" && (
 					<NavLink to="/dashboard/admin" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>

@@ -9,6 +9,7 @@ import EmployerDashboard from "./pages/dashboards/EmployerDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import PrepLab from "./pages/student/PrepLab";
 import ProfileBuilder from "./pages/student/ProfileBuilder";
+import SavedProfiles from "./pages/employer/SavedProfiles";
 import RequireAuth from "./components/RequireAuth";
 import AuthContext from "./context/AuthContext";
 
@@ -73,6 +74,14 @@ function App() {
         element={
           <RequireAuth>
             <ProfileBuilder />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/saved-profiles"
+        element={
+          <RequireAuth>
+            <SavedProfiles />
           </RequireAuth>
         }
       />
