@@ -133,9 +133,14 @@ export default function StudentFeed() {
       await fetchCommunityPosts();
     } catch (err) {
       console.error("Failed to post", err);
-      const isLimitError = err.response?.data === "LIMIT_REACHED" || err.response?.data?.message === "LIMIT_REACHED";
+      const backendMsg = err.response?.data?.message || err.response?.data;
+      const isLimitError = backendMsg === "LIMIT_REACHED";
+      const isModerationError = typeof backendMsg === 'string' && backendMsg.includes("MODERATION_ERROR");
+
       if (isLimitError) {
         toast.show("Action Denied: One post limit per student. Please manage your existing post.", "error");
+      } else if (isModerationError) {
+        toast.show(backendMsg.replace("MODERATION_ERROR: ", ""), "error");
       } else {
         toast.show("Failed to share update", "error");
       }
@@ -175,7 +180,14 @@ export default function StudentFeed() {
       fetchCommunityPosts();
     } catch (err) {
       console.error("Failed to update post", err);
-      toast.show("Failed to update post", "error");
+      const backendMsg = err.response?.data?.message || err.response?.data;
+      const isModerationError = typeof backendMsg === 'string' && backendMsg.includes("MODERATION_ERROR");
+
+      if (isModerationError) {
+        toast.show(backendMsg.replace("MODERATION_ERROR: ", ""), "error");
+      } else {
+        toast.show("Failed to update post", "error");
+      }
     }
   };
 

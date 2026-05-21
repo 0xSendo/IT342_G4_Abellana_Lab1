@@ -122,7 +122,9 @@ export function ChatProvider({ children }) {
     
     const otherEmail = otherUser.email.toLowerCase();
     setOpenChats(prev => {
-      if (prev.find(c => c.email.toLowerCase() === otherEmail)) return prev;
+      // Robust check: find by email and ignore casing/object structure differences
+      const exists = prev.some(c => c.email && c.email.toLowerCase() === otherEmail);
+      if (exists) return prev;
       return [...prev, otherUser].slice(-3);
     });
     setActiveChat(otherUser);
