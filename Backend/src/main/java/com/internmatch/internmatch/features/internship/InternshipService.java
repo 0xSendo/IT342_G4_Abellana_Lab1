@@ -166,6 +166,49 @@ public class InternshipService {
     }
     
     /**
+     * Get all internships (regardless of status or owner)
+     */
+    @Transactional(readOnly = true)
+    public List<InternshipResponse> getAllInternshipsAdmin() {
+        return internshipRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Update internship by admin (no ownership check)
+     */
+    public InternshipResponse updateInternshipAdmin(Long id, CreateInternshipRequest request) {
+        Internship internship = internshipRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Internship not found with id: " + id));
+        
+        internship.setTitle(request.getTitle());
+        internship.setDescription(request.getDescription());
+        internship.setCompany(request.getCompany());
+        internship.setLocation(request.getLocation());
+        internship.setSetup(request.getSetup());
+        internship.setStartDate(request.getStartDate());
+        internship.setEndDate(request.getEndDate());
+        internship.setStatus(request.getStatus());
+        internship.setUpdatedAt(LocalDate.now());
+        
+        Internship updated = internshipRepository.save(internship);
+        return mapToResponse(updated);
+    }
+
+    /**
+     * Delete internship by admin (no ownership check)
+     */
+    public void deleteInternshipAdmin(Long id) {
+        if (!internshipRepository.existsById(id)) {
+            throw new IllegalArgumentException("Internship not found with id: " + id);
+        }
+        applicationRepository.deleteByInternshipId(id);
+        internshipRepository.deleteById(id);
+    }
+    
+    /**
      * Map Internship entity to response DTO
      */
     private InternshipResponse mapToResponse(Internship internship) {
@@ -176,6 +219,7 @@ public class InternshipService {
                         .id(app.getId())
                         .studentId(app.getStudent().getId())
                         .studentName(app.getStudent().getName())
+                        .studentEmail(app.getStudent().getEmail())
                         .internshipId(internship.getId())
                         .internshipTitle(internship.getTitle())
                         .company(internship.getCompany())
@@ -196,6 +240,7 @@ public class InternshipService {
                 .startDate(internship.getStartDate())
                 .endDate(internship.getEndDate())
                 .postedByEmail(internship.getPostedBy().getEmail())
+                .postedByName(internship.getPostedBy().getName())
                 .createdAt(internship.getCreatedAt())
                 .updatedAt(internship.getUpdatedAt())
                 .applicantsList(apps)

@@ -66,4 +66,15 @@ public class CommunityPostService {
         post.setContent(content);
         return repository.save(post);
     }
+
+    public void deletePostAdmin(Long id) {
+        repository.deleteById(id);
+    }
+
+    public CommunityPost updatePostAdmin(Long id, String content) {
+        CommunityPost post = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        post.setContent(content);
+        return repository.save(post);
+    }
 }

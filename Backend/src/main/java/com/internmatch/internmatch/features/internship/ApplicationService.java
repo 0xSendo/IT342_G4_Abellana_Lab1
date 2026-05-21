@@ -104,12 +104,25 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ApplicationResponse> getAllApplicationsAdmin() {
+        return applicationRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteApplicationAdmin(Long id) {
+        applicationRepository.deleteById(id);
+    }
+
     private ApplicationResponse mapToResponse(Application application) {
         User student = application.getStudent();
         return ApplicationResponse.builder()
                 .id(application.getId())
                 .studentId(student.getId())
                 .studentName(student.getName())
+                .studentEmail(student.getEmail())
                 .studentProgram(student.getProgram())
                 .studentYearLevel(student.getYearLevel())
                 .studentBio(student.getBio())

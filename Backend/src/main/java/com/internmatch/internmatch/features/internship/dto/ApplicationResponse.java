@@ -11,6 +11,7 @@ public class ApplicationResponse {
     private Long id;
     private Long studentId;
     private String studentName;
+    private String studentEmail;
     private Long internshipId;
     private String internshipTitle;
     private String company;

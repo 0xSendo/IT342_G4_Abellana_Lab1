@@ -108,4 +108,13 @@ public class AuthController {
     public ResponseEntity<java.util.List<User>> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("User access terminated");
+    }
 }

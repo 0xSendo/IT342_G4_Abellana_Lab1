@@ -19,4 +19,6 @@ public interface InternshipRepository extends JpaRepository<Internship, Long> {
     
     @Query("SELECT i FROM Internship i WHERE i.status = :status ORDER BY i.createdAt DESC")
     List<Internship> findActiveInternships(@Param("status") InternshipStatus status);
+
+    List<Internship> findAllByOrderByCreatedAtDesc();
 }
