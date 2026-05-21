@@ -3,6 +3,7 @@ import { useEffect, useContext } from "react";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import OAuthCallback from "./pages/OAuthCallback";
 import Feed from "./pages/Feed";
 import StudentDashboard from "./pages/dashboards/StudentDashboard";
 import EmployerDashboard from "./pages/dashboards/EmployerDashboard";
@@ -88,6 +89,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/oauth-callback" element={<OAuthCallback />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

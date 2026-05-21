@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
     fetchMe();
   }, []);
 
-  const loginWithOAuth = ({ token, email, name, role, ...rest }) => {
+  const loginWithOAuth = React.useCallback(({ token, email, name, role, ...rest }) => {
     const normalizedEmail = email?.toLowerCase?.();
     const normalizedRole = role || "STUDENT";
     if (!token || !normalizedEmail) {
@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("internmatch_currentUser", JSON.stringify(user));
     setCurrentUser(user);
     return { ok: true, user };
-  };
+  }, []);
 
   const register = async ({ name, email, password, role }) => {
     try {
