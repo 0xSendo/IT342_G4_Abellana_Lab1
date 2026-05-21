@@ -27,8 +27,12 @@ public class ContentModerationService {
             "nigger", "nigga", "niggah", "faggot", "chink", "retard", "kike", "spic", "wetback", "hitler", "nazi",
             // Explicit / Profanity
             "porn", "pornography", "bitch", "whore", "slut", "cunt", "pussy", "dick", "cock", "fuck", "shit", "asshole",
-            // Scams / Spam
+            "puta", "gago", "tarantado", "pakyu", "kupal",
+            // Scams / Spam / Security
             "crypto", "bitcoin", "ethereum", "casino", "gambling", "betting", "lottery", "win money", "free cash", "earn money",
+            "hack", "exploit", "phishing", "scam", "credential", "password", "token",
+            // Illegal Substances
+            "drugs", "weed", "cocaine", "heroin", "meth", "marijuana",
             // Violence
             "rape", "kill yourself", "kys", "murder", "suicide", "bomb", "terrorist", "terrorism"
     );

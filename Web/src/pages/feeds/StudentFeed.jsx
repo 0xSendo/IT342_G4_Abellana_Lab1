@@ -48,6 +48,36 @@ export default function StudentFeed() {
   const [editingPostId, setEditingPostId] = useState(null);
   const [editPostContent, setEditPostContent] = useState("");
 
+  const validatePostContent = (content) => {
+    if (!content) return true;
+    
+    // 1. URL/Link detection
+    const urlPattern = /((https?:\/\/|www\.)[^\s]+|([a-z0-9]+\.)+(com|net|org|io|gov|edu|ph|link|me|xyz))/gi;
+    if (urlPattern.test(content)) {
+      toast.show("Security Alert: External links and URLs are not allowed in community posts for safety.", "error");
+      return false;
+    }
+
+    // 2. Sensitive Topics / Prohibited Keywords
+    const forbiddenTerms = [
+      "crypto", "bitcoin", "ethereum", "casino", "gambling", "betting", "lottery",
+      "porn", "nude", "explicit", "fuck", "shit", "bitch", "asshole",
+      "puta", "gago", "tarantado", "pakyu", "kupal",
+      "hack", "exploit", "phishing", "scam",
+      "rape", "murder", "suicide", "bomb", "terrorist"
+    ];
+    
+    const lowercaseContent = content.toLowerCase();
+    const foundTerm = forbiddenTerms.find(term => lowercaseContent.includes(term));
+    
+    if (foundTerm) {
+      toast.show("Content Violation: Your post contains prohibited language or sensitive topics.", "error");
+      return false;
+    }
+
+    return true;
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     const d = new Date(dateStr);
@@ -111,6 +141,8 @@ export default function StudentFeed() {
     e.preventDefault();
     if (!newPostContent.trim()) return;
 
+    if (!validatePostContent(newPostContent)) return;
+
     // Frontend pre-check: Check if student already has a post in the current list
     const hasExisting = communityPosts.some(p => p.studentEmail === currentUser?.email);
     if (hasExisting) {
@@ -167,6 +199,8 @@ export default function StudentFeed() {
 
   const handleUpdatePost = async (postId) => {
     if (!editPostContent.trim()) return;
+
+    if (!validatePostContent(editPostContent)) return;
 
     try {
       const token = localStorage.getItem("internmatch_token");
