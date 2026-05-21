@@ -79,6 +79,9 @@ public class CommunityPostService {
     }
 
     public CommunityPost updatePostAdmin(Long id, String content) {
+        // MODERATION: Validate content
+        moderationService.validateContent(content);
+
         CommunityPost post = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         post.setContent(content);

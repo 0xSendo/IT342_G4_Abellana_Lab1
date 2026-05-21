@@ -22,12 +22,19 @@ public class InternshipController {
      * Create a new internship posting
      */
     @PostMapping
-    public ResponseEntity<InternshipResponse> createInternship(
+    public ResponseEntity<?> createInternship(
             @Valid @RequestBody CreateInternshipRequest request,
             Authentication authentication) {
         String userEmail = authentication.getName();
-        InternshipResponse response = internshipService.createInternship(request, userEmail);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        try {
+            InternshipResponse response = internshipService.createInternship(request, userEmail);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("MODERATION_ERROR")) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+            }
+            throw e;
+        }
     }
     
     /**
@@ -109,13 +116,20 @@ public class InternshipController {
      * Update internship
      */
     @PutMapping("/{id}")
-    public ResponseEntity<InternshipResponse> updateInternship(
+    public ResponseEntity<?> updateInternship(
             @PathVariable Long id,
             @Valid @RequestBody CreateInternshipRequest request,
             Authentication authentication) {
         String userEmail = authentication.getName();
-        InternshipResponse response = internshipService.updateInternship(id, request, userEmail);
-        return ResponseEntity.ok(response);
+        try {
+            InternshipResponse response = internshipService.updateInternship(id, request, userEmail);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("MODERATION_ERROR")) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+            }
+            throw e;
+        }
     }
     
     /**

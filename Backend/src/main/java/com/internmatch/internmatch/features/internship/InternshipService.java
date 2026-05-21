@@ -20,6 +20,7 @@ public class InternshipService {
     private final InternshipRepository internshipRepository;
     private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
+    private final com.internmatch.internmatch.features.common.community.ContentModerationService moderationService;
     
     /**
      * Create a new internship posting
@@ -27,6 +28,12 @@ public class InternshipService {
     public InternshipResponse createInternship(CreateInternshipRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        
+        // MODERATION: Validate input fields
+        moderationService.validateContent(request.getTitle());
+        moderationService.validateContent(request.getDescription());
+        moderationService.validateContent(request.getCompany());
+        moderationService.validateContent(request.getLocation());
         
         Internship internship = Internship.builder()
                 .title(request.getTitle())
@@ -130,6 +137,12 @@ public class InternshipService {
         if (!internship.getPostedBy().getId().equals(user.getId())) {
             throw new IllegalArgumentException("You are not authorized to update this internship");
         }
+
+        // MODERATION: Validate input fields
+        moderationService.validateContent(request.getTitle());
+        moderationService.validateContent(request.getDescription());
+        moderationService.validateContent(request.getCompany());
+        moderationService.validateContent(request.getLocation());
         
         internship.setTitle(request.getTitle());
         internship.setDescription(request.getDescription());
@@ -183,6 +196,12 @@ public class InternshipService {
         Internship internship = internshipRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Internship not found with id: " + id));
         
+        // MODERATION: Validate input fields
+        moderationService.validateContent(request.getTitle());
+        moderationService.validateContent(request.getDescription());
+        moderationService.validateContent(request.getCompany());
+        moderationService.validateContent(request.getLocation());
+
         internship.setTitle(request.getTitle());
         internship.setDescription(request.getDescription());
         internship.setCompany(request.getCompany());

@@ -497,7 +497,12 @@ export default function EmployerDashboard() {
       toast.show("Internship posted successfully");
     } catch (err) {
       console.error("Create posting error:", err);
-      setCreatePostingError(err.response?.data || "Failed to create posting");
+      const backendMsg = err.response?.data?.message || err.response?.data;
+      if (typeof backendMsg === 'string' && backendMsg.includes("MODERATION_ERROR")) {
+        setCreatePostingError(backendMsg.replace("MODERATION_ERROR: ", ""));
+      } else {
+        setCreatePostingError("Failed to create posting. Please check your connection.");
+      }
     }
   };
 
@@ -560,7 +565,12 @@ export default function EmployerDashboard() {
       setIsPostingEditMode(false);
     } catch (err) {
       console.error("Edit posting error:", err);
-      toast.show("Failed to update posting", "error");
+      const backendMsg = err.response?.data?.message || err.response?.data;
+      if (typeof backendMsg === 'string' && backendMsg.includes("MODERATION_ERROR")) {
+        toast.show(backendMsg.replace("MODERATION_ERROR: ", ""), "error");
+      } else {
+        toast.show("Failed to update posting", "error");
+      }
     }
   };
 

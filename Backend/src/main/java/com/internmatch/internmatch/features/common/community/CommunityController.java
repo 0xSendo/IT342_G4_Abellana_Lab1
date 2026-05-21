@@ -36,10 +36,16 @@ public class CommunityController {
                 .type(request.getType() != null ? request.getType() : "GENERAL_UPDATE")
                 .build();
 
-        CommunityPost saved = communityPostService.createPost(post);
-        log.info("Successfully saved post ID: {} for user: {}", saved.getId(), user.getEmail());
-        
-        return ResponseEntity.ok(convertToDto(saved));
+        try {
+            CommunityPost saved = communityPostService.createPost(post);
+            log.info("Successfully saved post ID: {} for user: {}", saved.getId(), user.getEmail());
+            return ResponseEntity.ok(convertToDto(saved));
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("MODERATION_ERROR")) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+            }
+            throw e;
+        }
     }
 
     @GetMapping("/all")
@@ -68,7 +74,14 @@ public class CommunityController {
     public ResponseEntity<?> updatePost(Authentication authentication, @PathVariable Long id, @RequestBody PostRequest request) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
         log.info("Updating community post ID: {} by user: {}", id, user.getEmail());
-        return ResponseEntity.ok(convertToDto(communityPostService.updatePost(id, user.getId(), request.getContent())));
+        try {
+            return ResponseEntity.ok(convertToDto(communityPostService.updatePost(id, user.getId(), request.getContent())));
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("MODERATION_ERROR")) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+            }
+            throw e;
+        }
     }
 
     @DeleteMapping("/delete/{id}")

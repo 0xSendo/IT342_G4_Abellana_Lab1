@@ -21,6 +21,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final com.internmatch.internmatch.features.auth.security.LoginAttemptService loginAttemptService;
     private final com.internmatch.internmatch.features.auth.security.RateLimitingService rateLimitingService;
+    private final com.internmatch.internmatch.features.common.community.ContentModerationService moderationService;
     private final jakarta.servlet.http.HttpServletRequest httpServletRequest;
 
     @PostMapping("/register")
@@ -117,6 +118,16 @@ public class AuthController {
     public ResponseEntity<?> updateProfile(org.springframework.security.core.Authentication authentication, @RequestBody java.util.Map<String, Object> profileData) {
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // MODERATION: Moderate all incoming profile text fields
+        try {
+            moderationService.validateFields(profileData);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("MODERATION_ERROR")) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+            }
+            throw e;
+        }
         
         if (profileData.containsKey("name")) user.setName((String) profileData.get("name"));
         if (profileData.containsKey("program")) user.setProgram((String) profileData.get("program"));
