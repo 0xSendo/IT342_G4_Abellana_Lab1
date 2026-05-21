@@ -12,8 +12,12 @@ import java.util.Optional;
 public class CommunityPostService {
 
     private final CommunityPostRepository repository;
+    private final ContentModerationService moderationService;
 
     public CommunityPost createPost(CommunityPost post) {
+        // Validate content against moderation rules
+        moderationService.validateContent(post.getContent());
+
         // Strictly Enforce 1 post per student limit
         if (repository.findByStudentId(post.getStudent().getId()).isPresent()) {
             throw new RuntimeException("LIMIT_REACHED");
@@ -58,6 +62,9 @@ public class CommunityPostService {
     }
 
     public CommunityPost updatePost(Long id, Long studentId, String content) {
+        // Validate new content
+        moderationService.validateContent(content);
+
         CommunityPost post = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         if (!post.getStudent().getId().equals(studentId)) {
