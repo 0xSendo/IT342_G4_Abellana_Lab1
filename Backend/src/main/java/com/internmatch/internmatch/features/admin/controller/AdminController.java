@@ -24,6 +24,18 @@ public class AdminController {
     private final InternshipService internshipService;
     private final CommunityPostService communityPostService;
     private final ApplicationService applicationService;
+    private final com.internmatch.internmatch.features.auth.UserRepository userRepository;
+
+    // --- USER MANAGEMENT ---
+
+    @PutMapping("/users/{id}/role")
+    public ResponseEntity<com.internmatch.internmatch.features.auth.User> updateUserRole(@PathVariable Long id, @RequestBody java.util.Map<String, String> request) {
+        com.internmatch.internmatch.features.auth.User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        String roleStr = request.get("role");
+        user.setRole(com.internmatch.internmatch.features.auth.Role.valueOf(roleStr));
+        return ResponseEntity.ok(userRepository.save(user));
+    }
 
     // --- INTERNSHIP MANAGEMENT ---
     

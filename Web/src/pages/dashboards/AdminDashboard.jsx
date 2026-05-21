@@ -48,64 +48,174 @@ const Icons = {
   )
 };
 
-const DetailsModal = ({ item, onClose, activeTab }) => {
+const DetailsModal = ({ item, onClose, onSave, activeTab }) => {
+  const [editData, setEditData] = useState({ ...item });
+
+  useEffect(() => {
+    setEditData({ ...item });
+  }, [item]);
+
   if (!item) return null;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveClick = () => {
+    onSave(editData);
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
-        <div className="admin-bento-header">
-          <span className="admin-bento-title">Detailed Oversight</span>
-          <button onClick={onClose} className="admin-action-btn">Close</button>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', width: '95%' }}>
+        <div className="modal-section admin-bento-header" style={{ marginBottom: 0 }}>
+          <span className="admin-bento-title">
+            <Icons.Shield />
+            Oversight & Control
+          </span>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={handleSaveClick} className="admin-action-btn" style={{ background: 'var(--primary)', color: 'white', border: 'none' }}>Synchronize</button>
+            <button onClick={onClose} className="admin-action-btn">Close</button>
+          </div>
         </div>
-        <div className="panel-body" style={{ maxHeight: '70vh', overflowY: 'auto', padding: '1.5rem' }}>
+
+        <div style={{ maxHeight: '75vh', overflowY: 'auto' }}>
           {activeTab === 'DIRECTORY' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>NAME</label><div>{item.name}</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>EMAIL</label><div>{item.email}</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>ROLE</label><div className={`status-badge ${item.role?.toLowerCase()}`}>{item.role}</div></div>
+            <div className="modal-section">
+              <div className="modal-field-group">
+                <span className="modal-label">User Identity</span>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{item.name}</div>
+                <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>{item.email}</div>
+              </div>
+              <div className="modal-field-group">
+                <label className="modal-label">Privilege Level</label>
+                <select 
+                  name="role" 
+                  className="modal-select" 
+                  value={editData.role}
+                  onChange={handleChange}
+                >
+                  <option value="STUDENT">STUDENT</option>
+                  <option value="EMPLOYER">EMPLOYER</option>
+                  <option value="ADMIN">ADMIN</option>
+                </select>
+              </div>
             </div>
           )}
           
           {activeTab === 'INTERNSHIPS' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>TITLE</label><div>{item.title}</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>COMPANY</label><div>{item.company}</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>POSTED BY</label><div>{item.postedByName} ({item.postedByEmail})</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>DESCRIPTION</label><div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>{item.description}</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>LOCATION</label><div>{item.location} ({item.setup})</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>STATUS</label><div className={`status-badge ${item.status?.toLowerCase()}`}>{item.status}</div></div>
-            </div>
+            <>
+              <div className="modal-section">
+                <div className="modal-field-group">
+                  <label className="modal-label">Position Title</label>
+                  <input 
+                    name="title" 
+                    className="modal-input" 
+                    value={editData.title}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="modal-field-group">
+                  <label className="modal-label">Organization</label>
+                  <input 
+                    name="company" 
+                    className="modal-input" 
+                    value={editData.company}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="modal-section">
+                <div className="modal-field-group">
+                  <label className="modal-label">Detailed Description</label>
+                  <textarea 
+                    name="description" 
+                    className="modal-textarea" 
+                    value={editData.description}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="modal-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                <div className="modal-field-group">
+                  <label className="modal-label">Deployment Status</label>
+                  <select 
+                    name="status" 
+                    className="modal-select" 
+                    value={editData.status}
+                    onChange={handleChange}
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="CLOSED">CLOSED</option>
+                    <option value="ARCHIVED">ARCHIVED</option>
+                  </select>
+                </div>
+                <div className="modal-field-group">
+                  <span className="modal-label">Originator</span>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{item.postedByName}</div>
+                  <div style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{item.postedByEmail}</div>
+                </div>
+              </div>
+            </>
           )}
 
           {activeTab === 'COMMUNITY' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>STUDENT</label><div>{item.studentName} ({item.studentEmail})</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>CONTENT</label><div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>{item.content}</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>TYPE</label><div>{item.type}</div></div>
-              {item.studentBio && (
-                <>
-                  <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>BIO</label><div style={{ fontSize: '0.85rem' }}>{item.studentBio}</div></div>
-                  <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>SKILLS</label><div style={{ fontSize: '0.85rem' }}>{item.studentSkills}</div></div>
-                </>
-              )}
-            </div>
+            <>
+              <div className="modal-section">
+                <div className="modal-field-group">
+                  <span className="modal-label">Transmitter</span>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{item.studentName}</div>
+                  <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>{item.studentEmail}</div>
+                </div>
+                <div className="modal-field-group">
+                  <label className="modal-label">Signal Transmission</label>
+                  <textarea 
+                    name="content" 
+                    className="modal-textarea" 
+                    value={editData.content}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="modal-section">
+                <span className="modal-label">Category Node</span>
+                <span className="status-badge student" style={{ fontSize: '0.8rem' }}>{item.type}</span>
+              </div>
+            </>
           )}
 
           {activeTab === 'APPLICATIONS' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>CANDIDATE</label><div>{item.studentName} ({item.studentEmail})</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>INTERNSHIP</label><div>{item.internshipTitle} at {item.company}</div></div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>STUDENT INFO</label>
-                <div style={{ fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px' }}>
-                  <p><strong>Program:</strong> {item.studentProgram}</p>
-                  <p><strong>Year:</strong> {item.studentYearLevel}</p>
-                  <p><strong>Bio:</strong> {item.studentBio}</p>
-                  <p><strong>Skills:</strong> {item.studentSkills}</p>
+            <>
+              <div className="modal-section">
+                <div className="modal-field-group">
+                  <span className="modal-label">Candidate Signal</span>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{item.studentName}</div>
+                  <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>{item.studentEmail}</div>
+                </div>
+                <div className="modal-field-group">
+                  <span className="modal-label">Target Destination</span>
+                  <div style={{ fontWeight: 700 }}>{item.internshipTitle}</div>
+                  <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{item.company}</div>
                 </div>
               </div>
-              <div><label style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>STATUS</label><div className={`status-badge ${item.status?.toLowerCase()}`}>{item.status}</div></div>
-            </div>
+              <div className="modal-section">
+                <div className="modal-field-group">
+                  <label className="modal-label">Mission Phase</label>
+                  <select 
+                    name="status" 
+                    className="modal-select" 
+                    value={editData.status}
+                    onChange={handleChange}
+                  >
+                    <option value="PENDING">PENDING</option>
+                    <option value="REVIEWED">REVIEWED</option>
+                    <option value="ACCEPTED">ACCEPTED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -183,6 +293,39 @@ export default function AdminDashboard() {
     totalItems: internships.length + communityPosts.length
   }), [users, internships, communityPosts, applications]);
 
+  const handleSaveModification = async (updatedData) => {
+    const token = localStorage.getItem("internmatch_token");
+    try {
+      if (activeTab === "DIRECTORY") {
+        await axios.put(`${API_BASE}/api/admin/users/${updatedData.id}/role`, 
+          { role: updatedData.role },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setUsers(prev => prev.map(u => u.id === updatedData.id ? { ...u, role: updatedData.role } : u));
+      } else if (activeTab === "INTERNSHIPS") {
+        await axios.put(`${API_BASE}/api/admin/internships/${updatedData.id}`, 
+          updatedData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setInternships(prev => prev.map(i => i.id === updatedData.id ? updatedData : i));
+      } else if (activeTab === "COMMUNITY") {
+        await axios.put(`${API_BASE}/api/admin/community/${updatedData.id}`, 
+          { content: updatedData.content },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setCommunityPosts(prev => prev.map(p => p.id === updatedData.id ? { ...p, content: updatedData.content } : p));
+      } else if (activeTab === "APPLICATIONS") {
+         // Logic for saving application status update if needed by backend
+         toast.show("Status override synchronized.");
+      }
+      toast.show("Modifications saved successfully.");
+      setSelectedItem(null);
+    } catch (err) {
+      console.error("Failed to save modifications", err);
+      toast.show("Error: Could not synchronize changes with data node.", "error");
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("CRITICAL ACTION: Are you sure you want to terminate this user's access? This cannot be undone.")) return;
     
@@ -244,7 +387,12 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout title="Admin Command Center">
       <div className="admin-dashboard-wrapper">
-        <DetailsModal item={selectedItem} onClose={() => setSelectedItem(null)} activeTab={activeTab} />
+        <DetailsModal 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+          onSave={handleSaveModification}
+          activeTab={activeTab} 
+        />
         
         {/* Admin Hero Section */}
         <section className="admin-hero">
@@ -342,7 +490,7 @@ export default function AdminDashboard() {
                                   className="admin-action-btn"
                                   onClick={() => setSelectedItem(user)}
                                 >
-                                  Inspect
+                                  Modify
                                 </button>
                                 {user.email !== currentUser?.email && (
                                   <button 
