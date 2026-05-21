@@ -25,6 +25,9 @@ export default function EmployerFeed() {
   const [connectionStatus, setConnectionStatus] = useState("NONE");
   const [isSaved, setIsSaved] = useState(false);
 
+  const [visiblePostings, setVisiblePostings] = useState(6);
+  const [visibleActivities, setVisibleActivities] = useState(5);
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     const d = new Date(dateStr);
@@ -160,6 +163,11 @@ export default function EmployerFeed() {
     }, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    setVisiblePostings(6);
+    setVisibleActivities(5);
+  }, [feedSearch, filter]);
 
   const filteredPostings = useMemo(() => {
     const query = feedSearch.trim().toLowerCase();
@@ -337,42 +345,53 @@ export default function EmployerFeed() {
                   <p>Try adjusting your search or filters to see more results.</p>
                 </div>
               ) : (
-                filteredPostings.map((posting) => {
-                  const isMine = posting.postedByEmail === currentUser?.email;
-                  return (
-                    <div key={posting.id} className={`ecosystem-card ${isMine ? "is-mine" : ""}`}>
-                      <div className="card-top">
-                        <div className="company-logo-placeholder">
-                          {posting.company?.charAt(0) || "C"}
+                <>
+                  {filteredPostings.slice(0, visiblePostings).map((posting) => {
+                    const isMine = posting.postedByEmail === currentUser?.email;
+                    return (
+                      <div key={posting.id} className={`ecosystem-card ${isMine ? "is-mine" : ""}`}>
+                        <div className="card-top">
+                          <div className="company-logo-placeholder">
+                            {posting.company?.charAt(0) || "C"}
+                          </div>
+                          {isMine && <span className="mine-badge">Your Post</span>}
                         </div>
-                        {isMine && <span className="mine-badge">Your Post</span>}
-                      </div>
-                      
-                      <div className="card-info">
-                        <h4>{posting.title}</h4>
-                        <p className="company-name">{posting.company}</p>
-                        <div className="meta-info">
-                          <span>📍 {posting.location}</span>
-                          <span>💻 {posting.setup}</span>
+                        
+                        <div className="card-info">
+                          <h4>{posting.title}</h4>
+                          <p className="company-name">{posting.company}</p>
+                          <div className="meta-info">
+                            <span>📍 {posting.location}</span>
+                            <span>💻 {posting.setup}</span>
+                          </div>
+                        </div>
+
+                        <div className="card-description">
+                          <p>{posting.description?.substring(0, 100)}...</p>
+                        </div>
+
+                        <div className="card-footer-pro">
+                          <span className="post-date">Posted on {formatDate(posting.startDate)}</span>
+                          <button 
+                            className={`btn-action-pro ${isMine ? "primary" : "secondary"}`}
+                            onClick={() => toast.show(isMine ? "Navigate to Dashboard to edit" : "Competitive viewing enabled")}
+                          >
+                            {isMine ? "Manage Posting" : "View Details"}
+                          </button>
                         </div>
                       </div>
-
-                      <div className="card-description">
-                        <p>{posting.description?.substring(0, 100)}...</p>
-                      </div>
-
-                      <div className="card-footer-pro">
-                        <span className="post-date">Posted on {formatDate(posting.startDate)}</span>
-                        <button 
-                          className={`btn-action-pro ${isMine ? "primary" : "secondary"}`}
-                          onClick={() => toast.show(isMine ? "Navigate to Dashboard to edit" : "Competitive viewing enabled")}
-                        >
-                          {isMine ? "Manage Posting" : "View Details"}
-                        </button>
-                      </div>
+                    );
+                  })}
+                  
+                  {filteredPostings.length > visiblePostings && (
+                    <div className="load-more-wrapper" style={{ gridColumn: '1 / -1' }}>
+                      <button className="btn-load-more" onClick={() => setVisiblePostings(prev => prev + 6)}>
+                        <span>Explore More Marketplace</span>
+                        <span className="icon">▾</span>
+                      </button>
                     </div>
-                  );
-                })
+                  )}
+                </>
               )}
             </div>
           </section>
@@ -400,26 +419,35 @@ export default function EmployerFeed() {
                     <p className="insight-text">No community activity yet.</p>
                   </div>
                 ) : (
-                  communityPosts.map((item) => (
-                    <div key={item.id} className="posting-card-pro" style={{ padding: '1.25rem', borderLeft: item.type === 'PROFILE_SHARE' ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)' }}>
-                      <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span className="loc" style={{ fontSize: '0.85rem', fontWeight: 700 }}>{item.studentName}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
+                  <>
+                    {communityPosts.slice(0, visibleActivities).map((item) => (
+                      <div key={item.id} className="posting-card-pro" style={{ padding: '1.25rem', borderLeft: item.type === 'PROFILE_SHARE' ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span className="loc" style={{ fontSize: '0.85rem', fontWeight: 700 }}>{item.studentName}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
+                          </div>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
+                            {formatTime(item.createdAt)}
+                          </span>
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
-                          {formatTime(item.createdAt)}
-                        </span>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text)', margin: '10px 0 0', lineHeight: 1.5 }}>{item.content}</p>
+                        {item.type === 'PROFILE_SHARE' && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800 }}>🚀 STUDENT PROFILE SHARED</span>
+                            <button className="edit-btn-glass" style={{ fontSize: '0.7rem', padding: '4px 10px' }} onClick={() => openStudentProfile(item)}>View Profile</button>
+                          </div>
+                        )}
                       </div>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text)', margin: '10px 0 0', lineHeight: 1.5 }}>{item.content}</p>
-                      {item.type === 'PROFILE_SHARE' && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800 }}>🚀 STUDENT PROFILE SHARED</span>
-                          <button className="edit-btn-glass" style={{ fontSize: '0.7rem', padding: '4px 10px' }} onClick={() => openStudentProfile(item)}>View Profile</button>
-                        </div>
-                      )}
-                    </div>
-                  ))
+                    ))}
+
+                    {communityPosts.length > visibleActivities && (
+                      <button className="btn-load-more" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setVisibleActivities(prev => prev + 5)}>
+                        <span>See More Activity</span>
+                        <span className="icon">▾</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </section>

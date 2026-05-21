@@ -36,6 +36,9 @@ export default function StudentFeed() {
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState(null);
 
+  const [visiblePostings, setVisiblePostings] = useState(6);
+  const [visibleActivities, setVisibleActivities] = useState(5);
+
   const hasExistingPost = useMemo(() => {
     return communityPosts.some(p => p.studentEmail === currentUser?.email);
   }, [communityPosts, currentUser]);
@@ -245,6 +248,11 @@ export default function StudentFeed() {
     }, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    setVisiblePostings(6);
+    setVisibleActivities(5);
+  }, [feedSearch, postingFilter, activityFilter, sortMode]);
 
   const studentSkills = useMemo(() => {
     const raw = String(currentUser?.skills || "").trim();
@@ -556,32 +564,43 @@ export default function StudentFeed() {
                     <p>Try widening your filters to see more opportunities.</p>
                   </div>
                 ) : (
-                  filteredPostings.map((item) => (
-                    <div key={item.id} className="feed-card-enhanced">
-                      <div className="card-top">
-                        <span className="card-tag active">{item.setup}</span>
-                        <div className="match-badge">{getMatchScore(item)}% Match</div>
-                      </div>
-                      <div className="card-body-pro">
-                        <span className="company-name">{item.company}</span>
-                        <h4>{item.title}</h4>
-                        <div className="card-stats-row">
-                          <span>📍 {item.location}</span>
-                          <span>📅 {item.time}</span>
-                          <span>👥 {item.applicants} Apps</span>
+                  <>
+                    {filteredPostings.slice(0, visiblePostings).map((item) => (
+                      <div key={item.id} className="feed-card-enhanced">
+                        <div className="card-top">
+                          <span className="card-tag active">{item.setup}</span>
+                          <div className="match-badge">{getMatchScore(item)}% Match</div>
                         </div>
-                        <p className="job-summary">{item.summary.substring(0, 140)}...</p>
+                        <div className="card-body-pro">
+                          <span className="company-name">{item.company}</span>
+                          <h4>{item.title}</h4>
+                          <div className="card-stats-row">
+                            <span>📍 {item.location}</span>
+                            <span>📅 {item.time}</span>
+                            <span>👥 {item.applicants} Apps</span>
+                          </div>
+                          <p className="job-summary">{item.summary.substring(0, 140)}...</p>
+                        </div>
+                        <div className="card-actions-pro">
+                          <button type="button" className="edit-btn-glass" onClick={() => toggleSavedPosting(item)}>
+                            {savedPostingIds.includes(item.id) ? "★ Saved" : "☆ Save"}
+                          </button>
+                          <button type="button" className="btn-primary-pro" onClick={() => setSelectedPosting(item)}>
+                            View & Apply
+                          </button>
+                        </div>
                       </div>
-                      <div className="card-actions-pro">
-                        <button type="button" className="edit-btn-glass" onClick={() => toggleSavedPosting(item)}>
-                          {savedPostingIds.includes(item.id) ? "★ Saved" : "☆ Save"}
-                        </button>
-                        <button type="button" className="btn-primary-pro" onClick={() => setSelectedPosting(item)}>
-                          View & Apply
+                    ))}
+                    
+                    {filteredPostings.length > visiblePostings && (
+                      <div className="load-more-wrapper">
+                        <button className="btn-load-more" onClick={() => setVisiblePostings(prev => prev + 6)}>
+                          <span>Load More Opportunities</span>
+                          <span className="icon">▾</span>
                         </button>
                       </div>
-                    </div>
-                  ))
+                    )}
+                  </>
                 )}
               </div>
             </section>
@@ -604,85 +623,94 @@ export default function StudentFeed() {
                 {filteredActivities.length === 0 ? (
                   <p className="feed-muted" style={{ textAlign: 'center', padding: '20px' }}>No community activity yet.</p>
                 ) : (
-                  filteredActivities.map((item) => {
-                    const isOwnPost = item.studentEmail === currentUser?.email;
-                    const isEditing = editingPostId === item.id;
+                  <>
+                    {filteredActivities.slice(0, visibleActivities).map((item) => {
+                      const isOwnPost = item.studentEmail === currentUser?.email;
+                      const isEditing = editingPostId === item.id;
 
-                    return (
-                      <div key={item.id} className="posting-card-pro" style={{ padding: '1rem', borderLeft: item.type === 'PROFILE_SHARE' ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)' }}>
-                        <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span className="loc" style={{ fontSize: '0.75rem', fontWeight: 700 }}>{item.studentName}</span>
-                            <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>
-                              {formatTime(item.createdAt)}
-                            </span>
-                            {isOwnPost && !isEditing && (
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button 
-                                  onClick={() => startEditing(item)} 
-                                  style={{ 
-                                    background: 'rgba(255,255,255,0.05)', 
-                                    border: '1px solid rgba(255,255,255,0.1)', 
-                                    borderRadius: '6px',
-                                    cursor: 'pointer', 
-                                    fontSize: '0.75rem', 
-                                    padding: '4px 8px',
-                                    color: 'var(--text)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                  }}
-                                >
-                                  <span>Edit</span>
-                                </button>
-                                <button 
-                                  onClick={() => handleDeletePost(item.id)} 
-                                  style={{ 
-                                    background: 'rgba(255,107,74,0.1)', 
-                                    border: '1px solid rgba(255,107,74,0.2)', 
-                                    borderRadius: '6px',
-                                    cursor: 'pointer', 
-                                    fontSize: '0.75rem', 
-                                    padding: '4px 8px',
-                                    color: 'var(--primary)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                  }}
-                                >
-                                  <span>Delete</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {isEditing ? (
-                          <div style={{ marginTop: '8px' }}>
-                            <textarea 
-                              value={editPostContent} 
-                              onChange={(e) => setEditPostContent(e.target.value)}
-                              rows={2}
-                              style={{ width: '100%', background: 'var(--glass)', border: '1px solid var(--primary)', borderRadius: '8px', color: 'var(--text)', padding: '8px', fontSize: '0.85rem' }}
-                            />
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
-                              <button onClick={() => setEditingPostId(null)} className="edit-btn-glass" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Cancel</button>
-                              <button onClick={() => handleUpdatePost(item.id)} className="btn-primary-pro" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Save</button>
+                      return (
+                        <div key={item.id} className="posting-card-pro" style={{ padding: '1rem', borderLeft: item.type === 'PROFILE_SHARE' ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)' }}>
+                          <div className="activity-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span className="loc" style={{ fontSize: '0.75rem', fontWeight: 700 }}>{item.studentName}</span>
+                              <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>{item.studentProgram}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>
+                                {formatTime(item.createdAt)}
+                              </span>
+                              {isOwnPost && !isEditing && (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button 
+                                    onClick={() => startEditing(item)} 
+                                    style={{ 
+                                      background: 'rgba(255,255,255,0.05)', 
+                                      border: '1px solid rgba(255,255,255,0.1)', 
+                                      borderRadius: '6px',
+                                      cursor: 'pointer', 
+                                      fontSize: '0.75rem', 
+                                      padding: '4px 8px',
+                                      color: 'var(--text)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    <span>Edit</span>
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeletePost(item.id)} 
+                                    style={{ 
+                                      background: 'rgba(255,107,74,0.1)', 
+                                      border: '1px solid rgba(255,107,74,0.2)', 
+                                      borderRadius: '6px',
+                                      cursor: 'pointer', 
+                                      fontSize: '0.75rem', 
+                                      padding: '4px 8px',
+                                      color: 'var(--primary)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        ) : (
-                          <p style={{ fontSize: '0.85rem', color: 'var(--text)', margin: '8px 0 0', lineHeight: 1.4 }}>{item.content}</p>
-                        )}
 
-                        {item.type === 'PROFILE_SHARE' && (
-                          <span style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 800, marginTop: '4px', display: 'block' }}>🚀 SHARED PROFILE</span>
-                        )}
-                      </div>
-                    );
-                  })
+                          {isEditing ? (
+                            <div style={{ marginTop: '8px' }}>
+                              <textarea 
+                                value={editPostContent} 
+                                onChange={(e) => setEditPostContent(e.target.value)}
+                                rows={2}
+                                style={{ width: '100%', background: 'var(--glass)', border: '1px solid var(--primary)', borderRadius: '8px', color: 'var(--text)', padding: '8px', fontSize: '0.85rem' }}
+                              />
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
+                                <button onClick={() => setEditingPostId(null)} className="edit-btn-glass" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Cancel</button>
+                                <button onClick={() => handleUpdatePost(item.id)} className="btn-primary-pro" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Save</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text)', margin: '8px 0 0', lineHeight: 1.4 }}>{item.content}</p>
+                          )}
+
+                          {item.type === 'PROFILE_SHARE' && (
+                            <span style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 800, marginTop: '4px', display: 'block' }}>🚀 SHARED PROFILE</span>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {filteredActivities.length > visibleActivities && (
+                      <button className="btn-load-more" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }} onClick={() => setVisibleActivities(prev => prev + 5)}>
+                        <span>See More Activity</span>
+                        <span className="icon">▾</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </section>
