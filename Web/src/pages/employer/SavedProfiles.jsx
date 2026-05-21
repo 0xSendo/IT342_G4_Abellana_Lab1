@@ -4,6 +4,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useChat } from "../../context/ChatContext";
+import { useNotifications } from "../../context/NotificationContext";
 import "../../styles/common/bento.css";
 import "../../styles/employer/employer-dashboard.css";
 
@@ -11,6 +12,7 @@ export default function SavedProfiles() {
   const { currentUser } = useContext(AuthContext);
   const { openChatWith } = useChat();
   const toast = useToast();
+  const { unreadCount, openNotifications } = useNotifications();
   
   const [savedProfiles, setSavedProfiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,10 +20,6 @@ export default function SavedProfiles() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [studentProfileTab, setStudentProfileTab] = useState("essentials");
   const [connectionStatus, setConnectionStatus] = useState("NONE");
-  
-  // Notification States
-  const [notifications, setNotifications] = useState([]);
-  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
@@ -32,7 +30,7 @@ export default function SavedProfiles() {
       const res = await axios.get(`${API_BASE}/api/saved-profiles`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setSavedProfiles(res.data);
+      setSavedProfiles(res.data || []);
     } catch (err) {
       console.error("Failed to fetch saved profiles", err);
       toast.show("Failed to load saved profiles", "error");
@@ -41,71 +39,8 @@ export default function SavedProfiles() {
     }
   };
 
-  const fetchNotifications = async () => {
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) return;
-      const res = await axios.get(`${API_BASE}/api/notifications`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(res.data);
-    } catch (err) {
-      console.error("Failed to fetch notifications", err);
-    }
-  };
-
-  const markNotificationsAsRead = async () => {
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) return;
-      await axios.put(`${API_BASE}/api/notifications/read-all`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch (err) {
-      console.error("Failed to mark notifications as read", err);
-    }
-  };
-
-  const deleteNotification = async (notifId) => {
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      await axios.delete(`${API_BASE}/api/notifications/${notifId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(prev => prev.filter(n => n.id !== notifId));
-      toast.show("Notification deleted");
-    } catch (err) {
-      console.error("Failed to delete notification", err);
-      toast.show("Failed to delete notification", "error");
-    }
-  };
-
-  const clearAllNotifications = async () => {
-    if (!window.confirm("Are you sure you want to clear all notifications?")) return;
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      await axios.delete(`${API_BASE}/api/notifications/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications([]);
-      toast.show("All notifications cleared");
-    } catch (err) {
-      console.error("Failed to clear notifications", err);
-      toast.show("Failed to clear notifications", "error");
-    }
-  };
-
-  const openNotifications = () => {
-    setIsNotificationsModalOpen(true);
-    markNotificationsAsRead();
-  };
-
   useEffect(() => {
     fetchSavedProfiles();
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   const unsaveProfile = async (studentId) => {
@@ -141,14 +76,16 @@ export default function SavedProfiles() {
     setSelectedStudent(profile);
     setStudentProfileTab("essentials");
     setIsProfileModalOpen(true);
-    fetchConnectionStatus(profile.studentId);
+    if (profile.studentId) {
+      fetchConnectionStatus(profile.studentId);
+    }
   };
 
   return (
     <DashboardLayout 
       title="Saved Talent"
       onNotificationClick={openNotifications}
-      notificationCount={notifications.filter(n => !n.read).length}
+      notificationCount={unreadCount}
     >
       <div className="employer-dashboard-wrapper" style={{ padding: '2rem' }}>
         <section className="student-hero">
@@ -168,7 +105,7 @@ export default function SavedProfiles() {
         <div className="bento-card" style={{ marginTop: '2rem' }}>
           <div className="bento-header">
             <div>
-              <span className="bento-label">Saved Repository</span>
+              <span className="bento-label">Repository</span>
               <h3>Bookmarked Students ({savedProfiles.length})</h3>
             </div>
           </div>
@@ -180,14 +117,14 @@ export default function SavedProfiles() {
               </div>
             ) : savedProfiles.length === 0 ? (
               <div className="market-status-overlay">
-                <p className="insight-text">You haven't saved any profiles yet. Explore the feed to find talent!</p>
+                <p className="insight-text">You haven't saved any profiles yet.</p>
               </div>
             ) : (
               savedProfiles.map((profile) => (
                 <div key={profile.id} className="posting-card-pro">
                   <div className="card-body-pro">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h4>{profile.studentName}</h4>
+                      <h4>{profile.studentName || "Unknown Student"}</h4>
                       <button 
                         className="close-btn-glass" 
                         style={{ padding: '4px', fontSize: '1rem', color: '#ff6b6b' }}
@@ -197,7 +134,7 @@ export default function SavedProfiles() {
                         ✕
                       </button>
                     </div>
-                    <span className="loc">{profile.studentProgram}</span>
+                    <span className="loc">{profile.studentProgram || "N/A"}</span>
                     <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '8px' }}>
                       Year: {profile.studentYearLevel || "N/A"}
                     </p>
@@ -247,7 +184,7 @@ export default function SavedProfiles() {
                     <div className="profile-meta-row" style={{ display: 'flex', gap: '30px', marginBottom: '24px' }}>
                       <div className="mini-item">
                         <label>Program / Course</label>
-                        <p style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{selectedStudent.studentProgram}</p>
+                        <p style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{selectedStudent.studentProgram || "N/A"}</p>
                       </div>
                       <div className="mini-item">
                         <label>Year Level</label>
@@ -373,79 +310,6 @@ export default function SavedProfiles() {
                   </button>
                   <button className="btn-secondary-glass" style={{ borderColor: 'rgba(57, 198, 184, 0.3)', color: '#39c6b8' }} onClick={() => openChatWith({ email: selectedStudent.studentEmail, name: selectedStudent.studentName })}>💬 Message Student</button>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Notifications Modal */}
-      {isNotificationsModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content profile-modal-pro">
-            <div className="modal-aurora-glow"></div>
-            <div className="modal-inner-content">
-              <div className="modal-header-pro">
-                <div>
-                  <span className="bento-label">Updates</span>
-                  <h3>Company Notifications</h3>
-                </div>
-                {notifications.length > 0 && (
-                  <button 
-                    className="btn-secondary-glass" 
-                    style={{ marginLeft: 'auto', marginRight: '1rem', color: '#ff6b6b', borderColor: 'rgba(255,107,74,0.2)' }}
-                    onClick={clearAllNotifications}
-                  >
-                    Clear All
-                  </button>
-                )}
-                <button className="close-btn-glass" onClick={() => setIsNotificationsModalOpen(false)}>✕</button>
-              </div>
-              <div className="modal-body-pro">
-                <div className="notif-modal-list">
-                  {notifications.length === 0 ? (
-                    <div className="notif-empty-state">
-                      <div className="empty-icon">🔔</div>
-                      <p>No new activity yet.</p>
-                    </div>
-                  ) : (
-                    notifications.map((n) => (
-                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`} style={{ position: 'relative' }}>
-                        <div className="notif-icon-box">
-                          {n.type === "APPLICATION" ? "📩" : "🔔"}
-                        </div>
-                        <div className="notif-content-full">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <h4 className="notif-title-full">{n.title}</h4>
-                            <button 
-                              onClick={() => deleteNotification(n.id)}
-                              style={{ 
-                                background: 'none', 
-                                border: 'none', 
-                                color: 'var(--muted)', 
-                                cursor: 'pointer',
-                                padding: '4px',
-                                fontSize: '1rem',
-                                opacity: 0.6
-                              }}
-                              title="Delete notification"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                          <p className="notif-msg-full">{n.message}</p>
-                          <span className="notif-time-full">
-                            {new Date(n.createdAt).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-              <div className="modal-footer-pro">
-                <button className="btn-secondary-glass" onClick={() => setIsNotificationsModalOpen(false)}>Close</button>
-                <button className="btn-primary-pro" onClick={fetchNotifications}>Refresh</button>
               </div>
             </div>
           </div>

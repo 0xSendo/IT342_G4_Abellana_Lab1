@@ -359,19 +359,39 @@
   background: var(--primary);
   border: none;
   color: white;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(57, 198, 184, 0.2);
+}
+
+.chat-input-area button svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s;
 }
 
 .chat-input-area button:hover:not(:disabled) {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(57, 198, 184, 0.3);
   filter: brightness(1.1);
+}
+
+.chat-input-area button:hover:not(:disabled) svg {
+  transform: translate(2px, -2px) rotate(-5deg);
+}
+
+.chat-input-area button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+  transform: none;
 }
 
 /* Badges */

@@ -4,6 +4,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import AuthContext from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { useToast } from "../../context/ToastContext";
+import { useNotifications } from "../../context/NotificationContext";
 import JobTrendsWidget from "../../components/JobTrendsWidget";
 import "../../styles/common/bento.css";
 import "../../styles/employer/employer-dashboard.css";
@@ -21,10 +22,11 @@ export default function EmployerDashboard() {
   const { currentUser, updateProfile } = useContext(AuthContext);
   const { openChatWith } = useChat();
   const toast = useToast();
+  const { unreadCount, openNotifications, fetchNotifications } = useNotifications();
+  
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPostingModalOpen, setIsPostingModalOpen] = useState(false);
   const [isCreatePostingModalOpen, setIsCreatePostingModalOpen] = useState(false);
-  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState(null);
   const [isPostingEditMode, setIsPostingEditMode] = useState(false);
   const [postingEditForm, setPostingEditForm] = useState(INITIAL_POSTING_FORM);
@@ -35,13 +37,13 @@ export default function EmployerDashboard() {
   const [postings, setPostings] = useState([]);
   const [applicants, setApplicants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [notifications, setNotifications] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentProfileTab, setStudentProfileTab] = useState("essentials");
   const [isStudentProfileModalOpen, setIsStudentProfileModalOpen] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("NONE");
   const [postingForm, setPostingForm] = useState(INITIAL_POSTING_FORM);
   const [form, setForm] = useState({
@@ -104,64 +106,55 @@ export default function EmployerDashboard() {
     }
   };
 
-  const fetchNotifications = async () => {
+  const fetchMyPostings = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem("internmatch_token");
-      if (!token) return;
-      const res = await axios.get("/api/notifications", {
+      const res = await axios.get("/api/internships/my-postings", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setNotifications(res.data);
-    } catch (err) {
-      console.error("Failed to fetch notifications", err);
-    }
-  };
+      
+      const data = res.data;
+      
+      // Fetch applicant counts and details for each posting
+      const postingsWithCounts = await Promise.all(data.map(async (p) => {
+        try {
+          const appRes = await axios.get(`/api/applications/internship/${p.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          return { ...p, applicants: appRes.data.length, applicantsList: appRes.data };
+        } catch (e) {
+          return { ...p, applicants: 0, applicantsList: [] };
+        }
+      }));
+      
+      setPostings(postingsWithCounts);
 
-  const markNotificationsAsRead = async () => {
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) return;
-      await axios.put("/api/notifications/read-all", {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch (err) {
-      console.error("Failed to mark notifications as read", err);
-    }
-  };
+      // Map all applications to the applicants state for the Recent Applicants table
+      const allApplicants = postingsWithCounts.flatMap(p => 
+        (p.applicantsList || []).map(app => ({
+          id: app.id,
+          name: app.studentName || "Unknown Student",
+          internship: app.internshipTitle || "Unknown Role",
+          dateApplied: formatDate(app.appliedAt),
+          status: app.status || "PENDING",
+          note: "New application received via portal.",
+          studentId: app.studentId,
+          studentBio: app.studentBio,
+          studentSkills: app.studentSkills,
+          studentProjects: app.studentProjects,
+          studentProgram: app.studentProgram,
+          studentYearLevel: app.studentYearLevel,
+          studentResumeUrl: app.resumePath,
+        }))
+      );
 
-  const deleteNotification = async (notifId) => {
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      await axios.delete(`/api/notifications/${notifId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(prev => prev.filter(n => n.id !== notifId));
-      toast.show("Notification deleted");
+      setApplicants(allApplicants);
     } catch (err) {
-      console.error("Failed to delete notification", err);
-      toast.show("Failed to delete notification", "error");
+      console.error("Failed to fetch postings", err);
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const clearAllNotifications = async () => {
-    if (!window.confirm("Are you sure you want to clear all notifications?")) return;
-    try {
-      const token = localStorage.getItem("internmatch_token");
-      await axios.delete("/api/notifications/all", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications([]);
-      toast.show("All notifications cleared");
-    } catch (err) {
-      console.error("Failed to clear notifications", err);
-      toast.show("Failed to clear notifications", "error");
-    }
-  };
-
-  const openNotifications = () => {
-    setIsNotificationsModalOpen(true);
-    markNotificationsAsRead();
   };
 
   const fetchConnectionStatus = async (studentId) => {
@@ -247,63 +240,10 @@ export default function EmployerDashboard() {
     }
   };
 
-  const fetchMyPostings = async () => {
-    try {
-      setIsLoading(true);
-      const token = localStorage.getItem("internmatch_token");
-      const res = await axios.get("/api/internships/my-postings", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const data = res.data;
-      
-      // Fetch applicant counts and details for each posting
-      const postingsWithCounts = await Promise.all(data.map(async (p) => {
-        try {
-          const appRes = await axios.get(`/api/applications/internship/${p.id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          return { ...p, applicants: appRes.data.length, applicantsList: appRes.data };
-        } catch (e) {
-          return { ...p, applicants: 0, applicantsList: [] };
-        }
-      }));
-      
-      setPostings(postingsWithCounts);
-
-      // Map all applications to the applicants state for the Recent Applicants table
-      const allApplicants = postingsWithCounts.flatMap(p => 
-        (p.applicantsList || []).map(app => ({
-          id: app.id,
-          name: app.studentName,
-          internship: app.internshipTitle,
-          dateApplied: new Date(app.appliedAt).toISOString().split('T')[0],
-          status: app.status,
-          note: "New application received via portal.",
-          studentId: app.studentId,
-          studentBio: app.studentBio,
-          studentSkills: app.studentSkills,
-          studentProjects: app.studentProjects,
-          studentProgram: app.studentProgram,
-          studentYearLevel: app.studentYearLevel,
-          studentResumeUrl: app.resumePath,
-        }))
-      );
-
-      setApplicants(allApplicants);
-    } catch (err) {
-      console.error("Failed to fetch postings", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchMyPostings();
-    fetchNotifications();
     fetchConnectionsData();
     const interval = setInterval(() => {
-      fetchNotifications();
       fetchConnectionsData();
     }, 30000);
     return () => clearInterval(interval);
@@ -618,7 +558,7 @@ export default function EmployerDashboard() {
     <DashboardLayout 
       title="Employer Dashboard"
       onNotificationClick={openNotifications}
-      notificationCount={notifications.filter(n => !n.read).length}
+      notificationCount={unreadCount}
     >
       <div className="student-dashboard-wrapper">
         {/* Hero Section */}
@@ -765,7 +705,7 @@ export default function EmployerDashboard() {
                   ) : (
                     friends.slice(0, 5).map(friend => (
                       <div key={friend.id} className="friend-avatar-circle" title={friend.name} style={{ width: '40px', height: '40px', background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'white', border: '2px solid rgba(255,255,255,0.1)' }}>
-                        {friend.name.charAt(0)}
+                        {(friend.name || "?").charAt(0)}
                       </div>
                     ))
                   )}
@@ -1383,97 +1323,6 @@ export default function EmployerDashboard() {
                   )}
                   <button className="btn-secondary-glass" style={{ borderColor: 'rgba(57, 198, 184, 0.3)', color: '#39c6b8' }} onClick={() => openChatWith(selectedStudent)}>💬 Message Student</button>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Notifications Modal */}
-      {isNotificationsModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content profile-modal-pro">
-            <div className="modal-aurora-glow"></div>
-            <div className="modal-inner-content">
-              <div className="modal-header-pro">
-                <div>
-                  <span className="bento-label">Updates</span>
-                  <h3>Company Notifications</h3>
-                </div>
-                {notifications.length > 0 && (
-                  <button 
-                    className="btn-secondary-glass" 
-                    style={{ marginLeft: 'auto', marginRight: '1rem', color: '#ff6b6b', borderColor: 'rgba(255,107,74,0.2)' }}
-                    onClick={clearAllNotifications}
-                  >
-                    Clear All
-                  </button>
-                )}
-                <button className="close-btn-glass" onClick={() => setIsNotificationsModalOpen(false)}>✕</button>
-              </div>
-              <div className="modal-body-pro">
-                <div className="notif-modal-list">
-                  {notifications.length === 0 ? (
-                    <div className="notif-empty-state">
-                      <div className="empty-icon">🔔</div>
-                      <p>No new activity yet.</p>
-                    </div>
-                  ) : (
-                    notifications.map((n) => (
-                      <div key={n.id} className={`notif-item-full ${n.read ? "" : "unread"}`} style={{ position: 'relative' }}>
-                        <div className="notif-icon-box">
-                          {n.type === "APPLICATION" ? "📩" : "🔔"}
-                        </div>
-                        <div className="notif-content-full">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <h4 className="notif-title-full">{n.title}</h4>
-                            <button 
-                              onClick={() => deleteNotification(n.id)}
-                              style={{ 
-                                background: 'none', 
-                                border: 'none', 
-                                color: 'var(--muted)', 
-                                cursor: 'pointer',
-                                padding: '4px',
-                                fontSize: '1rem',
-                                opacity: 0.6
-                              }}
-                              title="Delete notification"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                          <p className="notif-msg-full">{n.message}</p>
-                          {n.type === "CONNECTION_REQUEST" && !n.read && (
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                              <button 
-                                className="btn-primary-pro" 
-                                style={{ padding: '4px 12px', fontSize: '0.75rem' }}
-                                onClick={() => respondToRequest(n.relatedId, 'ACCEPTED')}
-                              >
-                                Accept
-                              </button>
-                              <button 
-                                className="btn-secondary-glass" 
-                                style={{ padding: '4px 12px', fontSize: '0.75rem' }}
-                                onClick={() => respondToRequest(n.relatedId, 'DECLINED')}
-                              >
-                                Decline
-                              </button>
-                            </div>
-                          )}
-                          <span className="notif-time-full">
-                            {formatDateTime(n.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-              <div className="modal-footer-pro">
-                <button className="btn-secondary-glass" onClick={() => setIsNotificationsModalOpen(false)}>Close</button>
-                <button className="btn-primary-pro" onClick={fetchNotifications}>Refresh</button>
               </div>
             </div>
           </div>
