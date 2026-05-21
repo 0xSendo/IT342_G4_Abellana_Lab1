@@ -77,6 +77,12 @@ public class User implements UserDetails {
     @Column
     private String phone;
 
+    @Column(nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Column
+    private java.time.LocalDateTime lockoutUntil;
+
     // Spring Security UserDetails methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -100,7 +106,8 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        if (lockoutUntil == null) return true;
+        return java.time.LocalDateTime.now().isAfter(lockoutUntil);
     }
 
     @Override

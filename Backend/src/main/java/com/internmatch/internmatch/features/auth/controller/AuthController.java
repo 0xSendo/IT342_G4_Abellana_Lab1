@@ -19,9 +19,17 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final com.internmatch.internmatch.features.auth.security.LoginAttemptService loginAttemptService;
+    private final com.internmatch.internmatch.features.auth.security.RateLimitingService rateLimitingService;
+    private final jakarta.servlet.http.HttpServletRequest httpServletRequest;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
+        String clientIp = httpServletRequest.getRemoteAddr();
+        if (!rateLimitingService.isAllowed(clientIp)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many registration attempts. Please try again later.");
+        }
+
         if (request.getPassword() == null || request.getPassword().isEmpty()) {
             return ResponseEntity.badRequest().body("Password is required");
         }
@@ -35,6 +43,7 @@ public class AuthController {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole() != null ? request.getRole() : Role.STUDENT)
+                .failedLoginAttempts(0)
                 .build();
 
         userRepository.save(user);
@@ -43,34 +52,58 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        String clientIp = httpServletRequest.getRemoteAddr();
+        if (!rateLimitingService.isAllowed(clientIp)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many login attempts. Please try again later.");
+        }
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (loginAttemptService.isBlocked(request.getEmail())) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.LOCKED).body("Account is temporarily locked due to multiple failed attempts. Please try again in 15 minutes.");
+        }
 
-        String token = jwtService.generateToken(user);
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
-        return ResponseEntity.ok(AuthResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .name(user.getName())
-                .role(user.getRole().name())
-                .program(user.getProgram())
-                .yearLevel(user.getYearLevel())
-                .skills(user.getSkills())
-                .bio(user.getBio())
-                .projects(user.getProjects())
-                .resumeUrl(user.getResumeUrl())
-                .linkedin(user.getLinkedin())
-                .website(user.getWebsite())
-                .companyName(user.getCompanyName())
-                .companyLocation(user.getCompanyLocation())
-                .companyWebsite(user.getCompanyWebsite())
-                .department(user.getDepartment())
-                .phone(user.getPhone())
-                .build());
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            loginAttemptService.loginSucceeded(request.getEmail());
+            String token = jwtService.generateToken(user);
+
+            return ResponseEntity.ok(AuthResponse.builder()
+                    .token(token)
+                    .email(user.getEmail())
+                    .name(user.getName())
+                    .role(user.getRole().name())
+                    .program(user.getProgram())
+                    .yearLevel(user.getYearLevel())
+                    .skills(user.getSkills())
+                    .bio(user.getBio())
+                    .projects(user.getProjects())
+                    .resumeUrl(user.getResumeUrl())
+                    .linkedin(user.getLinkedin())
+                    .website(user.getWebsite())
+                    .companyName(user.getCompanyName())
+                    .companyLocation(user.getCompanyLocation())
+                    .companyWebsite(user.getCompanyWebsite())
+                    .department(user.getDepartment())
+                    .phone(user.getPhone())
+                    .build());
+        } catch (org.springframework.security.authentication.LockedException e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.LOCKED).body("Account is locked.");
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            loginAttemptService.loginFailed(request.getEmail());
+            int remaining = loginAttemptService.getRemainingAttempts(request.getEmail());
+            String message = "Invalid credentials. ";
+            if (remaining > 0) {
+                message += remaining + " attempts remaining before lockout.";
+            } else {
+                message = "Account has been locked due to too many failed attempts.";
+            }
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body(message);
+        }
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/me")
