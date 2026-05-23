@@ -1,5 +1,7 @@
 package com.example.internmatch.ui.student
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -131,6 +133,7 @@ fun SummaryStatGlass(value: String, label: String, isPrimary: Boolean = false) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfileBento(user: AuthResponse) {
     BentoCard {

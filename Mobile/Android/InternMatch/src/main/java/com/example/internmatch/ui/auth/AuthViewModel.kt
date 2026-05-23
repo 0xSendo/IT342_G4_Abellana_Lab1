@@ -10,12 +10,44 @@ import com.example.internmatch.data.model.AuthResponse
 import com.example.internmatch.data.model.LoginRequest
 import com.example.internmatch.data.model.RegisterRequest
 import kotlinx.coroutines.launch
+import android.content.Context
 
 class AuthViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
     var authResponse by mutableStateOf<AuthResponse?>(null)
     var registrationSuccess by mutableStateOf(false)
+
+    fun signInWithGoogle(context: Context, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            try {
+                val idToken = FirebaseAuthManager.signInWithGoogle(context)
+                if (idToken != null) {
+                    // Here you would typically send the idToken to your backend
+                    // For now, we'll simulate a success or handle it based on your logic
+                    // If you have a backend endpoint for Google Sign In:
+                    // val response = RetrofitClient.authApiService.googleSignIn(idToken)
+                    
+                    // Simulating success for demonstration
+                    authResponse = AuthResponse(
+                        token = idToken,
+                        email = "user@example.com",
+                        name = "Google User",
+                        role = "STUDENT"
+                    )
+                    onSuccess()
+                } else {
+                    errorMessage = "Google Sign-In failed"
+                }
+            } catch (e: Exception) {
+                errorMessage = e.message ?: "An unexpected error occurred"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
 
     fun login(request: LoginRequest, onSuccess: () -> Unit) {
         viewModelScope.launch {

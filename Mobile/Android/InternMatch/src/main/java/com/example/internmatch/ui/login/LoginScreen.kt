@@ -159,6 +159,23 @@ fun LoginScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.signInWithGoogle(context, onLoginSuccess)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorder)
+                    ) {
+                        Text("Sign In with Google", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    }
+
                     TextButton(
                         onClick = onRegisterClick,
                         modifier = Modifier.padding(top = 16.dp)

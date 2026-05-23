@@ -9,8 +9,8 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 object FirebaseAuthManager {
-    private val auth: FirebaseAuth = Firebase.auth
-    private const val WEB_CLIENT_ID = "YOUR_WEB_CLIENT_ID_HERE" // DO NOT COMMIT ACTUAL KEY
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private const val WEB_CLIENT_ID = "YOUR_WEB_CLIENT_ID_HERE"
 
     suspend fun signInWithGoogle(context: Context): String? {
         val credentialManager = CredentialManager.create(context)

@@ -9,6 +9,7 @@ val BrandSecondary = Color(0xFF39C6B8)  // Teal
 val BrandMuted = Color(0xFF96A3B5)
 val BrandYellow = Color(0xFFFFD666)
 
+val AuroraBlue = Color(0xFF4285F4) // A vibrant blue for the Aurora theme
 val MidnightBg = Color(0xFF0B1220)
 val DeepNavySurface = Color(0xFF101A2B)
 val GlassWhite = Color(0x0FFFFFFF) // 0.06 alpha
