@@ -107,6 +107,56 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest request) {
+        String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + request.getIdToken();
+        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+        try {
+            java.util.Map<String, Object> payload = restTemplate.getForObject(url, java.util.Map.class);
+            if (payload == null || payload.containsKey("error")) {
+                return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid Google token");
+            }
+
+            String email = (String) payload.get("email");
+            String name = (String) payload.get("name");
+
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+                        User newUser = User.builder()
+                                .name(name != null ? name : email.split("@")[0])
+                                .email(email)
+                                .role(Role.STUDENT)
+                                .failedLoginAttempts(0)
+                                .build();
+                        return userRepository.save(newUser);
+                    });
+
+            String token = jwtService.generateToken(user);
+
+            return ResponseEntity.ok(AuthResponse.builder()
+                    .token(token)
+                    .email(user.getEmail())
+                    .name(user.getName())
+                    .role(user.getRole().name())
+                    .program(user.getProgram())
+                    .yearLevel(user.getYearLevel())
+                    .skills(user.getSkills())
+                    .bio(user.getBio())
+                    .projects(user.getProjects())
+                    .resumeUrl(user.getResumeUrl())
+                    .linkedin(user.getLinkedin())
+                    .website(user.getWebsite())
+                    .companyName(user.getCompanyName())
+                    .companyLocation(user.getCompanyLocation())
+                    .companyWebsite(user.getCompanyWebsite())
+                    .department(user.getDepartment())
+                    .phone(user.getPhone())
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Error validating Google token: " + e.getMessage());
+        }
+    }
+
     @org.springframework.web.bind.annotation.GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(org.springframework.security.core.Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
