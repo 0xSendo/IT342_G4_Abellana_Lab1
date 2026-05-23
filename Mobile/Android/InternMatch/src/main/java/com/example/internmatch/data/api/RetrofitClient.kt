@@ -13,4 +13,12 @@ object RetrofitClient {
             .build()
             .create(AuthApiService::class.java)
     }
+
+    val dashboardApiService: DashboardApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(DashboardApiService::class.java)
+    }
 }

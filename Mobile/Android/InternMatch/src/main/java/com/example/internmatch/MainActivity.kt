@@ -17,12 +17,16 @@ import com.example.internmatch.ui.login.LoginScreen
 import com.example.internmatch.ui.register.RegisterScreen
 import com.example.internmatch.ui.theme.InternMatchTheme
 
+import com.example.internmatch.ui.student.StudentDashboardScreen
+import com.example.internmatch.ui.student.StudentViewModel
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             InternMatchTheme {
                 val authViewModel: AuthViewModel = viewModel()
+                val studentViewModel: StudentViewModel = viewModel()
                 var currentScreen by remember { mutableStateOf("login") }
 
                 Surface(
@@ -33,7 +37,15 @@ class MainActivity : ComponentActivity() {
                         "login" -> LoginScreen(
                             viewModel = authViewModel,
                             onLoginSuccess = { 
-                                currentScreen = "home" 
+                                val user = authViewModel.authResponse
+                                if (user != null) {
+                                    if (user.role == "STUDENT") {
+                                        currentScreen = "student_dashboard"
+                                    } else {
+                                        // Handle other roles later
+                                        currentScreen = "home"
+                                    }
+                                }
                             },
                             onRegisterClick = { 
                                 authViewModel.clearError()
@@ -50,6 +62,16 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = "login" 
                             }
                         )
+                        "student_dashboard" -> {
+                            val user = authViewModel.authResponse
+                            if (user != null) {
+                                StudentDashboardScreen(
+                                    user = user,
+                                    viewModel = studentViewModel,
+                                    token = user.token
+                                )
+                            }
+                        }
                         "home" -> {
                             // Placeholder for Home/Dashboard
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
