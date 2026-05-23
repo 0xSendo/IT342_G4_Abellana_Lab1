@@ -1,6 +1,7 @@
 package com.example.internmatch.data.api
 
 import com.example.internmatch.data.model.AuthResponse
+import com.example.internmatch.data.model.GoogleLoginRequest
 import com.example.internmatch.data.model.LoginRequest
 import com.example.internmatch.data.model.RegisterRequest
 import retrofit2.Response
@@ -13,4 +14,7 @@ interface AuthApiService {
 
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
+
+    @POST("api/auth/google")
+    suspend fun googleSignIn(@Body request: GoogleLoginRequest): Response<AuthResponse>
 }

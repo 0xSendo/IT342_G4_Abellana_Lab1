@@ -12,6 +12,10 @@ data class RegisterRequest(
     val role: String
 )
 
+data class GoogleLoginRequest(
+    val idToken: String
+)
+
 data class AuthResponse(
     val token: String,
     val email: String,

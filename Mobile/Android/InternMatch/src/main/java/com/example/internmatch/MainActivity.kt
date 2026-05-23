@@ -17,7 +17,7 @@ import com.example.internmatch.ui.login.LoginScreen
 import com.example.internmatch.ui.register.RegisterScreen
 import com.example.internmatch.ui.theme.InternMatchTheme
 
-import com.example.internmatch.ui.student.StudentDashboardScreen
+import com.example.internmatch.ui.student.StudentMainScreen
 import com.example.internmatch.ui.student.StudentViewModel
 
 class MainActivity : ComponentActivity() {
@@ -65,10 +65,14 @@ class MainActivity : ComponentActivity() {
                         "student_dashboard" -> {
                             val user = authViewModel.authResponse
                             if (user != null) {
-                                StudentDashboardScreen(
+                                StudentMainScreen(
                                     user = user,
                                     viewModel = studentViewModel,
-                                    token = user.token
+                                    token = user.token,
+                                    onLogout = {
+                                        authViewModel.authResponse = null
+                                        currentScreen = "login"
+                                    }
                                 )
                             }
                         }

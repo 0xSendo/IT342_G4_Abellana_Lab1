@@ -31,10 +31,6 @@ fun StudentDashboardScreen(
     viewModel: StudentViewModel,
     token: String
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.fetchData(token)
-    }
-
     AuroraBackground {
         LazyColumn(
             modifier = Modifier

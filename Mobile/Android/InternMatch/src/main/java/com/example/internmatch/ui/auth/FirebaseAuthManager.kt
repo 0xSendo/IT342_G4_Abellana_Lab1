@@ -8,9 +8,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
+import com.example.internmatch.BuildConfig
+
 object FirebaseAuthManager {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private const val WEB_CLIENT_ID = "YOUR_WEB_CLIENT_ID_HERE"
+    private const val WEB_CLIENT_ID = BuildConfig.GOOGLE_CLIENT_ID
 
     suspend fun signInWithGoogle(context: Context): String? {
         val credentialManager = CredentialManager.create(context)
@@ -18,7 +20,7 @@ object FirebaseAuthManager {
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(WEB_CLIENT_ID)
-            .setAutoSelectEnabled(true)
+            .setAutoSelectEnabled(false)
             .build()
 
         val request: GetCredentialRequest = GetCredentialRequest.Builder()
@@ -33,7 +35,7 @@ object FirebaseAuthManager {
             val credential = result.credential
             credential.data.getString("com.google.android.libraries.identity.googleid.BUNDLE_KEY_ID_TOKEN")
         } catch (e: Exception) {
-            null
+            throw e
         }
     }
 
