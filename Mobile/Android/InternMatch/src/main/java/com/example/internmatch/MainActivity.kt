@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.internmatch.ui.auth.AuthViewModel
 import com.example.internmatch.ui.login.LoginScreen
 import com.example.internmatch.ui.register.RegisterScreen
 import com.example.internmatch.ui.theme.InternMatchTheme
@@ -17,6 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             InternMatchTheme {
+                val authViewModel: AuthViewModel = viewModel()
                 var currentScreen by remember { mutableStateOf("login") }
 
                 Surface(
@@ -25,13 +28,34 @@ class MainActivity : ComponentActivity() {
                 ) {
                     when (currentScreen) {
                         "login" -> LoginScreen(
-                            onLoginClick = { /* Handle login */ },
-                            onRegisterClick = { currentScreen = "register" }
+                            viewModel = authViewModel,
+                            onLoginSuccess = { 
+                                currentScreen = "home" 
+                            },
+                            onRegisterClick = { 
+                                authViewModel.clearError()
+                                currentScreen = "register" 
+                            }
                         )
                         "register" -> RegisterScreen(
-                            onRegisterClick = { /* Handle register */ },
-                            onLoginClick = { currentScreen = "login" }
+                            viewModel = authViewModel,
+                            onRegisterSuccess = { 
+                                currentScreen = "login" 
+                            },
+                            onLoginClick = { 
+                                authViewModel.clearError()
+                                currentScreen = "login" 
+                            }
                         )
+                        "home" -> {
+                            // Placeholder for Home/Dashboard
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "Welcome, ${authViewModel.authResponse?.name}!",
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                        }
                     }
                 }
             }

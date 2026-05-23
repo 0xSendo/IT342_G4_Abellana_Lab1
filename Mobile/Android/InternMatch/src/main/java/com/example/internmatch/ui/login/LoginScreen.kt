@@ -22,9 +22,13 @@ import com.example.internmatch.ui.theme.AuroraBlue
 import com.example.internmatch.ui.theme.GlassBorder
 import com.example.internmatch.ui.theme.GlassWhite
 
+import com.example.internmatch.data.model.LoginRequest
+import com.example.internmatch.ui.auth.AuthViewModel
+
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit,
+    viewModel: AuthViewModel,
+    onLoginSuccess: () -> Unit,
     onRegisterClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -66,6 +70,15 @@ fun LoginScreen(
                         color = Color.White,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
+
+                    if (viewModel.errorMessage != null) {
+                        Text(
+                            text = viewModel.errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
 
                     // Role Selection
                     Row(
@@ -129,14 +142,21 @@ fun LoginScreen(
                     )
 
                     Button(
-                        onClick = onLoginClick,
+                        onClick = {
+                            viewModel.login(LoginRequest(email, password), onLoginSuccess)
+                        },
+                        enabled = !viewModel.isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AuroraBlue)
                     ) {
-                        Text("Sign In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        if (viewModel.isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Sign In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
 
                     TextButton(
