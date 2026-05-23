@@ -23,6 +23,10 @@ out/
 *.swo
 *.DS_Store
 
+# Mobile Sensitive
+**/google-services.json
+**/local.properties
+
 # Logs
 logs/
 *.log
