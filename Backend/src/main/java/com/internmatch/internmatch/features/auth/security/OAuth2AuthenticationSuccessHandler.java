@@ -4,6 +4,7 @@ import com.internmatch.internmatch.features.auth.Role;
 import com.internmatch.internmatch.features.auth.User;
 import com.internmatch.internmatch.features.auth.UserRepository;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,26 +37,44 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
-        // String picture = oAuth2User.getAttribute("picture");  // Commented for now
+
+        // Check for pending role from cookie (set by frontend register page)
+        String pendingRole = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("pending_role".equals(cookie.getName())) {
+                    pendingRole = cookie.getValue();
+                    // Clear cookie
+                    cookie.setMaxAge(0);
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                    break;
+                }
+            }
+        }
+
+        final Role roleToAssign = "EMPLOYER".equalsIgnoreCase(pendingRole) ? Role.EMPLOYER : Role.STUDENT;
 
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     User newUser = User.builder()
                             .name(name != null ? name : email.split("@")[0])
                             .email(email)
-                            .role(Role.STUDENT)
+                            .role(roleToAssign)
                             .build();
                     return userRepository.save(newUser);
                 });
 
         String token = jwtService.generateToken(user);
 
+        // Build redirect URL with fragment and ensure it is encoded
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
                 .fragment("token=" + token +
                         "&email=" + user.getEmail() +
                         "&name=" + (user.getName() != null ? user.getName() : "") +
                         "&role=" + user.getRole().name())
                 .build()
+                .encode()
                 .toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);

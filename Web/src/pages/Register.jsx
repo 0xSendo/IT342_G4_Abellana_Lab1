@@ -23,6 +23,7 @@ export default function Register() {
   const [role, setRole] = useState("STUDENT");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
   const googleOauth2Url = import.meta.env.VITE_GOOGLE_OAUTH2_URL || "/oauth2/authorization/google";
@@ -35,10 +36,12 @@ export default function Register() {
       setError("Please fill out all fields.");
       return;
     }
+    setIsLoading(true);
     const res = await register({ name, email, password, role });
     if (!res.ok) {
       toast.show(res.message, "error");
       setError(res.message);
+      setIsLoading(false);
       return;
     }
 
@@ -55,12 +58,25 @@ export default function Register() {
   };
 
   const handleGoogleLogin = () => {
+    setIsLoading(true);
+    // Store the selected role in a cookie so the backend can use it during OAuth flow
+    document.cookie = `pending_role=${role}; path=/; max-age=300; SameSite=Lax`;
     const base = apiBaseUrl.replace(/\/$/, "");
     window.location.href = `${base}${googleOauth2Url}`;
   };
 
   return (
     <div className="auth-container">
+      {isLoading && (
+        <div className="auth-loading-overlay">
+          <div className="loader-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div className="auth-loading-text">Redirecting to Google...</div>
+        </div>
+      )}
       <div className="auth-card">
         <h2>Create Account 🚀</h2>
         <p>Join InternMatch today</p>
