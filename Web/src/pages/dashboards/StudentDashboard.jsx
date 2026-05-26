@@ -211,7 +211,12 @@ const profileCompletion = Math.round(
       toast.show("Profile updated successfully");
       setTimeout(closeProfileModal, 800);
     } else {
-      toast.show(res.message || "Update failed", "error");
+      const msg = res.message || "Update failed";
+      if (msg.includes("MODERATION_ERROR")) {
+        toast.show(msg.replace("MODERATION_ERROR: ", ""), "warning");
+      } else {
+        toast.show(msg, "error");
+      }
     }
   };
 

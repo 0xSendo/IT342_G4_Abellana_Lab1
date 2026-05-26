@@ -8,16 +8,16 @@ import java.util.regex.Pattern;
 @Service
 public class ContentModerationService {
 
-    // 1. Precise Link Regex
+    // 1. Precise Link Regex - Requires protocol or www
     private static final Pattern PRECISE_URL_PATTERN = Pattern.compile(
-            "((https?://|www\\.|ftp://)|(([a-z0-9]+\\.)+([a-z]{2,}|[0-9]{1,3})))(:[0-9]{1,5})?(/\\S*)?",
+            "(https?://|www\\.|ftp://)\\S+",
             Pattern.CASE_INSENSITIVE
     );
 
-    // 2. Comprehensive TLD Pattern
-    private static final String TLD_GROUP = "(com|net|org|io|gov|edu|ph|link|me|xyz|info|biz|tk|ml|ga|cf|gq|club|tech|app|dev|online|site|shop|store|work|live|news|blog|xyz)";
+    // 2. Comprehensive TLD Pattern - Refined to require actual dot or "dot" text, not just spaces
+    private static final String TLD_GROUP = "(com|net|org|io|gov|edu|ph|link|me|xyz|info|biz|tk|ml|ga|cf|gq|club|tech|app|dev|online|site|shop|store|work|live|news|blog)";
     private static final Pattern OBFUSCATED_URL_PATTERN = Pattern.compile(
-            "[a-z0-9-]+\\s*[\\.\\[\\( ]+\\s*" + TLD_GROUP,
+            "[a-z0-9-]+\\s*(\\.|\\s+dot\\s+|\\[dot\\]|\\(dot\\))\\s*" + TLD_GROUP,
             Pattern.CASE_INSENSITIVE
     );
 
@@ -37,10 +37,21 @@ public class ContentModerationService {
             "rape", "kill yourself", "kys", "murder", "suicide", "bomb", "terrorist", "terrorism"
     );
 
+    // 4. Safe Tech Terms - Prevent false positives for portfolios
+    private static final List<String> SAFE_TECH_TERMS = Arrays.asList(
+            "node.js", "react.js", "vue.js", "next.js", "nuxt.js", "socket.io", "three.js", "d3.js", "express.js",
+            "asp.net", "ado.net", "vb.net", "win.net", ".net core", ".net framework",
+            "system.out", "console.log", "localhost", "127.0.0.1"
+    );
+
     /**
      * Validates content with character collapsing and fuzzy matching.
      */
     public void validateContent(String content) {
+        validateContent(content, false);
+    }
+
+    public void validateContent(String content, boolean allowLinks) {
         if (content == null || content.trim().isEmpty()) {
             return;
         }
@@ -48,39 +59,39 @@ public class ContentModerationService {
         String raw = content.trim();
         String lowercaseRaw = raw.toLowerCase();
 
-        // 1. Direct Regex (Standard Links)
-        if (PRECISE_URL_PATTERN.matcher(raw).find()) {
-            throw new RuntimeException("MODERATION_ERROR: External links are prohibited.");
-        }
-
-        // 2. Obfuscated Link (e.g., "site dot com")
-        if (OBFUSCATED_URL_PATTERN.matcher(raw).find()) {
-            throw new RuntimeException("MODERATION_ERROR: Links are not allowed, even if obscured.");
-        }
-
-        // 3. Advanced Normalization
-        // 3.1 Strip non-alphanumeric
-        String stripped = lowercaseRaw.replaceAll("[^a-z0-9]", "");
-        
-        // 3.2 Collapse repeating characters (e.g., "niiiigggga" -> "niga")
-        StringBuilder collapsedBuilder = new StringBuilder();
-        if (stripped.length() > 0) {
-            collapsedBuilder.append(stripped.charAt(0));
-            for (int i = 1; i < stripped.length(); i++) {
-                if (stripped.charAt(i) != stripped.charAt(i - 1)) {
-                    collapsedBuilder.append(stripped.charAt(i));
-                }
+        if (!allowLinks) {
+            // 0. Whitelist Protection: Temporarily mask safe tech terms
+            String validationText = lowercaseRaw;
+            for (String safe : SAFE_TECH_TERMS) {
+                validationText = validationText.replace(safe, "SAFE_TECH_TERM");
             }
-        }
-        String collapsed = collapsedBuilder.toString();
 
-        // 4. Domain Check on Normalized Strings
-        Pattern domainPattern = Pattern.compile(".{3,}" + TLD_GROUP);
-        if (domainPattern.matcher(stripped).find() || domainPattern.matcher(collapsed).find()) {
-             throw new RuntimeException("MODERATION_ERROR: Website link or domain detected.");
+            // 1. Direct Regex (Standard Links) - Check against whitelisted text
+            if (PRECISE_URL_PATTERN.matcher(validationText).find()) {
+                throw new RuntimeException("MODERATION_ERROR: External links are prohibited for community safety.");
+            }
+
+            // 2. Obfuscated Link (e.g., "site dot com") - Check against whitelisted text
+            if (OBFUSCATED_URL_PATTERN.matcher(validationText).find()) {
+                throw new RuntimeException("MODERATION_ERROR: Security Alert: External links are not allowed, even if obscured.");
+            }
+
+            // 3. Advanced Normalization
+            // 3.1 Strip non-alphanumeric
+            String stripped = lowercaseRaw.replaceAll("[^a-z0-9]", "");
+            
+            // 3.2 Collapse repeating characters (e.g., "niiiigggga" -> "niga")
+            String collapsed = collapseString(stripped);
         }
 
         // 5. Term Check on all variations
+        validateForbiddenTerms(lowercaseRaw);
+    }
+
+    private void validateForbiddenTerms(String lowercaseRaw) {
+        String stripped = lowercaseRaw.replaceAll("[^a-z0-9]", "");
+        String collapsed = collapseString(stripped);
+
         for (String term : FORBIDDEN_TERMS) {
             String collapsedTerm = collapseString(term.toLowerCase().replaceAll("[^a-z0-9]", ""));
             
@@ -115,10 +126,22 @@ public class ContentModerationService {
      * Validates multiple fields at once (e.g., for profile updates).
      */
     public void validateFields(java.util.Map<String, Object> fields) {
-        for (Object value : fields.values()) {
+        validateFields(fields, false);
+    }
+
+    public void validateFields(java.util.Map<String, Object> fields, boolean allowLinksInAll) {
+        for (java.util.Map.Entry<String, Object> entry : fields.entrySet()) {
+            Object value = entry.getValue();
             if (value instanceof String) {
-                validateContent((String) value);
+                boolean allowLinks = allowLinksInAll || isLinkPermittedField(entry.getKey());
+                validateContent((String) value, allowLinks);
             }
         }
+    }
+
+    private boolean isLinkPermittedField(String key) {
+        if (key == null) return false;
+        String k = key.toLowerCase();
+        return k.contains("url") || k.contains("website") || k.contains("linkedin") || k.contains("github") || k.contains("portfolio");
     }
 }

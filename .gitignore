@@ -37,3 +37,6 @@ yarn-error.log*
 # OS related
 desktop.ini
 Thumbs.db
+
+# User uploads
+Backend/uploads/

@@ -154,8 +154,15 @@ export function AuthProvider({ children }) {
         setCurrentUser(mergedUser);
         return { ok: true };
       } else {
-        const msg = await res.text();
-        return { ok: false, message: msg || "Server error occurred while saving." };
+        const text = await res.text();
+        let errorMsg = "Server error occurred while saving.";
+        try {
+          const json = JSON.parse(text);
+          errorMsg = json.message || errorMsg;
+        } catch (e) {
+          errorMsg = text || errorMsg;
+        }
+        return { ok: false, message: errorMsg };
       }
     } catch (e) {
       console.error("Profile update error", e);
@@ -202,6 +209,19 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const removeResume = async () => {
+    try {
+      const updatedProfile = { ...currentUser, resumeUrl: null };
+      const res = await updateProfile({ resumeUrl: null });
+      if (res.ok) {
+        return { ok: true };
+      }
+      return res;
+    } catch (e) {
+      return { ok: false, message: "Failed to remove resume." };
+    }
+  };
+
   const value = {
     currentUser,
     isAuthenticated: !!currentUser,
@@ -211,6 +231,7 @@ export function AuthProvider({ children }) {
     logout,
     updateProfile,
     uploadResume,
+    removeResume,
     getUsers,
   };
 

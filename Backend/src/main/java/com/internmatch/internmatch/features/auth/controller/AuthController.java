@@ -169,9 +169,9 @@ public class AuthController {
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // MODERATION: Moderate all incoming profile text fields
+        // MODERATION: Moderate all incoming profile text fields - Allow links in professional profiles
         try {
-            moderationService.validateFields(profileData);
+            moderationService.validateFields(profileData, true);
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("MODERATION_ERROR")) {
                 return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));

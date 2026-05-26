@@ -16,6 +16,8 @@ const INITIAL_POSTING_FORM = {
   setup: "Hybrid",
   status: "ACTIVE",
   description: "",
+  startDate: new Date().toISOString().slice(0, 10),
+  endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 };
 
 export default function EmployerDashboard() {

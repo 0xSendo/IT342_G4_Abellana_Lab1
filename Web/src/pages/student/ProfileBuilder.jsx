@@ -6,7 +6,7 @@ import "../../styles/common/bento.css";
 import "../../styles/student/student-dashboard.css";
 
 export default function ProfileBuilder() {
-  const { currentUser, updateProfile, uploadResume } = useContext(AuthContext);
+  const { currentUser, updateProfile, uploadResume, removeResume } = useContext(AuthContext);
   const toast = useToast();
   const [activeTab, setActiveTab] = useState("essentials");
   const [isUploading, setIsUploading] = useState(false);
@@ -68,13 +68,30 @@ export default function ProfileBuilder() {
     }
   };
 
+  const handleRemoveResume = async () => {
+    if (window.confirm("Are you sure you want to remove your resume? This will take effect immediately.")) {
+      const res = await removeResume();
+      if (res.ok) {
+        setForm(prev => ({ ...prev, resumeUrl: "" }));
+        toast.show("Resume removed successfully.", "success");
+      } else {
+        toast.show(res.message || "Failed to remove resume.", "error");
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await updateProfile(form);
     if (res.ok) {
-      toast.show("Profile saved successfully!", "success");
+      toast.show("Profile updated successfully! Your changes are now live.", "success");
     } else {
-      toast.show(res.message || "Failed to save profile.", "error");
+      const msg = res.message || "Unable to save profile changes.";
+      if (msg.includes("MODERATION_ERROR")) {
+        toast.show(msg.replace("MODERATION_ERROR: ", ""), "warning");
+      } else {
+        toast.show(msg, "error");
+      }
     }
   };
 
@@ -208,10 +225,23 @@ export default function ProfileBuilder() {
                   </div>
                 )}
                 
-                <label className="btn-primary-pro" style={{ display: 'inline-block', cursor: 'pointer' }}>
-                  {isUploading ? "Uploading..." : form.resumeUrl ? "Replace Resume" : "Upload Resume (PDF)"}
-                  <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ display: 'none' }} disabled={isUploading} />
-                </label>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                  <label className="btn-primary-pro" style={{ display: 'inline-block', cursor: 'pointer' }}>
+                    {isUploading ? "Uploading..." : form.resumeUrl ? "Replace Resume" : "Upload Resume (PDF)"}
+                    <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ display: 'none' }} disabled={isUploading} />
+                  </label>
+
+                  {form.resumeUrl && (
+                    <button 
+                      type="button"
+                      className="btn-primary-pro" 
+                      onClick={handleRemoveResume}
+                      style={{ background: 'rgba(255, 59, 48, 0.1)', color: '#ff3b30', border: '1px solid rgba(255, 59, 48, 0.2)' }}
+                    >
+                      Remove Resume
+                    </button>
+                  )}
+                </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '10px' }}>PDF format only, max 5MB.</p>
               </div>
             )}

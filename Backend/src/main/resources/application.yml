@@ -3,9 +3,9 @@ spring:
     name: internmatch
  
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/internmatch?useSSL=false&serverTimezone=Asia/Manila&allowPublicKeyRetrieval=true
-    username: root
-    password: internmatch
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/internmatch?useSSL=false&serverTimezone=Asia/Manila&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:internmatch}
     driver-class-name: com.mysql.cj.jdbc.Driver
  
   jpa:
@@ -29,7 +29,7 @@ spring:
               - email
  
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
  
 logging:
   level:
@@ -38,4 +38,6 @@ logging:
     org.hibernate: DEBUG
  
 app:
-  frontend-url: http://localhost:5173
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  oauth2:
+    frontend-redirect-url: ${FRONTEND_REDIRECT_URL:http://localhost:5173/oauth-callback}

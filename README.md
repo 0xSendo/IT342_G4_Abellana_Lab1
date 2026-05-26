@@ -54,7 +54,7 @@
    ```bash
    cd internmatch/Backend
    ```
-3. Update `src/main/resources/application.yml` with your database credentials.
+3. Create a `.env` file based on `.env.example` and fill in your credentials (Google Client ID/Secret, Database).
 4. Compile and Run:
    ```bash
    mvn clean compile

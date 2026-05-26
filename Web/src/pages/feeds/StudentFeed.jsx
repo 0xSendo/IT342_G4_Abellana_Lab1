@@ -51,14 +51,19 @@ export default function StudentFeed() {
   const validatePostContent = (content) => {
     if (!content) return true;
     
-    // 1. URL/Link detection
-    const urlPattern = /((https?:\/\/|www\.)[^\s]+|([a-z0-9]+\.)+(com|net|org|io|gov|edu|ph|link|me|xyz))/gi;
-    if (urlPattern.test(content)) {
+    // 1. URL/Link detection - Requires protocol or www
+    const urlPattern = /(https?:\/\/|www\.)\S+/gi;
+    
+    // 2. Obfuscated Link detection - Requires actual dot or "dot" text
+    const tldGroup = "(com|net|org|io|gov|edu|ph|link|me|xyz|info|biz|tk|ml|ga|cf|gq|club|tech|app|dev|online|site|shop|store|work|live|news|blog)";
+    const obfuscatedPattern = new RegExp(`[a-z0-9-]+\\s*(\\.|\\s+dot\\s+|\\[dot\\]|\\(dot\\))\\s*${tldGroup}`, "gi");
+
+    if (urlPattern.test(content) || obfuscatedPattern.test(content)) {
       toast.show("Security Alert: External links and URLs are not allowed in community posts for safety.", "error");
       return false;
     }
 
-    // 2. Sensitive Topics / Prohibited Keywords
+    // 3. Sensitive Topics / Prohibited Keywords
     const forbiddenTerms = [
       "crypto", "bitcoin", "ethereum", "casino", "gambling", "betting", "lottery",
       "porn", "nude", "explicit", "fuck", "shit", "bitch", "asshole",
