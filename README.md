@@ -63,14 +63,6 @@
 
 ---
 
-##  UI/UX Philosophy
-InternMatch follows a **"Pro Max"** design language characterized by:
-- **Aurora Glow Effects**: Radiant background elements for visual depth.
-- **Glassmorphism**: Translucent surfaces with blur effects for a modern feel.
-- **Bento Grid Layouts**: Modular, organized information architecture.
-- **Tabbed Efficiency**: Categorized modals to eliminate vertical scrolling and improve user focus.
-
----
 
 ##  Security
 - **JWT Authentication**: Stateless, secure communication between layers.
