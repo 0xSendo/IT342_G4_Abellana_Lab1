@@ -177,7 +177,7 @@ export default function EmployerFeed() {
         p.company.toLowerCase().includes(query) ||
         p.location.toLowerCase().includes(query);
       
-      const isMine = p.postedByEmail === currentUser?.email;
+      const isMine = p.postedByUserId === currentUser?.id;
       const matchesFilter = 
         filter === "ALL" || 
         (filter === "MINE" && isMine) || 
@@ -190,8 +190,8 @@ export default function EmployerFeed() {
   const stats = useMemo(() => {
     return {
       total: allPostings.length,
-      mine: allPostings.filter(p => p.postedByEmail === currentUser?.email).length,
-      others: allPostings.filter(p => p.postedByEmail !== currentUser?.email).length,
+      mine: allPostings.filter(p => p.postedByUserId === currentUser?.id).length,
+      others: allPostings.filter(p => p.postedByUserId !== currentUser?.id).length,
       updates: communityPosts.length
     };
   }, [allPostings, communityPosts, currentUser]);
@@ -347,7 +347,7 @@ export default function EmployerFeed() {
               ) : (
                 <>
                   {filteredPostings.slice(0, visiblePostings).map((posting) => {
-                    const isMine = posting.postedByEmail === currentUser?.email;
+                    const isMine = posting.postedByUserId === currentUser?.id;
                     return (
                       <div key={posting.id} className={`ecosystem-card ${isMine ? "is-mine" : ""}`}>
                         <div className="card-top">

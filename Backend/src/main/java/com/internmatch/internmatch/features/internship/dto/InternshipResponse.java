@@ -25,6 +25,7 @@ public class InternshipResponse {
     private LocalDate endDate;
     private String postedByEmail;
     private String postedByName;
+    private Long postedByUserId;
     private LocalDate createdAt;
     private LocalDate updatedAt;
     private List<ApplicationResponse> applicantsList;
