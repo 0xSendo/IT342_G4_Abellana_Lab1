@@ -26,8 +26,16 @@ public class ApplicationService {
         User student = userRepository.findByEmail(studentEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
+        if (student.getRole() != com.internmatch.internmatch.features.auth.Role.STUDENT) {
+            throw new IllegalStateException("Only students can apply for internships");
+        }
+
         Internship internship = internshipRepository.findById(internshipId)
                 .orElseThrow(() -> new IllegalArgumentException("Internship not found"));
+
+        if (internship.getStatus() != InternshipStatus.ACTIVE) {
+            throw new IllegalStateException("Internship is not open for applications");
+        }
 
         // Check if already applied
         if (applicationRepository.existsByStudentIdAndInternshipId(student.getId(), internshipId)) {

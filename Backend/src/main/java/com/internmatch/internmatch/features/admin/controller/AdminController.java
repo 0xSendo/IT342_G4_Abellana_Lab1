@@ -64,7 +64,6 @@ public class AdminController {
                         .id(post.getId())
                         .studentId(post.getStudent().getId())
                         .studentName(post.getStudent().getName())
-                        .studentEmail(post.getStudent().getEmail())
                         .content(post.getContent())
                         .type(post.getType())
                         .createdAt(post.getCreatedAt().toString())

@@ -40,7 +40,7 @@ export default function StudentFeed() {
   const [visibleActivities, setVisibleActivities] = useState(5);
 
   const hasExistingPost = useMemo(() => {
-    return communityPosts.some(p => p.studentEmail === currentUser?.email);
+    return communityPosts.some(p => p.studentId === currentUser?.id);
   }, [communityPosts, currentUser]);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
@@ -148,7 +148,7 @@ export default function StudentFeed() {
     if (!validatePostContent(newPostContent)) return;
 
     // Frontend pre-check: Check if student already has a post in the current list
-    const hasExisting = communityPosts.some(p => p.studentEmail === currentUser?.email);
+    const hasExisting = communityPosts.some(p => p.studentId === currentUser?.id);
     if (hasExisting) {
       toast.show("Action Denied: You can only have one active community post. Please edit or delete your current post.", "error");
       return;
@@ -241,7 +241,7 @@ export default function StudentFeed() {
     }
 
     // Explicit Pre-check to prevent race conditions
-    const existing = communityPosts.find(p => p.studentEmail === currentUser?.email);
+    const existing = communityPosts.find(p => p.studentId === currentUser?.id);
     if (existing) {
       toast.show("Action Denied: You already have an active profile presence. Please edit or delete your existing post to share a new one.", "error");
       return;
@@ -677,7 +677,7 @@ export default function StudentFeed() {
                 ) : (
                   <>
                     {filteredActivities.slice(0, visibleActivities).map((item) => {
-                      const isOwnPost = item.studentEmail === currentUser?.email;
+                      const isOwnPost = item.studentId === currentUser?.id;
                       const isEditing = editingPostId === item.id;
 
                       return (

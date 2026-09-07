@@ -60,8 +60,10 @@ public class InternshipController {
      */
     @GetMapping("/status/{status}")
     public ResponseEntity<List<InternshipResponse>> getInternshipsByStatus(
-            @PathVariable InternshipStatus status) {
-        List<InternshipResponse> internships = internshipService.getInternshipsByStatus(status);
+            @PathVariable InternshipStatus status,
+            Authentication authentication) {
+        String callerEmail = authentication != null ? authentication.getName() : null;
+        List<InternshipResponse> internships = internshipService.getInternshipsByStatus(status, callerEmail);
         return ResponseEntity.ok(internships);
     }
     
@@ -70,10 +72,12 @@ public class InternshipController {
      */
     @GetMapping
     public ResponseEntity<List<InternshipResponse>> getAllInternships(
-            @RequestParam(required = false) InternshipStatus status) {
+            @RequestParam(required = false) InternshipStatus status,
+            Authentication authentication) {
         List<InternshipResponse> internships;
         if (status != null) {
-            internships = internshipService.getInternshipsByStatus(status);
+            String callerEmail = authentication != null ? authentication.getName() : null;
+            internships = internshipService.getInternshipsByStatus(status, callerEmail);
         } else {
             internships = internshipService.getAllActiveInternships();
         }
@@ -85,8 +89,10 @@ public class InternshipController {
      */
     @GetMapping("/search/company")
     public ResponseEntity<List<InternshipResponse>> searchByCompany(
-            @RequestParam String company) {
-        List<InternshipResponse> internships = internshipService.searchByCompany(company);
+            @RequestParam String company,
+            Authentication authentication) {
+        String callerEmail = authentication != null ? authentication.getName() : null;
+        List<InternshipResponse> internships = internshipService.searchByCompany(company, callerEmail);
         return ResponseEntity.ok(internships);
     }
     
@@ -95,8 +101,10 @@ public class InternshipController {
      */
     @GetMapping("/search/location")
     public ResponseEntity<List<InternshipResponse>> searchByLocation(
-            @RequestParam String location) {
-        List<InternshipResponse> internships = internshipService.searchByLocation(location);
+            @RequestParam String location,
+            Authentication authentication) {
+        String callerEmail = authentication != null ? authentication.getName() : null;
+        List<InternshipResponse> internships = internshipService.searchByLocation(location, callerEmail);
         return ResponseEntity.ok(internships);
     }
     

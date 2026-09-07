@@ -16,9 +16,13 @@ public class ApplicationController {
     private final ApplicationService applicationService;
 
     @PostMapping("/apply/{internshipId}")
-    public ResponseEntity<ApplicationResponse> apply(@PathVariable Long internshipId, Authentication authentication) {
+    public ResponseEntity<?> apply(@PathVariable Long internshipId, Authentication authentication) {
         String email = authentication.getName();
-        return ResponseEntity.ok(applicationService.applyToInternship(internshipId, email));
+        try {
+            return ResponseEntity.ok(applicationService.applyToInternship(internshipId, email));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/my-applications")

@@ -65,6 +65,11 @@ public class InternshipService {
                 : null;
         boolean isOwner = caller != null && internship.getPostedBy().getEmail().equals(callerEmail);
         boolean isAdmin = caller != null && caller.getRole() == com.internmatch.internmatch.features.auth.Role.ADMIN;
+
+        if (internship.getStatus() != InternshipStatus.ACTIVE && !isOwner && !isAdmin) {
+            throw new org.springframework.security.access.AccessDeniedException("This internship is not available");
+        }
+
         return isOwner || isAdmin ? mapToResponseWithApplicants(internship) : mapToResponse(internship);
     }
     
@@ -83,9 +88,20 @@ public class InternshipService {
      * Get internships by status
      */
     @Transactional(readOnly = true)
-    public List<InternshipResponse> getInternshipsByStatus(InternshipStatus status) {
-        return internshipRepository.findByStatus(status)
-                .stream()
+    public List<InternshipResponse> getInternshipsByStatus(InternshipStatus status, String callerEmail) {
+        User caller = callerEmail != null ? userRepository.findByEmail(callerEmail).orElse(null) : null;
+        boolean isAdmin = caller != null && caller.getRole() == com.internmatch.internmatch.features.auth.Role.ADMIN;
+
+        List<Internship> internships = internshipRepository.findByStatus(status);
+
+        if (status == InternshipStatus.ACTIVE || isAdmin) {
+            return internships.stream()
+                    .map(this::mapToResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return internships.stream()
+                .filter(i -> caller != null && i.getPostedBy().getEmail().equals(callerEmail))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -111,20 +127,23 @@ public class InternshipService {
      * Search internships by company
      */
     @Transactional(readOnly = true)
-    public List<InternshipResponse> searchByCompany(String company) {
-        return internshipRepository.findByCompanyContainingIgnoreCase(company)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public List<InternshipResponse> searchByCompany(String company, String callerEmail) {
+        return filterNonActive(internshipRepository.findByCompanyContainingIgnoreCase(company), callerEmail);
     }
     
     /**
      * Search internships by location
      */
     @Transactional(readOnly = true)
-    public List<InternshipResponse> searchByLocation(String location) {
-        return internshipRepository.findByLocationContainingIgnoreCase(location)
-                .stream()
+    public List<InternshipResponse> searchByLocation(String location, String callerEmail) {
+        return filterNonActive(internshipRepository.findByLocationContainingIgnoreCase(location), callerEmail);
+    }
+
+    private List<InternshipResponse> filterNonActive(List<Internship> internships, String callerEmail) {
+        User caller = callerEmail != null ? userRepository.findByEmail(callerEmail).orElse(null) : null;
+        boolean isAdmin = caller != null && caller.getRole() == com.internmatch.internmatch.features.auth.Role.ADMIN;
+        return internships.stream()
+                .filter(i -> isAdmin || i.getStatus() == InternshipStatus.ACTIVE)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
