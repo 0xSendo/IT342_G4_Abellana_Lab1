@@ -77,11 +77,17 @@ public class User implements UserDetails {
     @Column
     private String phone;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @Column(nullable = false)
     private int failedLoginAttempts = 0;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @Column
     private java.time.LocalDateTime lockoutUntil;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(nullable = false)
+    private int tokenVersion = 0;
 
     // Spring Security UserDetails methods
     @Override

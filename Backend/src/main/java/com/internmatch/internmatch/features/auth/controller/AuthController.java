@@ -154,6 +154,9 @@ public class AuthController {
 
     @org.springframework.web.bind.annotation.GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(user);
@@ -161,6 +164,9 @@ public class AuthController {
 
     @org.springframework.web.bind.annotation.PutMapping("/profile")
     public ResponseEntity<?> updateProfile(org.springframework.security.core.Authentication authentication, @RequestBody java.util.Map<String, Object> profileData) {
+        if (authentication == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -213,6 +219,9 @@ public class AuthController {
     public ResponseEntity<?> changePassword(
             org.springframework.security.core.Authentication authentication,
             @RequestBody java.util.Map<String, String> body) {
+        if (authentication == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
         String current = body.get("currentPassword");
         String newPassword = body.get("newPassword");
         if (current == null || newPassword == null || current.isBlank() || newPassword.isBlank()) {
@@ -237,6 +246,7 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setFailedLoginAttempts(0);
         user.setLockoutUntil(null);
+        user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
         log.info("Password changed for user {}", user.getEmail());
         return ResponseEntity.ok("Password updated successfully");
