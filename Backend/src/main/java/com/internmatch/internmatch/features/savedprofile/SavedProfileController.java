@@ -10,6 +10,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/saved-profiles")
 @RequiredArgsConstructor
+@org.springframework.security.access.prepost.PreAuthorize("hasRole('EMPLOYER') or hasRole('ADMIN')")
 public class SavedProfileController {
 
     private final SavedProfileService savedProfileService;

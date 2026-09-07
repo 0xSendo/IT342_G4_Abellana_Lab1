@@ -72,7 +72,7 @@ public class ApplicationService {
         
         // Verify employer owns the internship
         if (!internship.getPostedBy().getEmail().equals(employerEmail)) {
-            throw new IllegalStateException("Unauthorized to update this application");
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized to update this application");
         }
 
         application.setStatus(newStatus);

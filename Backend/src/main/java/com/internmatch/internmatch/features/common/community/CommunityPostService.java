@@ -49,7 +49,7 @@ public class CommunityPostService {
         CommunityPost post = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         if (!post.getStudent().getId().equals(studentId)) {
-            throw new RuntimeException("Unauthorized to delete this post");
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized to delete this post");
         }
         repository.delete(post);
     }
@@ -61,7 +61,7 @@ public class CommunityPostService {
         CommunityPost post = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         if (!post.getStudent().getId().equals(studentId)) {
-            throw new RuntimeException("Unauthorized to update this post");
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized to update this post");
         }
         post.setContent(content);
         return repository.save(post);

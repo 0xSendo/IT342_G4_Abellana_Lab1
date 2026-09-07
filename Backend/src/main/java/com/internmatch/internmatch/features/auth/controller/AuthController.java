@@ -23,6 +23,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final com.internmatch.internmatch.features.auth.security.LoginAttemptService loginAttemptService;
     private final com.internmatch.internmatch.features.auth.security.RateLimitingService rateLimitingService;
+    private final com.internmatch.internmatch.features.auth.security.PasswordPolicyService passwordPolicyService;
     private final com.internmatch.internmatch.features.common.community.ContentModerationService moderationService;
     private final jakarta.servlet.http.HttpServletRequest httpServletRequest;
     @org.springframework.beans.factory.annotation.Value("${GOOGLE_CLIENT_ID}")
@@ -35,7 +36,7 @@ public class AuthController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many registration attempts. Please try again later.");
         }
 
-        String passwordError = validatePassword(request.getPassword(), request.getEmail());
+        String passwordError = passwordPolicyService.validatePassword(request.getPassword(), request.getEmail());
         if (passwordError != null) {
             return ResponseEntity.badRequest().body(passwordError);
         }
@@ -238,7 +239,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Current password is incorrect");
         }
 
-        String passwordError = validatePassword(newPassword, user.getEmail());
+        String passwordError = passwordPolicyService.validatePassword(newPassword, user.getEmail());
         if (passwordError != null) {
             return ResponseEntity.badRequest().body(passwordError);
         }
@@ -250,39 +251,6 @@ public class AuthController {
         userRepository.save(user);
         log.info("Password changed for user {}", user.getEmail());
         return ResponseEntity.ok("Password updated successfully");
-    }
-
-    private boolean isValidPassword(String password) {
-        if (password == null || password.length() < 8 || password.length() > 64) {
-            return false;
-        }
-        java.util.List<String> commonPasswords = java.util.Arrays.asList(
-                "password", "password1", "internmatch", "internmatch1", "12345678",
-                "123456789", "qwerty123", "changeme", "admin123", "letmein");
-        return !commonPasswords.contains(password.toLowerCase());
-    }
-
-    private String validatePassword(String password, String email) {
-        if (password == null || password.isEmpty()) {
-            return "Password is required";
-        }
-        if (password.length() < 8) {
-            return "Password must be at least 8 characters long";
-        }
-        if (password.length() > 64) {
-            return "Password must be at most 64 characters long";
-        }
-        String lower = password.toLowerCase();
-        if (!isValidPassword(password)) {
-            return "Password is too weak. Choose a longer, less common password.";
-        }
-        if (email != null && !email.isBlank()) {
-            String local = email.split("@")[0].toLowerCase();
-            if (lower.contains(local) || lower.contains(email.toLowerCase())) {
-                return "Password must not contain your email address";
-            }
-        }
-        return null;
     }
 
     private String resolveClientIp() {

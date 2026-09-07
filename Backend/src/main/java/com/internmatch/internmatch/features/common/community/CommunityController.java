@@ -21,6 +21,7 @@ public class CommunityController {
     private final UserRepository userRepository;
 
     @PostMapping("/post")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> createPost(Authentication authentication, @RequestBody PostRequest request) {
         log.info("Received community post request from: {}", authentication != null ? authentication.getName() : "anonymous");
         
@@ -75,6 +76,7 @@ public class CommunityController {
     }
 
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> updatePost(Authentication authentication, @PathVariable Long id, @RequestBody PostRequest request) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
         log.info("Updating community post ID: {} by user: {}", id, user.getEmail());
@@ -89,6 +91,7 @@ public class CommunityController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> deletePost(Authentication authentication, @PathVariable Long id) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
         log.info("Deleting community post ID: {} by user: {}", id, user.getEmail());

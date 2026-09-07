@@ -25,6 +25,8 @@ public class AdminController {
     private final CommunityPostService communityPostService;
     private final ApplicationService applicationService;
     private final com.internmatch.internmatch.features.auth.UserRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final com.internmatch.internmatch.features.auth.security.PasswordPolicyService passwordPolicyService;
 
     // --- USER MANAGEMENT ---
 
@@ -35,6 +37,29 @@ public class AdminController {
         String roleStr = request.get("role");
         user.setRole(com.internmatch.internmatch.features.auth.Role.valueOf(roleStr));
         return ResponseEntity.ok(userRepository.save(user));
+    }
+
+    @PutMapping("/users/{id}/reset-password")
+    public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody java.util.Map<String, String> request) {
+        com.internmatch.internmatch.features.auth.User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String newPassword = request.get("newPassword");
+        if (newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body("A new password is required");
+        }
+
+        String passwordError = passwordPolicyService.validatePassword(newPassword, user.getEmail());
+        if (passwordError != null) {
+            return ResponseEntity.badRequest().body(passwordError);
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setFailedLoginAttempts(0);
+        user.setLockoutUntil(null);
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        userRepository.save(user);
+        return ResponseEntity.ok("Password reset successfully");
     }
 
     // --- INTERNSHIP MANAGEMENT ---

@@ -159,7 +159,7 @@ public class InternshipService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         
         if (!internship.getPostedBy().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("You are not authorized to update this internship");
+            throw new org.springframework.security.access.AccessDeniedException("You are not authorized to update this internship");
         }
 
         // MODERATION: Validate input fields - Allow links in internship descriptions
@@ -193,7 +193,7 @@ public class InternshipService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         
         if (!internship.getPostedBy().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("You are not authorized to delete this internship");
+            throw new org.springframework.security.access.AccessDeniedException("You are not authorized to delete this internship");
         }
         
         // Delete all applications associated with this internship first
