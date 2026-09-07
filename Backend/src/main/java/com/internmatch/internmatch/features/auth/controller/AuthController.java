@@ -166,11 +166,13 @@ public class AuthController {
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/users")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<java.util.List<User>> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/users/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
