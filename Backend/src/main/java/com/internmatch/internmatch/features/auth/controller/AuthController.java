@@ -30,13 +30,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
-        String clientIp = httpServletRequest.getRemoteAddr();
+        String clientIp = resolveClientIp();
         if (!rateLimitingService.isAllowed(clientIp)) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many registration attempts. Please try again later.");
         }
 
-        if (request.getPassword() == null || request.getPassword().isEmpty()) {
-            return ResponseEntity.badRequest().body("Password is required");
+        String passwordError = validatePassword(request.getPassword(), request.getEmail());
+        if (passwordError != null) {
+            return ResponseEntity.badRequest().body(passwordError);
         }
         
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -57,7 +58,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        String clientIp = httpServletRequest.getRemoteAddr();
+        String clientIp = resolveClientIp();
         if (!rateLimitingService.isAllowed(clientIp)) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many login attempts. Please try again later.");
         }
@@ -86,7 +87,7 @@ public class AuthController {
 
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest request) {
-        String clientIp = httpServletRequest.getRemoteAddr();
+        String clientIp = resolveClientIp();
         if (!rateLimitingService.isAllowed(clientIp)) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many attempts. Please try again later.");
         }
@@ -206,6 +207,83 @@ public class AuthController {
         }
         userRepository.deleteById(id);
         return ResponseEntity.ok("User access terminated");
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            org.springframework.security.core.Authentication authentication,
+            @RequestBody java.util.Map<String, String> body) {
+        String current = body.get("currentPassword");
+        String newPassword = body.get("newPassword");
+        if (current == null || newPassword == null || current.isBlank() || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body("Current password and new password are required");
+        }
+        if (current.equals(newPassword)) {
+            return ResponseEntity.badRequest().body("New password must be different from the current password");
+        }
+
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(current, user.getPassword())) {
+            return ResponseEntity.badRequest().body("Current password is incorrect");
+        }
+
+        String passwordError = validatePassword(newPassword, user.getEmail());
+        if (passwordError != null) {
+            return ResponseEntity.badRequest().body(passwordError);
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setFailedLoginAttempts(0);
+        user.setLockoutUntil(null);
+        userRepository.save(user);
+        log.info("Password changed for user {}", user.getEmail());
+        return ResponseEntity.ok("Password updated successfully");
+    }
+
+    private boolean isValidPassword(String password) {
+        if (password == null || password.length() < 8 || password.length() > 64) {
+            return false;
+        }
+        java.util.List<String> commonPasswords = java.util.Arrays.asList(
+                "password", "password1", "internmatch", "internmatch1", "12345678",
+                "123456789", "qwerty123", "changeme", "admin123", "letmein");
+        return !commonPasswords.contains(password.toLowerCase());
+    }
+
+    private String validatePassword(String password, String email) {
+        if (password == null || password.isEmpty()) {
+            return "Password is required";
+        }
+        if (password.length() < 8) {
+            return "Password must be at least 8 characters long";
+        }
+        if (password.length() > 64) {
+            return "Password must be at most 64 characters long";
+        }
+        String lower = password.toLowerCase();
+        if (!isValidPassword(password)) {
+            return "Password is too weak. Choose a longer, less common password.";
+        }
+        if (email != null && !email.isBlank()) {
+            String local = email.split("@")[0].toLowerCase();
+            if (lower.contains(local) || lower.contains(email.toLowerCase())) {
+                return "Password must not contain your email address";
+            }
+        }
+        return null;
+    }
+
+    private String resolveClientIp() {
+        String forwarded = httpServletRequest.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            String first = forwarded.split(",")[0].trim();
+            if (!first.isEmpty()) {
+                return first;
+            }
+        }
+        return httpServletRequest.getRemoteAddr();
     }
 
     private AuthResponse buildAuthResponse(User user, String token) {
