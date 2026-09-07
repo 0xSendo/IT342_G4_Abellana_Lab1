@@ -43,7 +43,7 @@ public class AuthController {
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? request.getRole() : Role.STUDENT)
+                .role(Role.STUDENT)
                 .failedLoginAttempts(0)
                 .build();
 
@@ -73,25 +73,7 @@ public class AuthController {
             loginAttemptService.loginSucceeded(request.getEmail());
             String token = jwtService.generateToken(user);
 
-            return ResponseEntity.ok(AuthResponse.builder()
-                    .token(token)
-                    .email(user.getEmail())
-                    .name(user.getName())
-                    .role(user.getRole().name())
-                    .program(user.getProgram())
-                    .yearLevel(user.getYearLevel())
-                    .skills(user.getSkills())
-                    .bio(user.getBio())
-                    .projects(user.getProjects())
-                    .resumeUrl(user.getResumeUrl())
-                    .linkedin(user.getLinkedin())
-                    .website(user.getWebsite())
-                    .companyName(user.getCompanyName())
-                    .companyLocation(user.getCompanyLocation())
-                    .companyWebsite(user.getCompanyWebsite())
-                    .department(user.getDepartment())
-                    .phone(user.getPhone())
-                    .build());
+            return ResponseEntity.ok(buildAuthResponse(user, token));
         } catch (org.springframework.security.authentication.LockedException e) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.LOCKED).body("Account is locked.");
         } catch (org.springframework.security.core.AuthenticationException e) {
@@ -133,25 +115,7 @@ public class AuthController {
 
             String token = jwtService.generateToken(user);
 
-            return ResponseEntity.ok(AuthResponse.builder()
-                    .token(token)
-                    .email(user.getEmail())
-                    .name(user.getName())
-                    .role(user.getRole().name())
-                    .program(user.getProgram())
-                    .yearLevel(user.getYearLevel())
-                    .skills(user.getSkills())
-                    .bio(user.getBio())
-                    .projects(user.getProjects())
-                    .resumeUrl(user.getResumeUrl())
-                    .linkedin(user.getLinkedin())
-                    .website(user.getWebsite())
-                    .companyName(user.getCompanyName())
-                    .companyLocation(user.getCompanyLocation())
-                    .companyWebsite(user.getCompanyWebsite())
-                    .department(user.getDepartment())
-                    .phone(user.getPhone())
-                    .build());
+            return ResponseEntity.ok(buildAuthResponse(user, token));
         } catch (Exception e) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Error validating Google token: " + e.getMessage());
         }
@@ -210,5 +174,27 @@ public class AuthController {
         }
         userRepository.deleteById(id);
         return ResponseEntity.ok("User access terminated");
+    }
+
+    private AuthResponse buildAuthResponse(User user, String token) {
+        return AuthResponse.builder()
+                .token(token)
+                .email(user.getEmail())
+                .name(user.getName())
+                .role(user.getRole().name())
+                .program(user.getProgram())
+                .yearLevel(user.getYearLevel())
+                .skills(user.getSkills())
+                .bio(user.getBio())
+                .projects(user.getProjects())
+                .resumeUrl(user.getResumeUrl())
+                .linkedin(user.getLinkedin())
+                .website(user.getWebsite())
+                .companyName(user.getCompanyName())
+                .companyLocation(user.getCompanyLocation())
+                .companyWebsite(user.getCompanyWebsite())
+                .department(user.getDepartment())
+                .phone(user.getPhone())
+                .build();
     }
 }
