@@ -29,7 +29,7 @@ public class CommunityController {
         }
         
         User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CommunityException("User not found"));
 
         CommunityPost post = CommunityPost.builder()
                 .student(user)
@@ -41,6 +41,8 @@ public class CommunityController {
             CommunityPost saved = communityPostService.createPost(post);
             log.info("Successfully saved post ID: {} for user: {}", saved.getId(), user.getEmail());
             return ResponseEntity.ok(convertToDto(saved));
+        } catch (CommunityException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("MODERATION_ERROR")) {
                 return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));

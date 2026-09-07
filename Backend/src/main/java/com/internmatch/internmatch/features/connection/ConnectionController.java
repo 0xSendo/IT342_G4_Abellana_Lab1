@@ -3,6 +3,7 @@ package com.internmatch.internmatch.features.connection;
 import com.internmatch.internmatch.features.auth.User;
 import com.internmatch.internmatch.features.auth.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/connections")
 @RequiredArgsConstructor
@@ -27,8 +29,9 @@ public class ConnectionController {
         try {
             Connection connection = connectionService.sendRequest(currentUser.getId(), receiverId);
             return ResponseEntity.ok(connection);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ConnectionException e) {
+            log.warn("Connection request rejected: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -42,8 +45,9 @@ public class ConnectionController {
         try {
             Connection connection = connectionService.respondToRequest(connectionId, currentUser.getId(), status);
             return ResponseEntity.ok(connection);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ConnectionException e) {
+            log.warn("Connection response rejected: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 

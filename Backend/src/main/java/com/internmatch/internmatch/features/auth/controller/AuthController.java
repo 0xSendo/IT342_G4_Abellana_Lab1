@@ -4,12 +4,14 @@ import com.internmatch.internmatch.features.auth.*;
 import com.internmatch.internmatch.features.auth.security.JwtService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -117,7 +119,8 @@ public class AuthController {
 
             return ResponseEntity.ok(buildAuthResponse(user, token));
         } catch (Exception e) {
-            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Error validating Google token: " + e.getMessage());
+            log.error("Google token validation failed", e);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid Google token");
         }
     }
 

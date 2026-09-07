@@ -22,12 +22,12 @@ public class ConnectionService {
     @Transactional
     public Connection sendRequest(Long requesterId, Long receiverId) {
         User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new RuntimeException("Requester not found"));
+                .orElseThrow(() -> new ConnectionException("Requester not found"));
         User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+                .orElseThrow(() -> new ConnectionException("Receiver not found"));
 
         if (connectionRepository.findBetweenUsers(requester, receiver).isPresent()) {
-            throw new RuntimeException("Connection request already exists or you are already friends");
+            throw new ConnectionException("Connection request already exists or you are already friends");
         }
 
         Connection connection = Connection.builder()
@@ -53,14 +53,14 @@ public class ConnectionService {
     @Transactional
     public Connection respondToRequest(Long connectionId, Long userId, ConnectionStatus status) {
         Connection connection = connectionRepository.findById(connectionId)
-                .orElseThrow(() -> new RuntimeException("Connection request not found"));
+                .orElseThrow(() -> new ConnectionException("Connection request not found"));
 
         if (!connection.getReceiver().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized to respond to this request");
+            throw new ConnectionException("Unauthorized to respond to this request");
         }
 
         if (connection.getStatus() != ConnectionStatus.PENDING) {
-            throw new RuntimeException("Request has already been responded to");
+            throw new ConnectionException("Request has already been responded to");
         }
 
         connection.setStatus(status);
@@ -83,13 +83,13 @@ public class ConnectionService {
 
     public List<Connection> getPendingRequests(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ConnectionException("User not found"));
         return connectionRepository.findByReceiverAndStatus(user, ConnectionStatus.PENDING);
     }
 
     public List<User> getFriends(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ConnectionException("User not found"));
         List<Connection> connections = connectionRepository.findAcceptedConnections(user);
         
         return connections.stream()

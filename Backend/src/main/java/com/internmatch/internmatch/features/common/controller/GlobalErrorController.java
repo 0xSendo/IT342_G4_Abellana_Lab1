@@ -1,5 +1,6 @@
 package com.internmatch.internmatch.features.common.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,34 +10,33 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 public class GlobalErrorController implements ErrorController {
 
     @RequestMapping("/error")
     public ResponseEntity<Map<String, Object>> handleError(HttpServletRequest request) {
-        Map<String, Object> errorResponse = new HashMap<>();
-        
         Object statusAttr = request.getAttribute("jakarta.servlet.error.status_code");
         int status = (statusAttr instanceof Integer) ? (int) statusAttr : 500;
-        
-        Object messageAttr = request.getAttribute("jakarta.servlet.error.message");
-        String message = (messageAttr != null) ? String.valueOf(messageAttr) : "An error occurred";
-        
+
         Object exceptionAttr = request.getAttribute("jakarta.servlet.error.exception");
-        String exception = (exceptionAttr != null) ? String.valueOf(exceptionAttr) : null;
-        
-        Object uriAttr = request.getAttribute("jakarta.servlet.error.request_uri");
-        String requestUri = (uriAttr != null) ? String.valueOf(uriAttr) : "unknown";
-        
-        errorResponse.put("status", status);
-        errorResponse.put("error", HttpStatus.valueOf(status).getReasonPhrase());
-        errorResponse.put("message", message);
-        errorResponse.put("path", requestUri);
-        
-        if (exception != null) {
-            errorResponse.put("exception", exception);
+        if (exceptionAttr instanceof Throwable) {
+            log.error("Unhandled error routed to /error", (Throwable) exceptionAttr);
         }
-        
+
+        String reasonPhrase;
+        try {
+            reasonPhrase = HttpStatus.valueOf(status).getReasonPhrase();
+        } catch (IllegalArgumentException e) {
+            reasonPhrase = "Error";
+        }
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", status);
+        errorResponse.put("error", reasonPhrase);
+        errorResponse.put("message", "An unexpected error occurred.");
+        errorResponse.put("timestamp", java.time.LocalDateTime.now().toString());
+
         return ResponseEntity
                 .status(status)
                 .body(errorResponse);

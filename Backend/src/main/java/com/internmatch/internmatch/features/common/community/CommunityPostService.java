@@ -1,6 +1,8 @@
 package com.internmatch.internmatch.features.common.community;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -20,16 +22,20 @@ public class CommunityPostService {
 
         // Strictly Enforce 1 post per student limit
         if (repository.findByStudentId(post.getStudent().getId()).isPresent()) {
-            throw new RuntimeException("LIMIT_REACHED");
+            throw new CommunityException("You have already posted. Each student may only have one community post.");
         }
         return repository.save(post);
     }
 
-    @jakarta.annotation.PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void hardResetOnStartup() {
-        // Clearing all posts to reset the environment as requested
-        repository.deleteAll();
-        repository.flush();
+        // Run cleanup after application is ready so Hibernate has created schema.
+        try {
+            repository.deleteAll();
+            repository.flush();
+        } catch (Exception e) {
+            System.out.println("CommunityPostService: startup cleanup skipped — " + e.getMessage());
+        }
     }
 
     public void deleteAllPosts() {
