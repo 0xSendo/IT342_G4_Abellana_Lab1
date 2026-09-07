@@ -3,10 +3,11 @@ spring:
     name: internmatch
  
   datasource:
-    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/internmatch?useSSL=false&serverTimezone=Asia/Manila&allowPublicKeyRetrieval=true}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:internmatch}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    # Default to an in-memory H2 database for local development when DB_URL is not provided.
+    url: ${DB_URL:jdbc:h2:mem:internmatch;DB_CLOSE_DELAY=-1}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
  
   jpa:
     hibernate:
@@ -16,6 +17,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
  
   security:
     oauth2:

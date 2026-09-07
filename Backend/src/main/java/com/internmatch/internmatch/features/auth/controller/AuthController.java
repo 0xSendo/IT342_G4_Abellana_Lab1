@@ -25,6 +25,8 @@ public class AuthController {
     private final com.internmatch.internmatch.features.auth.security.RateLimitingService rateLimitingService;
     private final com.internmatch.internmatch.features.common.community.ContentModerationService moderationService;
     private final jakarta.servlet.http.HttpServletRequest httpServletRequest;
+    @org.springframework.beans.factory.annotation.Value("${GOOGLE_CLIENT_ID}")
+    private String googleClientId;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
@@ -93,11 +95,20 @@ public class AuthController {
 
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest request) {
+        String clientIp = httpServletRequest.getRemoteAddr();
+        if (!rateLimitingService.isAllowed(clientIp)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many attempts. Please try again later.");
+        }
+
+        if (request.getIdToken() == null || request.getIdToken().isBlank()) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid Google token");
+        }
+
         String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + request.getIdToken();
         org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
         try {
             java.util.Map<String, Object> payload = restTemplate.getForObject(url, java.util.Map.class);
-            if (payload == null || payload.containsKey("error")) {
+            if (payload == null || payload.containsKey("error") || !isValidGoogleToken(payload)) {
                 return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid Google token");
             }
 
@@ -122,6 +133,31 @@ public class AuthController {
             log.error("Google token validation failed", e);
             return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid Google token");
         }
+    }
+
+    private boolean isValidGoogleToken(java.util.Map<String, Object> payload) {
+        Object aud = payload.get("aud");
+        if (aud == null || !googleClientId.equals(String.valueOf(aud))) {
+            return false;
+        }
+        Object iss = payload.get("iss");
+        boolean correctIssuer = "accounts.google.com".equals(iss) || "https://accounts.google.com".equals(iss);
+        if (!correctIssuer) {
+            return false;
+        }
+        if (!Boolean.parseBoolean(String.valueOf(payload.get("email_verified")))) {
+            return false;
+        }
+        try {
+            long exp = Long.parseLong(String.valueOf(payload.get("exp")));
+            if (System.currentTimeMillis() / 1000L >= exp) {
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        Object email = payload.get("email");
+        return email != null && !String.valueOf(email).isBlank();
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/me")

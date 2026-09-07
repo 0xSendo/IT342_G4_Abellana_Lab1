@@ -31,8 +31,9 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAsRead(Long notificationId) {
-        notificationRepository.findById(notificationId).ifPresent(n -> n.setRead(true));
+    public void markAsRead(Long notificationId, Long userId) {
+        Notification notification = findOwnedNotification(notificationId, userId);
+        notification.setRead(true);
     }
 
     @Transactional
@@ -41,12 +42,22 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(Long notificationId) {
-        notificationRepository.deleteById(notificationId);
+    public void deleteNotification(Long notificationId, Long userId) {
+        Notification notification = findOwnedNotification(notificationId, userId);
+        notificationRepository.delete(notification);
     }
 
     @Transactional
     public void deleteAllNotifications(Long userId) {
         notificationRepository.deleteByUserId(userId);
+    }
+
+    private Notification findOwnedNotification(Long notificationId, Long userId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Notification not found"));
+        if (!notification.getUser().getId().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this notification");
+        }
+        return notification;
     }
 }
