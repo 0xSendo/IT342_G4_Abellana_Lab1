@@ -20,21 +20,29 @@ public class InternmatchApplication {
     public CommandLineRunner seedAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             String adminEmail = "adminpaul@internmatch.com";
-            if (userRepository.findByEmail(adminEmail).isEmpty()) {
-                User admin = User.builder()
+            String adminPassword = System.getenv("ADMIN_PASSWORD");
+            if (adminPassword == null || adminPassword.isBlank() || "ChangeMe123!".equals(adminPassword)) {
+                throw new IllegalStateException("ADMIN_PASSWORD environment variable must be set to a strong value (not the default 'ChangeMe123!').");
+            }
+            String encoded = passwordEncoder.encode(adminPassword);
+            User admin = userRepository.findByEmail(adminEmail).orElseGet(() -> User.builder()
                         .name("AdminPaul")
                         .email(adminEmail)
-                        .password(passwordEncoder.encode(System.getenv("ADMIN_PASSWORD") != null ? System.getenv("ADMIN_PASSWORD") : "ChangeMe123!"))
                         .role(Role.ADMIN)
                         .department("System Administration")
-                        .build();
+                        .build());
+            if (!passwordEncoder.matches(adminPassword, admin.getPassword() != null ? admin.getPassword() : "")) {
+                admin.setPassword(encoded);
                 userRepository.save(admin);
-                System.out.println("========================================");
-                System.out.println("ADMIN ACCOUNT CREATED SUCCESSFULLY");
-                System.out.println("Email: " + adminEmail);
-                System.out.println("Password: [PROTECTED]");
-                System.out.println("========================================");
             }
+            if (admin.getId() == null) {
+                userRepository.save(admin);
+            }
+            System.out.println("========================================");
+            System.out.println("ADMIN ACCOUNT READY");
+            System.out.println("Email: " + adminEmail);
+            System.out.println("Password: [PROTECTED]");
+            System.out.println("========================================");
         };
     }
 }

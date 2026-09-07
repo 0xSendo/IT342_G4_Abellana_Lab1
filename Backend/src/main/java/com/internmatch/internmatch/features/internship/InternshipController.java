@@ -41,8 +41,8 @@ public class InternshipController {
      * Get internship by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<InternshipResponse> getInternshipById(@PathVariable Long id) {
-        InternshipResponse response = internshipService.getInternshipById(id);
+    public ResponseEntity<InternshipResponse> getInternshipById(@PathVariable Long id, Authentication authentication) {
+        InternshipResponse response = internshipService.getInternshipById(id, authentication != null ? authentication.getName() : null);
         return ResponseEntity.ok(response);
     }
     

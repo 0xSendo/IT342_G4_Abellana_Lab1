@@ -57,10 +57,15 @@ public class InternshipService {
      * Get internship by ID
      */
     @Transactional(readOnly = true)
-    public InternshipResponse getInternshipById(Long id) {
+    public InternshipResponse getInternshipById(Long id, String callerEmail) {
         Internship internship = internshipRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Internship not found with id: " + id));
-        return mapToResponse(internship);
+        User caller = callerEmail != null
+                ? userRepository.findByEmail(callerEmail).orElse(null)
+                : null;
+        boolean isOwner = caller != null && internship.getPostedBy().getEmail().equals(callerEmail);
+        boolean isAdmin = caller != null && caller.getRole() == com.internmatch.internmatch.features.auth.Role.ADMIN;
+        return isOwner || isAdmin ? mapToResponseWithApplicants(internship) : mapToResponse(internship);
     }
     
     /**
@@ -92,7 +97,7 @@ public class InternshipService {
     public List<InternshipResponse> getInternshipsByPostedUser(Long userId) {
         return internshipRepository.findByPostedByIdOrderByCreatedAtDesc(userId)
                 .stream()
-                .map(this::mapToResponse)
+                .map(this::mapToResponseWithApplicants)
                 .collect(Collectors.toList());
     }
 
@@ -155,7 +160,7 @@ public class InternshipService {
         internship.setUpdatedAt(LocalDate.now());
         
         Internship updated = internshipRepository.save(internship);
-        return mapToResponse(updated);
+        return mapToResponseWithApplicants(updated);
     }
     
     /**
@@ -185,7 +190,7 @@ public class InternshipService {
     public List<InternshipResponse> getAllInternshipsAdmin() {
         return internshipRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
-                .map(this::mapToResponse)
+                .map(this::mapToResponseWithApplicants)
                 .collect(Collectors.toList());
     }
 
@@ -213,7 +218,7 @@ public class InternshipService {
         internship.setUpdatedAt(LocalDate.now());
         
         Internship updated = internshipRepository.save(internship);
-        return mapToResponse(updated);
+        return mapToResponseWithApplicants(updated);
     }
 
     /**
@@ -228,11 +233,24 @@ public class InternshipService {
     }
     
     /**
-     * Map Internship entity to response DTO
+     * Map Internship entity to public response DTO (no applicant PII)
      */
     private InternshipResponse mapToResponse(Internship internship) {
-        List<com.internmatch.internmatch.features.internship.dto.ApplicationResponse> apps = 
-            applicationRepository.findByInternshipId(internship.getId())
+        return mapToResponseWithApplicants(internship, false);
+    }
+
+    /**
+     * Map Internship entity to response DTO including applicant details.
+     * Only used for employer/admin contexts.
+     */
+    private InternshipResponse mapToResponseWithApplicants(Internship internship) {
+        return mapToResponseWithApplicants(internship, true);
+    }
+
+    private InternshipResponse mapToResponseWithApplicants(Internship internship, boolean includeApplicants) {
+        List<com.internmatch.internmatch.features.internship.dto.ApplicationResponse> apps = List.of();
+        if (includeApplicants) {
+            apps = applicationRepository.findByInternshipId(internship.getId())
                 .stream()
                 .map(app -> com.internmatch.internmatch.features.internship.dto.ApplicationResponse.builder()
                         .id(app.getId())
@@ -247,6 +265,7 @@ public class InternshipService {
                         .appliedAt(app.getAppliedAt())
                         .build())
                 .collect(Collectors.toList());
+        }
 
         return InternshipResponse.builder()
                 .id(internship.getId())

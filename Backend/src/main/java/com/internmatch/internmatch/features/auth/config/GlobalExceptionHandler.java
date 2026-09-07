@@ -37,8 +37,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
-    @ExceptionHandler(org.springframework.security.authorization.AuthorizationDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAuthorizationDenied(
+    @ExceptionHandler({org.springframework.security.access.AccessDeniedException.class,
+            org.springframework.security.authorization.AuthorizationDeniedException.class})
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(
             Exception ex, WebRequest request) {
         log.warn("Access denied at {}: {}", request.getDescription(false), ex.getMessage());
         Map<String, Object> errorResponse = new HashMap<>();

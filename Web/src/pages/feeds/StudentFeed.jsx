@@ -118,7 +118,6 @@ export default function StudentFeed() {
         time: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Recently",
         summary: item.description || "No description provided.",
         deadline: item.endDate || "N/A",
-        applicants: item.applicantsList?.length || 0,
         tags: [item.setup || "Internship", "Active"],
       }));
       setBackendPostings(formatted);
@@ -326,7 +325,6 @@ export default function StudentFeed() {
     });
 
     return matches.sort((a, b) => {
-      if (sortMode === "APPLICANTS") return b.applicants - a.applicants;
       if (sortMode === "COMPANY") return a.company.localeCompare(b.company);
       return b.id - a.id;
     });
@@ -588,7 +586,6 @@ export default function StudentFeed() {
               <div className="filter-select-wrapper">
                 <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
                   <option value="RECENT">Newest First</option>
-                  <option value="APPLICANTS">Most Popular</option>
                   <option value="COMPANY">A-Z Company</option>
                 </select>
               </div>
@@ -633,7 +630,6 @@ export default function StudentFeed() {
                           <div className="card-stats-row">
                             <span>📍 {item.location}</span>
                             <span>📅 {item.time}</span>
-                            <span>👥 {item.applicants} Apps</span>
                           </div>
                           <p className="job-summary">{item.summary.substring(0, 140)}...</p>
                         </div>

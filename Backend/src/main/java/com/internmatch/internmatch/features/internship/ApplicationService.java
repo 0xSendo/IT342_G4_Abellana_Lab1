@@ -97,7 +97,18 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public List<ApplicationResponse> getInternshipApplications(Long internshipId) {
+    public List<ApplicationResponse> getInternshipApplications(Long internshipId, String callerEmail) {
+        Internship internship = internshipRepository.findById(internshipId)
+                .orElseThrow(() -> new IllegalArgumentException("Internship not found"));
+        User caller = userRepository.findByEmail(callerEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        boolean isOwner = internship.getPostedBy().getEmail().equals(callerEmail);
+        boolean isAdmin = caller.getRole() == com.internmatch.internmatch.features.auth.Role.ADMIN;
+        if (!isOwner && !isAdmin) {
+            throw new org.springframework.security.access.AccessDeniedException("You are not authorized to view these applications");
+        }
+
         return applicationRepository.findByInternshipId(internshipId)
                 .stream()
                 .map(this::mapToResponse)

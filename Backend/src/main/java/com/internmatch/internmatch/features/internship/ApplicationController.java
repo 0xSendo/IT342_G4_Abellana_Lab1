@@ -28,8 +28,8 @@ public class ApplicationController {
     }
 
     @GetMapping("/internship/{internshipId}")
-    public ResponseEntity<List<ApplicationResponse>> getInternshipApplications(@PathVariable Long internshipId) {
-        return ResponseEntity.ok(applicationService.getInternshipApplications(internshipId));
+    public ResponseEntity<List<ApplicationResponse>> getInternshipApplications(@PathVariable Long internshipId, Authentication authentication) {
+        return ResponseEntity.ok(applicationService.getInternshipApplications(internshipId, authentication.getName()));
     }
 
     @PutMapping("/{applicationId}/status")

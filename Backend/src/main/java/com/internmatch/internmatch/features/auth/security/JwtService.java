@@ -18,7 +18,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret:supersecretkeythatshouldbechangedinproductionatleast32charslong}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
 
     private final long jwtExpirationMs = 1000L * 60 * 60 * 24; // 24 hours
