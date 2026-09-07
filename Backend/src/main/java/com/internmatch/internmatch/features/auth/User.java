@@ -95,6 +95,7 @@ public class User implements UserDetails {
     }
 
     @Override
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String getPassword() {
         return password;
     }

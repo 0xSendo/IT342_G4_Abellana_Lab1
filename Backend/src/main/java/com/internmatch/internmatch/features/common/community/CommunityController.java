@@ -5,6 +5,7 @@ import com.internmatch.internmatch.features.auth.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -64,6 +65,7 @@ public class CommunityController {
     }
 
     @PostMapping("/reset")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> resetAllPosts() {
         communityPostService.deleteAllPosts();
         log.info("COMMUNITY RESET: All posts have been cleared.");
