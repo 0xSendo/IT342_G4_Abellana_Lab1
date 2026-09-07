@@ -59,8 +59,6 @@ export default function Register() {
 
   const handleGoogleLogin = () => {
     setIsLoading(true);
-    // Store the selected role in a cookie so the backend can use it during OAuth flow
-    document.cookie = `pending_role=${role}; path=/; max-age=300; SameSite=Lax`;
     const base = apiBaseUrl.replace(/\/$/, "");
     window.location.href = `${base}${googleOauth2Url}`;
   };

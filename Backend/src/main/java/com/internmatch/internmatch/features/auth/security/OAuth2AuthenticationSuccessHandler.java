@@ -4,7 +4,6 @@ import com.internmatch.internmatch.features.auth.Role;
 import com.internmatch.internmatch.features.auth.User;
 import com.internmatch.internmatch.features.auth.UserRepository;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -38,22 +37,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
-        // Check for pending role from cookie (set by frontend register page)
-        String pendingRole = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("pending_role".equals(cookie.getName())) {
-                    pendingRole = cookie.getValue();
-                    // Clear cookie
-                    cookie.setMaxAge(0);
-                    cookie.setPath("/");
-                    response.addCookie(cookie);
-                    break;
-                }
-            }
-        }
-
-        final Role roleToAssign = "EMPLOYER".equalsIgnoreCase(pendingRole) ? Role.EMPLOYER : Role.STUDENT;
+        // New accounts always start as STUDENT; EMPLOYER/ADMIN roles are granted
+        // by an administrator only (never self-assigned via a client-supplied value).
+        final Role roleToAssign = Role.STUDENT;
 
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> {

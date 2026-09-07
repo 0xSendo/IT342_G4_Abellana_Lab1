@@ -62,8 +62,8 @@ public class AuthController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many login attempts. Please try again later.");
         }
 
-        if (loginAttemptService.isBlocked(request.getEmail())) {
-            return ResponseEntity.status(org.springframework.http.HttpStatus.LOCKED).body("Account is temporarily locked due to multiple failed attempts. Please try again in 15 minutes.");
+        if (loginAttemptService.isBlocked(request.getEmail(), clientIp)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid credentials.");
         }
 
         try {
@@ -74,22 +74,13 @@ public class AuthController {
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            loginAttemptService.loginSucceeded(request.getEmail());
+            loginAttemptService.loginSucceeded(request.getEmail(), clientIp);
             String token = jwtService.generateToken(user);
 
             return ResponseEntity.ok(buildAuthResponse(user, token));
-        } catch (org.springframework.security.authentication.LockedException e) {
-            return ResponseEntity.status(org.springframework.http.HttpStatus.LOCKED).body("Account is locked.");
         } catch (org.springframework.security.core.AuthenticationException e) {
-            loginAttemptService.loginFailed(request.getEmail());
-            int remaining = loginAttemptService.getRemainingAttempts(request.getEmail());
-            String message = "Invalid credentials. ";
-            if (remaining > 0) {
-                message += remaining + " attempts remaining before lockout.";
-            } else {
-                message = "Account has been locked due to too many failed attempts.";
-            }
-            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body(message);
+            loginAttemptService.loginFailed(request.getEmail(), clientIp);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid credentials.");
         }
     }
 
