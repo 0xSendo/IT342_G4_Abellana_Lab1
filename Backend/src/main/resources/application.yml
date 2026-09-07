@@ -39,9 +39,9 @@ server:
  
 logging:
   level:
-    root: DEBUG
-    org.springframework: DEBUG
-    org.hibernate: DEBUG
+    root: ${LOGGING_LEVEL_ROOT:WARN}
+    org.springframework: ${LOGGING_LEVEL_SPRING:INFO}
+    org.hibernate: ${LOGGING_LEVEL_HIBERNATE:WARN}
  
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
