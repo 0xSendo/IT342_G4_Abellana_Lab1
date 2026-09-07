@@ -46,7 +46,7 @@ public class RateLimitingService {
             int toDrop = ipLastReset.size() / 2;
             while (iterator.hasNext() && toDrop-- > 0) {
                 String key = iterator.next();
-                iterator.remove();
+                ipLastReset.remove(key);
                 ipRequestCounts.remove(key);
             }
         }

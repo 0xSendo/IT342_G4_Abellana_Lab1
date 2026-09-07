@@ -27,7 +27,7 @@ public class InternshipService {
      */
     public InternshipResponse createInternship(CreateInternshipRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
         
         // MODERATION: Validate input fields - Allow links in internship descriptions
         moderationService.validateContent(request.getTitle());
@@ -59,7 +59,7 @@ public class InternshipService {
     @Transactional(readOnly = true)
     public InternshipResponse getInternshipById(Long id, String callerEmail) {
         Internship internship = internshipRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Internship not found with id: " + id));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Internship not found with id: " + id));
         User caller = callerEmail != null
                 ? userRepository.findByEmail(callerEmail).orElse(null)
                 : null;
@@ -120,7 +120,7 @@ public class InternshipService {
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found with email: " + email));
     }
     
     /**
@@ -153,10 +153,10 @@ public class InternshipService {
      */
     public InternshipResponse updateInternship(Long id, CreateInternshipRequest request, String userEmail) {
         Internship internship = internshipRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Internship not found with id: " + id));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Internship not found with id: " + id));
         
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
         
         if (!internship.getPostedBy().getId().equals(user.getId())) {
             throw new org.springframework.security.access.AccessDeniedException("You are not authorized to update this internship");
@@ -187,10 +187,10 @@ public class InternshipService {
      */
     public void deleteInternship(Long id, String userEmail) {
         Internship internship = internshipRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Internship not found with id: " + id));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Internship not found with id: " + id));
         
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
         
         if (!internship.getPostedBy().getId().equals(user.getId())) {
             throw new org.springframework.security.access.AccessDeniedException("You are not authorized to delete this internship");
@@ -218,7 +218,7 @@ public class InternshipService {
      */
     public InternshipResponse updateInternshipAdmin(Long id, CreateInternshipRequest request) {
         Internship internship = internshipRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Internship not found with id: " + id));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Internship not found with id: " + id));
         
         // MODERATION: Validate input fields - Allow links in internship descriptions
         moderationService.validateContent(request.getTitle());
@@ -245,7 +245,7 @@ public class InternshipService {
      */
     public void deleteInternshipAdmin(Long id) {
         if (!internshipRepository.existsById(id)) {
-            throw new IllegalArgumentException("Internship not found with id: " + id);
+            throw new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Internship not found with id: " + id);
         }
         applicationRepository.deleteByInternshipId(id);
         internshipRepository.deleteById(id);

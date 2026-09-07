@@ -47,7 +47,7 @@ public class CommunityPostService {
 
     public void deletePost(Long id, Long studentId) {
         CommunityPost post = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Post not found"));
         if (!post.getStudent().getId().equals(studentId)) {
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized to delete this post");
         }
@@ -59,7 +59,7 @@ public class CommunityPostService {
         moderationService.validateContent(content);
 
         CommunityPost post = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Post not found"));
         if (!post.getStudent().getId().equals(studentId)) {
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized to update this post");
         }
@@ -76,7 +76,7 @@ public class CommunityPostService {
         moderationService.validateContent(content);
 
         CommunityPost post = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Post not found"));
         post.setContent(content);
         return repository.save(post);
     }

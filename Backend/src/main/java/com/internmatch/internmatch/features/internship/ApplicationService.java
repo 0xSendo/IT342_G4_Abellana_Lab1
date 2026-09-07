@@ -24,14 +24,14 @@ public class ApplicationService {
 
     public ApplicationResponse applyToInternship(Long internshipId, String studentEmail) {
         User student = userRepository.findByEmail(studentEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Student not found"));
 
         if (student.getRole() != com.internmatch.internmatch.features.auth.Role.STUDENT) {
             throw new IllegalStateException("Only students can apply for internships");
         }
 
         Internship internship = internshipRepository.findById(internshipId)
-                .orElseThrow(() -> new IllegalArgumentException("Internship not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Internship not found"));
 
         if (internship.getStatus() != InternshipStatus.ACTIVE) {
             throw new IllegalStateException("Internship is not open for applications");
@@ -66,7 +66,7 @@ public class ApplicationService {
     @Transactional
     public ApplicationResponse updateApplicationStatus(Long applicationId, ApplicationStatus newStatus, String employerEmail) {
         Application application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new IllegalArgumentException("Application not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Application not found"));
 
         Internship internship = application.getInternship();
         
@@ -96,7 +96,7 @@ public class ApplicationService {
     @Transactional(readOnly = true)
     public List<ApplicationResponse> getStudentApplications(String email) {
         User student = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Student not found"));
         
         return applicationRepository.findByStudentId(student.getId())
                 .stream()
@@ -107,9 +107,9 @@ public class ApplicationService {
     @Transactional(readOnly = true)
     public List<ApplicationResponse> getInternshipApplications(Long internshipId, String callerEmail) {
         Internship internship = internshipRepository.findById(internshipId)
-                .orElseThrow(() -> new IllegalArgumentException("Internship not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("Internship not found"));
         User caller = userRepository.findByEmail(callerEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
 
         boolean isOwner = internship.getPostedBy().getEmail().equals(callerEmail);
         boolean isAdmin = caller.getRole() == com.internmatch.internmatch.features.auth.Role.ADMIN;

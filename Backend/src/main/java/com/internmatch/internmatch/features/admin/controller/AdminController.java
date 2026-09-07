@@ -33,7 +33,7 @@ public class AdminController {
     @PutMapping("/users/{id}/role")
     public ResponseEntity<com.internmatch.internmatch.features.auth.User> updateUserRole(@PathVariable Long id, @RequestBody java.util.Map<String, String> request) {
         com.internmatch.internmatch.features.auth.User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
         String roleStr = request.get("role");
         user.setRole(com.internmatch.internmatch.features.auth.Role.valueOf(roleStr));
         return ResponseEntity.ok(userRepository.save(user));
@@ -42,7 +42,7 @@ public class AdminController {
     @PutMapping("/users/{id}/reset-password")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody java.util.Map<String, String> request) {
         com.internmatch.internmatch.features.auth.User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
 
         String newPassword = request.get("newPassword");
         if (newPassword == null || newPassword.isBlank()) {

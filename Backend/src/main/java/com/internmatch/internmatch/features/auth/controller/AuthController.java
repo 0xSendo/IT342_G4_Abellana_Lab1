@@ -74,7 +74,7 @@ public class AuthController {
             );
 
             User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
 
             loginAttemptService.loginSucceeded(request.getEmail(), clientIp);
             String token = jwtService.generateToken(user);
@@ -98,7 +98,10 @@ public class AuthController {
         }
 
         String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + request.getIdToken();
-        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+        org.springframework.http.client.SimpleClientHttpRequestFactory requestFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(5000);
+        requestFactory.setReadTimeout(8000);
+        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate(requestFactory);
         try {
             java.util.Map<String, Object> payload = restTemplate.getForObject(url, java.util.Map.class);
             if (payload == null || payload.containsKey("error") || !isValidGoogleToken(payload)) {
@@ -159,7 +162,7 @@ public class AuthController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
         User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
         return ResponseEntity.ok(user);
     }
 
@@ -169,7 +172,7 @@ public class AuthController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
         User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
 
         // MODERATION: Moderate all incoming profile text fields - Allow links in professional profiles
         try {
@@ -233,7 +236,7 @@ public class AuthController {
         }
 
         User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(current, user.getPassword())) {
             return ResponseEntity.badRequest().body("Current password is incorrect");
