@@ -1,0 +1,8 @@
+.env
+.env.*
+target/
+uploads/
+*.log
+.git/
+Dockerfile
+.dockerignore
