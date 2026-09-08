@@ -157,11 +157,6 @@ export default function EmployerFeed() {
     fetchAllPostings();
     fetchCommunityPosts();
     fetchNotifications();
-    const interval = setInterval(() => {
-      fetchNotifications();
-      fetchCommunityPosts();
-    }, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

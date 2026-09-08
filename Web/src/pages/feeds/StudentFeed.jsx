@@ -297,11 +297,6 @@ export default function StudentFeed() {
     fetchPostings();
     fetchCommunityPosts();
     fetchNotifications();
-    const interval = setInterval(() => {
-      fetchNotifications();
-      fetchCommunityPosts();
-    }, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

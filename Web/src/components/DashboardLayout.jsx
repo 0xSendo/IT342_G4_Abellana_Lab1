@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import FloatingChatButton from "./FloatingChatButton";
@@ -18,28 +18,6 @@ export default function DashboardLayout({ title, children, showProfileCard = tru
 		const d = new Date(dateStr);
 		return isNaN(d.getTime()) ? "N/A" : d.toLocaleString();
 	};
-
-	// Handle back button to prevent accidental exit
-	useEffect(() => {
-		let isMounted = true;
-		
-		const handlePopState = (e) => {
-			if (!isMounted) return;
-			// If user tries to go back, we push the state again to stay on this page
-			// and show the confirmation toast.
-			window.history.pushState(null, null, window.location.pathname);
-			toast.show("Use the Logout button to exit safely.", "info");
-		};
-
-		// Push an initial state only once when the dashboard mounts
-		window.history.pushState(null, null, window.location.pathname);
-
-		window.addEventListener("popstate", handlePopState);
-		return () => {
-			isMounted = false;
-			window.removeEventListener("popstate", handlePopState);
-		};
-	}, [toast]);
 
 	return (
 		<div style={{ width: "100%" }}>

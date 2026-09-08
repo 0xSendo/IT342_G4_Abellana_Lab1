@@ -43,9 +43,6 @@ export default function Login() {
     setSuccess("");
     setIsLoading(true);
 
-    // Realistic delay for a better UX
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     const res = await login({ email, password });
     if (!res.ok) {
       setError(res.message);
