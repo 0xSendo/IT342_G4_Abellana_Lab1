@@ -39,9 +39,11 @@ export default function StudentFeed() {
   const [visiblePostings, setVisiblePostings] = useState(6);
   const [visibleActivities, setVisibleActivities] = useState(5);
 
-  const hasExistingPost = useMemo(() => {
-    return communityPosts.some(p => p.studentId === currentUser?.id);
+  const activePost = useMemo(() => {
+    return communityPosts.find(p => p.studentId === currentUser?.id) || null;
   }, [communityPosts, currentUser]);
+
+  const hasExistingPost = !!activePost;
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
@@ -147,25 +149,26 @@ export default function StudentFeed() {
 
     if (!validatePostContent(newPostContent)) return;
 
-    // Frontend pre-check: Check if student already has a post in the current list
-    const hasExisting = communityPosts.some(p => p.studentId === currentUser?.id);
-    if (hasExisting) {
-      toast.show("Action Denied: You can only have one active community post. Please edit or delete your current post.", "error");
-      return;
-    }
-
     try {
       setIsPosting(true);
       const token = localStorage.getItem("internmatch_token");
-      await axios.post("/api/community/post", {
-        content: newPostContent,
-        type: "GENERAL_UPDATE"
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      if (activePost) {
+        await axios.put(`/api/community/update/${activePost.id}`, {
+          content: newPostContent
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        await axios.post("/api/community/post", {
+          content: newPostContent,
+          type: "GENERAL_UPDATE"
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
       
       setNewPostContent("");
-      toast.show("Status shared with the community!");
+      toast.show("Your update was published!");
       await fetchCommunityPosts();
     } catch (err) {
       console.error("Failed to post", err);
@@ -242,27 +245,32 @@ export default function StudentFeed() {
 
     // Explicit Pre-check to prevent race conditions
     const existing = communityPosts.find(p => p.studentId === currentUser?.id);
-    if (existing) {
-      toast.show("Action Denied: You already have an active profile presence. Please edit or delete your existing post to share a new one.", "error");
+    const content = `Hi everyone! I'm ${currentUser.name || "a student"}, a ${currentUser.program || "dedicated"} student. I'm currently looking for internships in ${currentUser.skills || "tech"}. Check out my profile!`;
+    const token = localStorage.getItem("internmatch_token");
+    if (!token) {
+      toast.show("Session expired, please login again", "error");
       return;
     }
 
     try {
-      const content = `Hi everyone! I'm ${currentUser.name || "a student"}, a ${currentUser.program || "dedicated"} student. I'm currently looking for internships in ${currentUser.skills || "tech"}. Check out my profile!`;
-      const token = localStorage.getItem("internmatch_token");
-      if (!token) {
-        toast.show("Session expired, please login again", "error");
-        return;
+      if (existing) {
+        await axios.put(`/api/community/update/${existing.id}`, {
+          content
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.show("Profile share updated!");
+      } else {
+        await axios.post("/api/community/post", {
+          content,
+          type: "PROFILE_SHARE"
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.show("Profile shared to community feed!");
       }
-
-      await axios.post("/api/community/post", {
-        content,
-        type: "PROFILE_SHARE"
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
       
-      toast.show("Profile shared to community feed!");
+      setNewPostContent("");
       await fetchCommunityPosts();
     } catch (err) {
       console.error("Failed to share profile", err);
@@ -303,6 +311,12 @@ export default function StudentFeed() {
     setVisiblePostings(6);
     setVisibleActivities(5);
   }, [feedSearch, postingFilter, activityFilter, sortMode]);
+
+  useEffect(() => {
+    if (activePost) {
+      setNewPostContent(activePost.content);
+    }
+  }, [activePost?.id]);
 
   const studentSkills = useMemo(() => {
     const raw = String(currentUser?.skills || "").trim();
@@ -485,9 +499,8 @@ export default function StudentFeed() {
                 className="btn-secondary-glass" 
                 style={{ fontSize: '0.75rem' }} 
                 onClick={shareProfileToCommunity}
-                disabled={hasExistingPost}
               >
-                {hasExistingPost ? "Profile Shared ✓" : "Share My Profile 🚀"}
+                {hasExistingPost ? "Update Profile Share ✓" : "Share My Profile 🚀"}
               </button>
             </div>
             {hasExistingPost && (
@@ -503,7 +516,7 @@ export default function StudentFeed() {
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <span>ℹ️ You have an active community post. You can edit or delete it below.</span>
+                <span>ℹ️ One post per student. Posting again updates your active post, or delete it below.</span>
               </div>
             )}
             <form onSubmit={handleCreatePost} style={{ marginTop: '1.25rem' }}>
@@ -511,9 +524,8 @@ export default function StudentFeed() {
                 <textarea
                   value={newPostContent}
                   onChange={(e) => setNewPostContent(e.target.value)}
-                  placeholder={hasExistingPost ? "You already have an active post." : "What's happening? Share your progress or ask a question..."}
+                  placeholder={hasExistingPost ? "Update your active post..." : "What's happening? Share your progress or ask a question..."}
                   rows={3}
-                  disabled={hasExistingPost}
                   style={{ 
                     width: '100%', 
                     background: 'var(--glass)', 
@@ -521,17 +533,16 @@ export default function StudentFeed() {
                     borderRadius: '14px', 
                     padding: '1rem',
                     color: 'var(--text)',
-                    resize: 'none',
-                    opacity: hasExistingPost ? 0.6 : 1
+                    resize: 'none'
                   }}
                 />
                 <button 
                   type="submit" 
                   className="btn-primary-pro" 
-                  disabled={isPosting || !newPostContent.trim() || hasExistingPost}
+                  disabled={isPosting || !newPostContent.trim()}
                   style={{ position: 'absolute', bottom: '12px', right: '12px', padding: '6px 16px', fontSize: '0.85rem' }}
                 >
-                  {isPosting ? "Posting..." : "Post"}
+                  {isPosting ? "Posting..." : hasExistingPost ? "Update Post" : "Post"}
                 </button>
               </div>
             </form>
