@@ -7,8 +7,6 @@ services:
     plan: free
     healthCheckPath: /api/internships/active
     envVars:
-      - key: SERVER_PORT
-        value: 8081
       - key: FRONTEND_URL
         value: https://internmatch-beta.vercel.app
       - key: FRONTEND_REDIRECT_URL

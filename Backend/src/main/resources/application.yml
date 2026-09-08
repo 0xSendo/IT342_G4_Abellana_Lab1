@@ -35,7 +35,7 @@ spring:
               - email
  
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${PORT:${SERVER_PORT:8081}}
   forward-headers-strategy: framework
 
 jwt:
