@@ -25,6 +25,8 @@ public class AuthController {
     private final com.internmatch.internmatch.features.auth.security.RateLimitingService rateLimitingService;
     private final com.internmatch.internmatch.features.auth.security.PasswordPolicyService passwordPolicyService;
     private final com.internmatch.internmatch.features.common.community.ContentModerationService moderationService;
+    private final UserCleanupService userCleanupService;
+    private final com.internmatch.internmatch.features.auth.security.OAuthCodeService oAuthCodeService;
     private final jakarta.servlet.http.HttpServletRequest httpServletRequest;
     @org.springframework.beans.factory.annotation.Value("${GOOGLE_CLIENT_ID}")
     private String googleClientId;
@@ -131,6 +133,26 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/oauth/exchange")
+    public ResponseEntity<?> oauthExchange(@RequestBody java.util.Map<String, String> body) {
+        String clientIp = resolveClientIp();
+        if (!rateLimitingService.isAllowed(clientIp)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).body("Too many attempts. Please try again later.");
+        }
+
+        String code = body.get("code");
+        String email = oAuthCodeService.redeemCode(code);
+        if (email == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Invalid or expired login session");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new com.internmatch.internmatch.features.common.exception.ResourceNotFoundException("User not found"));
+
+        String token = jwtService.generateToken(user);
+        return ResponseEntity.ok(buildAuthResponse(user, token));
+    }
+
     private boolean isValidGoogleToken(java.util.Map<String, Object> payload) {
         Object aud = payload.get("aud");
         if (aud == null || !googleClientId.equals(String.valueOf(aud))) {
@@ -215,7 +237,7 @@ public class AuthController {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        userRepository.deleteById(id);
+        userCleanupService.deleteUserWithData(id);
         return ResponseEntity.ok("User access terminated");
     }
 

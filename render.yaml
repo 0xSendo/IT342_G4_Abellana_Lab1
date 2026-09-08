@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: internmatch-api
+    runtime: docker
+    rootDir: Backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/internships/active
+    envVars:
+      - key: SERVER_PORT
+        value: 8081
+      - key: FRONTEND_URL
+        value: https://internmatch-beta.vercel.app
+      - key: FRONTEND_REDIRECT_URL
+        value: https://internmatch-beta.vercel.app/oauth-callback
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://internmatch-beta.vercel.app
+      - key: DB_DRIVER
+        value: com.mysql.cj.jdbc.Driver
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false

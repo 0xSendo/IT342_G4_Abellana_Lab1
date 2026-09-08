@@ -14,4 +14,8 @@ public interface SavedProfileRepository extends JpaRepository<SavedProfile, Long
     @Modifying
     @Query("DELETE FROM SavedProfile s WHERE s.employer.id = :employerId AND s.student.id = :studentId")
     void deleteByEmployerIdAndStudentId(@Param("employerId") Long employerId, @Param("studentId") Long studentId);
+
+    @Modifying
+    @Query("DELETE FROM SavedProfile s WHERE s.employer.id = :userId OR s.student.id = :userId")
+    void deleteByEmployerIdOrStudentId(@Param("userId") Long userId);
 }

@@ -23,6 +23,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final OAuthCodeService oAuthCodeService;
 
     @Value("${app.oauth2.frontend-redirect-url:http://localhost:5173/oauth-callback}")
     private String frontendRedirectUrl;
@@ -53,12 +54,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String token = jwtService.generateToken(user);
 
+        // Hand the client a short-lived, single-use code instead of the JWT.
+        // The frontend exchanges this code for a token via the backend so that
+        // authentication state is never carried in the URL.
+        String oauthCode = oAuthCodeService.issueCode(user.getEmail());
+
         // Build redirect URL with fragment and ensure it is encoded
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
-                .fragment("token=" + token +
-                        "&email=" + user.getEmail() +
-                        "&name=" + (user.getName() != null ? user.getName() : "") +
-                        "&role=" + user.getRole().name())
+                .fragment("code=" + oauthCode)
                 .build()
                 .encode()
                 .toUriString();

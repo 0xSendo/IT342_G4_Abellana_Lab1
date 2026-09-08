@@ -17,4 +17,12 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     @Modifying
     @Query("DELETE FROM Application a WHERE a.internship.id = :internshipId")
     void deleteByInternshipId(@Param("internshipId") Long internshipId);
+
+    @Modifying
+    @Query("DELETE FROM Application a WHERE a.student.id = :studentId")
+    void deleteByStudentId(@Param("studentId") Long studentId);
+
+    @Modifying
+    @Query("DELETE FROM Application a WHERE a.internship.postedBy.id = :postedById")
+    void deleteByInternshipPostedById(@Param("postedById") Long postedById);
 }

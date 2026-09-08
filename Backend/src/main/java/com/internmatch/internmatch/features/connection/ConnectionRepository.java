@@ -2,12 +2,17 @@ package com.internmatch.internmatch.features.connection;
 
 import com.internmatch.internmatch.features.auth.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
 public interface ConnectionRepository extends JpaRepository<Connection, Long> {
+
+    @Modifying
+    @Query("DELETE FROM Connection c WHERE c.requester.id = :userId OR c.receiver.id = :userId")
+    void deleteByRequesterIdOrReceiverId(@Param("userId") Long userId);
 
     List<Connection> findByReceiverAndStatus(User receiver, ConnectionStatus status);
 

@@ -4,6 +4,7 @@ import com.internmatch.internmatch.features.auth.Role;
 import com.internmatch.internmatch.features.auth.User;
 import com.internmatch.internmatch.features.auth.UserRepository;
 import com.internmatch.internmatch.features.auth.security.JwtService;
+import com.internmatch.internmatch.features.auth.security.OAuthCodeService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -17,6 +18,7 @@ public class MockOAuthController {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final OAuthCodeService oAuthCodeService;
 
     @Value("${GOOGLE_CLIENT_ID:}")
     private String googleClientId;
@@ -27,9 +29,10 @@ public class MockOAuthController {
     @Value("${app.oauth2.frontend-redirect-url:http://localhost:5173/oauth-callback}")
     private String frontendRedirectUrl;
 
-    public MockOAuthController(UserRepository userRepository, JwtService jwtService) {
+    public MockOAuthController(UserRepository userRepository, JwtService jwtService, OAuthCodeService oAuthCodeService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.oAuthCodeService = oAuthCodeService;
     }
 
     /**

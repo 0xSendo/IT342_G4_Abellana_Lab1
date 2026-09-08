@@ -1,6 +1,7 @@
 package com.internmatch.internmatch.features.internship;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -8,6 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InternshipRepository extends JpaRepository<Internship, Long> {
+
+    @Modifying
+    @Query("DELETE FROM Internship i WHERE i.postedBy.id = :postedById")
+    void deleteByPostedById(@Param("postedById") Long postedById);
     
     List<Internship> findByStatus(InternshipStatus status);
     
