@@ -4,6 +4,7 @@ services:
     runtime: docker
     rootDir: Backend
     dockerfilePath: ./Dockerfile
+    plan: free
     healthCheckPath: /api/internships/active
     envVars:
       - key: SERVER_PORT
