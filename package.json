@@ -1,0 +1,20 @@
+{
+  "name": "internmatch-test-orchestrator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unified automation test orchestrator for InternMatch (backend + frontend + Allure report)",
+  "scripts": {
+    "clean:results": "rimraf allure-results Web/test-results",
+    "test:backend": "cd Backend && mvn test",
+    "test:frontend": "cd Web && npx playwright test",
+    "pretest:all": "npm run clean:results",
+    "test:all": "npm run test:backend && npm run test:frontend",
+    "report:generate": "allure generate allure-results -o allure-report --clean",
+    "report:open": "allure open allure-report",
+    "test:report": "node scripts/run-report.mjs"
+  },
+  "devDependencies": {
+    "allure-commandline": "^2.43.0",
+    "rimraf": "^6.1.3"
+  }
+}

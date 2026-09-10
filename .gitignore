@@ -40,3 +40,12 @@ Thumbs.db
 
 # User uploads
 Backend/uploads/
+.vercel
+
+# Allure test reports
+allure-results/
+allure-report/
+
+# Playwright artifacts
+test-results/
+playwright-report/
