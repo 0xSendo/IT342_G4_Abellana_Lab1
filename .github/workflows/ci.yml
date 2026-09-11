@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  test:
+    name: Backend + Frontend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            Web/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Backend tests (JUnit + MockMvc)
+        run: npm run test:backend
+
+      - name: Install frontend dependencies
+        working-directory: Web
+        run: npm ci
+
+      - name: Frontend unit tests (Vitest)
+        working-directory: Web
+        run: npm run test:unit
+
+      - name: Install Playwright browsers
+        working-directory: Web
+        run: npx playwright install --with-deps chromium
+
+      - name: Frontend E2E tests (Playwright)
+        working-directory: Web
+        run: npm run test:frontend
+
+      - name: Generate Allure report
+        run: npm run report:generate
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results
+          path: allure-results
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: allure-report

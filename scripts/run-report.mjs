@@ -19,7 +19,7 @@ function run(script) {
   return result.status ?? 1;
 }
 
-const steps = ['clean:results', 'test:backend', 'test:frontend', 'report:generate'];
+const steps = ['clean:results', 'test:backend', 'test:unit', 'test:frontend', 'report:generate'];
 
 const results = {};
 let failed = false;

@@ -1,0 +1,18 @@
+name: Render Keep-Alive
+
+on:
+  schedule:
+    # Render free tier sleeps after ~15 min of inactivity.
+    # Ping every 8 minutes so the instance stays warm.
+    - cron: "*/8 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render backend health endpoint
+        run: curl -fsS --max-time 60 https://internmatch-api-g18m.onrender.com/api/internships/active -o /dev/null
