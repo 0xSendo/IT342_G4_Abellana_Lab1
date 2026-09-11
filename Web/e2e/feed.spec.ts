@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './fixtures';
 import { mockAuth, mockStats, mockFeed, loginAs } from './mocks';
 
 test.describe('Student Opportunity Feed', () => {

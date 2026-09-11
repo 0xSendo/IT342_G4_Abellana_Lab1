@@ -56,7 +56,15 @@ jobs:
 
       - name: Frontend E2E tests (Playwright)
         working-directory: Web
-        run: npx playwright test e2e/ci-probe.spec.ts --reporter=list --workers=1 --retries=0
+        env:
+          VITE_FIREBASE_API_KEY: AIzaSyB0000000000000000000000000000000
+          VITE_FIREBASE_AUTH_DOMAIN: internmatch-ci.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: internmatch-ci
+          VITE_FIREBASE_STORAGE_BUCKET: internmatch-ci.appspot.com
+          VITE_FIREBASE_MESSAGING_SENDER_ID: '000000000000'
+          VITE_FIREBASE_APP_ID: 1:000000000000:web:0000000000000000000000
+          VITE_FIREBASE_MEASUREMENT_ID: G-CIPROBEXXXX
+        run: npm run test:frontend
 
       - name: Generate Allure report
         run: npm run report:generate

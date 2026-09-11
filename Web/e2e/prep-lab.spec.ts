@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
+import { test } from './fixtures';
 import { mockAuth, mockNotifications, loginAs } from './mocks';
 
 async function setup(page: Page) {
