@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,7 +69,7 @@ fun StudentProfileScreen(
                 containerColor = Color.Transparent,
                 contentColor = BrandPrimary,
                 indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
+                    TabRowDefaults.Indicator(
                         modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
                         color = BrandPrimary
                     )

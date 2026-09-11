@@ -19,6 +19,8 @@ import com.example.internmatch.ui.theme.InternMatchTheme
 
 import com.example.internmatch.ui.student.StudentMainScreen
 import com.example.internmatch.ui.student.StudentViewModel
+import com.example.internmatch.ui.employer.EmployerMainScreen
+import com.example.internmatch.ui.employer.EmployerViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,6 +29,7 @@ class MainActivity : ComponentActivity() {
             InternMatchTheme {
                 val authViewModel: AuthViewModel = viewModel()
                 val studentViewModel: StudentViewModel = viewModel()
+                val employerViewModel: EmployerViewModel = viewModel()
                 var currentScreen by remember { mutableStateOf("login") }
 
                 Surface(
@@ -41,8 +44,9 @@ class MainActivity : ComponentActivity() {
                                 if (user != null) {
                                     if (user.role == "STUDENT") {
                                         currentScreen = "student_dashboard"
+                                    } else if (user.role == "EMPLOYER") {
+                                        currentScreen = "employer_dashboard"
                                     } else {
-                                        // Handle other roles later
                                         currentScreen = "home"
                                     }
                                 }
@@ -68,6 +72,20 @@ class MainActivity : ComponentActivity() {
                                 StudentMainScreen(
                                     user = user,
                                     viewModel = studentViewModel,
+                                    token = user.token,
+                                    onLogout = {
+                                        authViewModel.authResponse = null
+                                        currentScreen = "login"
+                                    }
+                                )
+                            }
+                        }
+                        "employer_dashboard" -> {
+                            val user = authViewModel.authResponse
+                            if (user != null) {
+                                EmployerMainScreen(
+                                    user = user,
+                                    viewModel = employerViewModel,
                                     token = user.token,
                                     onLogout = {
                                         authViewModel.authResponse = null

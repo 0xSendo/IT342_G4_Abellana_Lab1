@@ -176,9 +176,40 @@ fun LoginScreen(
                         Text("Sign In with Google", fontSize = 16.sp, fontWeight = FontWeight.Medium)
                     }
 
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Developer Bypass Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TextButton(
+                            onClick = { viewModel.bypassLogin("STUDENT", onLoginSuccess) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Bypass Student",
+                                color = AuroraBlue.copy(alpha = 0.8f),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        TextButton(
+                            onClick = { viewModel.bypassLogin("EMPLOYER", onLoginSuccess) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Bypass Employer",
+                                color = AuroraBlue.copy(alpha = 0.8f),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
                     TextButton(
                         onClick = onRegisterClick,
-                        modifier = Modifier.padding(top = 16.dp)
+                        modifier = Modifier.padding(top = 8.dp)
                     ) {
                         Text(
                             text = "Don't have an account? Register",
