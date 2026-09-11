@@ -6,9 +6,10 @@
   "scripts": {
     "clean:results": "rimraf allure-results Web/test-results",
     "test:backend": "cd Backend && mvn test",
+    "test:unit": "npm --prefix Web run test:unit",
     "test:frontend": "cd Web && npx playwright test",
     "pretest:all": "npm run clean:results",
-    "test:all": "npm run test:backend && npm run test:frontend",
+    "test:all": "npm run test:backend && npm run test:unit && npm run test:frontend",
     "report:generate": "allure generate allure-results -o allure-report --clean",
     "report:open": "allure open allure-report",
     "test:report": "node scripts/run-report.mjs"

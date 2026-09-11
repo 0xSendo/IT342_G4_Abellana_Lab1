@@ -362,3 +362,80 @@ export async function loginAs(page: Page, role: MockUser['role']) {
   await page.click('button[type="submit"]');
   await expect(page).toHaveURL(new RegExp(ROLE_DASHBOARD[role]), { timeout: 15_000 });
 }
+
+export const MOCK_SAVED_PROFILES = [
+  {
+    id: 1,
+    studentId: 88,
+    studentName: 'Maria Santos',
+    studentProgram: 'BS Information Technology',
+    studentYearLevel: '3rd Year',
+    studentSkills: 'Java, Selenium, Playwright',
+    studentBio: 'Passionate about test automation and clean code.',
+    studentProjects: 'Built the company Playwright E2E suite from scratch.',
+    studentResumeUrl: 'https://files.example.com/maria-resume.pdf',
+    studentEmail: 'maria@internmatch.com',
+  },
+  {
+    id: 2,
+    studentId: 99,
+    studentName: 'Carlos Reyes',
+    studentProgram: 'BS Computer Science',
+    studentYearLevel: '4th Year',
+    studentSkills: 'React, Node.js',
+    studentBio: 'Full-stack enthusiast always shipping.',
+    studentProjects: 'Open-source contribution to a React charting library.',
+    studentEmail: 'carlos@internmatch.com',
+  },
+];
+
+/** Mock the notifications endpoints used by dashboards and layout chrome. */
+export async function mockNotifications(page: Page) {
+  await page.route('**/api/notifications', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    }
+  });
+  await page.route('**/api/notifications/read-all', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+}
+
+/** Mock the profile builder endpoints (PUT profile + resume upload). */
+export async function mockProfileBuilder(page: Page, opts: { putMessage?: string } = {}) {
+  await page.route('**/api/auth/profile', async (route) => {
+    const data = route.request().postDataJSON();
+    if (opts.putMessage) {
+      await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ message: opts.putMessage }) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...MOCK_USERS.STUDENT, ...data }) });
+    }
+  });
+  await page.route('**/api/files/upload', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ fileDownloadUri: 'https://files.example.com/uploaded-resume.pdf' }),
+    });
+  });
+}
+
+/** Mock the saved profiles page endpoints. */
+export async function mockSavedProfiles(page: Page, opts: { profiles?: unknown[] } = {}) {
+  const profiles = opts.profiles ?? MOCK_SAVED_PROFILES;
+  await page.route('**/api/saved-profiles', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(profiles) });
+  });
+  await page.route('**/api/saved-profiles/*', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    } else {
+      await route.continue();
+    }
+  });
+  await page.route('**/api/connections/status/*', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'CONNECTED' }) });
+  });
+}

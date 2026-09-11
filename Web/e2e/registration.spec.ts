@@ -1,4 +1,5 @@
-﻿import { test, expect } from '@playwright/test';
+﻿import { expect } from '@playwright/test';
+import { test } from './fixtures';
 
 test('registration blocks empty submission before hitting the backend', async ({ page }) => {
   let registerHits = 0;

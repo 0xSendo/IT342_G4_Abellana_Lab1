@@ -183,6 +183,9 @@
                     <systemPropertyVariables>
                         <allure.results.directory>${project.basedir}/../allure-results</allure.results.directory>
                     </systemPropertyVariables>
+                    <environmentVariables>
+                        <ADMIN_PASSWORD>Strong-Test-Admin-2026!</ADMIN_PASSWORD>
+                    </environmentVariables>
                 </configuration>
             </plugin>
         </plugins>
