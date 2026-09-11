@@ -34,15 +34,25 @@ jobs:
         run: npm ci
 
       - name: Backend tests (JUnit + MockMvc)
-        run: npm run test:backend
+        id: backend
+        continue-on-error: true
+        run: |
+          set +e
+          npm run test:backend 2>&1 | tee backend-output.txt
+          echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
       - name: Install frontend dependencies
         working-directory: Web
         run: npm ci
 
       - name: Frontend unit tests (Vitest)
+        id: unit
         working-directory: Web
-        run: npm run test:unit
+        continue-on-error: true
+        run: |
+          set +e
+          npm run test:unit 2>&1 | tee unit-output.txt
+          echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -55,7 +65,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Frontend E2E tests (Playwright)
+        id: e2e
         working-directory: Web
+        continue-on-error: true
         env:
           VITE_FIREBASE_API_KEY: AIzaSyB0000000000000000000000000000000
           VITE_FIREBASE_AUTH_DOMAIN: internmatch-ci.firebaseapp.com
@@ -64,7 +76,10 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: '000000000000'
           VITE_FIREBASE_APP_ID: 1:000000000000:web:0000000000000000000000
           VITE_FIREBASE_MEASUREMENT_ID: G-CIPROBEXXXX
-        run: npm run test:frontend
+        run: |
+          set +e
+          npm run test:frontend 2>&1 | tee /tmp/e2e.log
+          echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
       - name: Generate Allure report
         run: npm run report:generate
@@ -82,3 +97,69 @@ jobs:
         with:
           name: allure-report
           path: allure-report
+
+      - name: Pipeline Summary
+        if: always()
+        run: |
+          set +e
+          BE="${{ steps.backend.outputs.exitcode }}"
+          UE="${{ steps.unit.outputs.exitcode }}"
+          EE="${{ steps.e2e.outputs.exitcode }}"
+
+          if [ "$BE" = "0" ] && [ "$UE" = "0" ] && [ "$EE" = "0" ]; then
+            STATUS="PASSED"
+          else
+            STATUS="FAILED"
+          fi
+
+          {
+            echo "# Pipeline $STATUS"
+            echo
+            echo "[Run #$GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+            echo
+            echo "| Suite | Result |"
+            echo "|-------|--------|"
+            if [ "$BE" = "0" ]; then echo "| Backend (JUnit + MockMvc) | Pass |"; else echo "| Backend (JUnit + MockMvc) | **Fail** |"; fi
+            if [ "$UE" = "0" ]; then echo "| Frontend Unit (Vitest) | Pass |"; else echo "| Frontend Unit (Vitest) | **Fail** |"; fi
+            if [ "$EE" = "0" ]; then echo "| Frontend E2E (Playwright) | Pass |"; else echo "| Frontend E2E (Playwright) | **Fail** |"; fi
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$BE" != "0" ]; then
+            {
+              echo "### Backend failures"
+              echo
+              for f in Backend/target/surefire-reports/TEST-*.xml; do
+                [ -f "$f" ] || continue
+                grep -q "<failure" "$f" || continue
+                echo "- \`$(basename "$f" | sed 's/TEST-//; s/\.xml//')\`"
+              done
+              echo
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$UE" != "0" ]; then
+            {
+              echo "### Frontend unit test failures"
+              echo
+              grep -E "^[[:space:]]*[×x] " Web/unit-output.txt 2>/dev/null | sed 's/^[[:space:]]*[×x][[:space:]]*//' | sed 's/^/- \`/' | sed 's/$/\`/'
+              echo
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$EE" != "0" ]; then
+            {
+              echo "### Frontend E2E failures"
+              echo
+              grep -E "^  [0-9]+\)" /tmp/e2e.log 2>/dev/null | sed 's/^  [0-9]*) //' | sed 's/^/- \`/' | sed 's/$/\`/'
+              echo
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          {
+            echo "Full logs are in the steps above. Interactive report is attached as the \`allure-report\` artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$STATUS" = "FAILED" ]; then
+            exit 1
+          fi
