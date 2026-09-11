@@ -6,6 +6,8 @@ import com.example.internmatch.data.model.ConnectionRequest
 import com.example.internmatch.data.model.FriendResponse
 import com.example.internmatch.data.model.NotificationResponse
 import com.example.internmatch.data.model.PostRequest
+import com.example.internmatch.data.model.InternshipResponse
+import com.example.internmatch.data.model.ApplicantResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -61,4 +63,29 @@ interface DashboardApiService {
         @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<Unit>
+
+    // Employer Endpoints
+    @GET("api/internships/my-postings")
+    suspend fun getMyPostings(
+        @Header("Authorization") token: String
+    ): Response<List<InternshipResponse>>
+
+    @GET("api/applications/internship/{internshipId}")
+    suspend fun getApplicantsForInternship(
+        @Header("Authorization") token: String,
+        @Path("internshipId") internshipId: Long
+    ): Response<List<ApplicationResponse>>
+
+    @PUT("api/applications/{id}/status")
+    suspend fun updateApplicationStatus(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Query("status") status: String
+    ): Response<Unit>
+
+    @POST("api/internships")
+    suspend fun createInternship(
+        @Header("Authorization") token: String,
+        @Body internship: InternshipResponse
+    ): Response<InternshipResponse>
 }

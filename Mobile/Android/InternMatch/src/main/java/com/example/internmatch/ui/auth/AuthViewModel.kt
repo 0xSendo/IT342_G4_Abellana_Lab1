@@ -87,4 +87,31 @@ class AuthViewModel : ViewModel() {
     fun clearError() {
         errorMessage = null
     }
+
+    fun bypassLogin(role: String, onSuccess: () -> Unit) {
+        if (role == "STUDENT") {
+            authResponse = AuthResponse(
+                token = "mock_token_student",
+                email = "ali.abellana3@gmail.com",
+                name = "Paul Abellana",
+                role = "STUDENT",
+                program = "BS Information Technology",
+                yearLevel = "4th Year",
+                skills = "Kotlin, Java, Compose, Spring Boot",
+                bio = "Senior IT student focused on building modern mobile and web applications."
+            )
+        } else {
+            authResponse = AuthResponse(
+                token = "mock_token_employer",
+                email = "ali.abellana5@gmail.com",
+                name = "Tech Corp Admin",
+                role = "EMPLOYER",
+                companyName = "Tech Corp Solutions",
+                companyLocation = "Cebu City, Philippines",
+                companyWebsite = "https://techcorp.com",
+                phone = "+63 912 345 6789"
+            )
+        }
+        onSuccess()
+    }
 }
